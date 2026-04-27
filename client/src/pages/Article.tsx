@@ -27,7 +27,7 @@ function renderContent(content: string) {
       elements.push(
         <h2
           key={i}
-          className="text-[#1A1A1A] text-2xl font-semibold mt-12 mb-4"
+          className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mt-12 mb-4"
           style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
         >
           {line.slice(3)}
@@ -37,7 +37,7 @@ function renderContent(content: string) {
       elements.push(
         <h3
           key={i}
-          className="text-[#1A1A1A] text-xl font-semibold mt-8 mb-3"
+          className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mt-8 mb-3"
           style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
         >
           {line.slice(4)}
@@ -47,7 +47,7 @@ function renderContent(content: string) {
       elements.push(
         <blockquote
           key={i}
-          className="border-l-2 border-[#1A1A1A]/25 pl-5 py-1 my-6 text-[#4A4A4A] italic"
+          className="border-l-2 border-[#1A1A1A]/25 dark:border-[#F5F5F5]/25 pl-5 py-1 my-6 text-[#4A4A4A] dark:text-[#D0D0D0] italic"
           style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
         >
           {line.slice(2)}
@@ -59,7 +59,7 @@ function renderContent(content: string) {
       elements.push(
         <p
           key={i}
-          className="text-[#2A2A2A] text-[1.0625rem] leading-[1.9] mb-5"
+          className="text-[#2A2A2A] dark:text-[#D0D0D0] text-[1.0625rem] leading-[1.9] mb-5"
           style={{ fontFamily: "'Noto Serif SC', serif" }}
         >
           {line}
@@ -93,17 +93,17 @@ export default function Article() {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1A1A1A] flex items-center justify-center">
         <Navbar />
         <div className="text-center">
           <p
-            className="text-[#9B9B9B] text-sm mb-4"
+            className="text-[#9B9B9B] dark:text-[#808080] text-sm mb-4"
             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
           >
             404 · 文章不存在
           </p>
           <Link href="/blog">
-            <span className="text-[#1A1A1A] text-sm underline">返回文章列表</span>
+            <span className="text-[#1A1A1A] dark:text-[#F5F5F5] text-sm underline">返回文章列表</span>
           </Link>
         </div>
       </div>
@@ -116,10 +116,10 @@ export default function Article() {
   ).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1A1A1A]">
       {/* Reading Progress Bar */}
       <div
-        className="fixed top-0 left-0 z-[60] h-0.5 bg-[#1A1A1A] transition-all duration-100"
+        className="fixed top-0 left-0 z-[60] h-0.5 bg-[#1A1A1A] dark:bg-[#F5F5F5] transition-all duration-100"
         style={{ width: `${readProgress}%` }}
       />
 
@@ -132,24 +132,24 @@ export default function Article() {
           <div className="flex items-center gap-2 mb-8">
             <Link href="/">
               <span
-                className="text-[#9B9B9B] text-xs hover:text-[#1A1A1A] transition-colors"
+                className="text-[#9B9B9B] dark:text-[#808080] text-xs hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 首页
               </span>
             </Link>
-            <span className="text-[#D4D4D0] text-xs">/</span>
+            <span className="text-[#D4D4D0] dark:text-[#333333] text-xs">/</span>
             <Link href="/blog">
               <span
-                className="text-[#9B9B9B] text-xs hover:text-[#1A1A1A] transition-colors"
+                className="text-[#9B9B9B] dark:text-[#808080] text-xs hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 文章
               </span>
             </Link>
-            <span className="text-[#D4D4D0] text-xs">/</span>
+            <span className="text-[#D4D4D0] dark:text-[#333333] text-xs">/</span>
             <span
-              className="text-[#6B6B6B] text-xs line-clamp-1"
+              className="text-[#6B6B6B] dark:text-[#A0A0A0] text-xs line-clamp-1"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               {article.title}
@@ -159,14 +159,14 @@ export default function Article() {
           {/* Meta */}
           <div className="flex items-center gap-4 mb-6">
             <span
-              className="text-[#9B9B9B] text-xs tracking-[0.08em]"
+              className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               {formatDate(article.date)}
             </span>
-            <span className="w-px h-3 bg-[#D4D4D0]" />
+            <span className="w-px h-3 bg-[#D4D4D0] dark:bg-[#333333]" />
             <span
-              className="text-[#9B9B9B] text-xs tracking-[0.08em]"
+              className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               {article.readTime} min read
@@ -175,7 +175,7 @@ export default function Article() {
 
           {/* Title */}
           <h1
-            className="text-[#1A1A1A] text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4"
+            className="text-[#1A1A1A] dark:text-[#F5F5F5] text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4"
             style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.02em" }}
           >
             {article.title}
@@ -183,7 +183,7 @@ export default function Article() {
 
           {article.subtitle && (
             <p
-              className="text-[#6B6B6B] text-lg italic mb-6"
+              className="text-[#6B6B6B] dark:text-[#A0A0A0] text-lg italic mb-6"
               style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
             >
               {article.subtitle}
@@ -201,7 +201,7 @@ export default function Article() {
 
           {/* Excerpt / Lead */}
           <p
-            className="text-[#4A4A4A] text-lg leading-relaxed border-l-2 border-[#1A1A1A]/20 pl-5 py-1"
+            className="text-[#4A4A4A] dark:text-[#D0D0D0] text-lg leading-relaxed border-l-2 border-[#1A1A1A]/20 dark:border-[#F5F5F5]/20 pl-5 py-1"
             style={{ fontFamily: "'Noto Serif SC', serif" }}
           >
             {article.excerpt}
@@ -226,7 +226,7 @@ export default function Article() {
           </div>
 
           {/* Article Footer */}
-          <div className="mt-16 pt-8 border-t border-[#1A1A1A]/10">
+          <div className="mt-16 pt-8 border-t border-[#1A1A1A]/10 dark:border-[#F5F5F5]/10">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex flex-wrap gap-2">
                 {article.tags.map(tag => (
@@ -237,7 +237,7 @@ export default function Article() {
               </div>
               <Link href="/blog">
                 <span
-                  className="text-[#6B6B6B] text-xs tracking-[0.1em] hover:text-[#1A1A1A] transition-colors"
+                  className="text-[#6B6B6B] dark:text-[#A0A0A0] text-xs tracking-[0.1em] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   ← 返回文章列表
@@ -250,9 +250,9 @@ export default function Article() {
         {/* Related Articles */}
         {related.length > 0 && (
           <div className="max-w-5xl mx-auto px-6 lg:px-8 mt-20">
-            <div className="h-px bg-[#1A1A1A]/8 mb-12" />
+            <div className="h-px bg-[#1A1A1A]/8 dark:bg-[#F5F5F5]/8 mb-12" />
             <h2
-              className="text-[#1A1A1A] text-xl font-semibold mb-8"
+              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mb-8"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               相关文章

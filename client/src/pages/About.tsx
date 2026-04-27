@@ -28,7 +28,7 @@ export default function About() {
   const recent = getRecentArticles(3);
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1A1A1A]">
       <Navbar />
 
       <main className="pt-28 pb-20">
@@ -43,20 +43,20 @@ export default function About() {
                   alt="关于我"
                   className="w-full max-w-sm aspect-[3/4] object-cover"
                 />
-                <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-[#1A1A1A]/15 hidden lg:block" />
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-[#1A1A1A]/15 dark:border-[#F5F5F5]/15 hidden lg:block" />
               </div>
             </div>
 
             {/* Right: Text */}
             <div className="fade-in-up fade-in-up-delay-2">
               <p
-                className="text-[#9B9B9B] text-xs tracking-[0.2em] uppercase mb-4"
+                className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.2em] uppercase mb-4"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 About
               </p>
               <h1
-                className="text-[#1A1A1A] text-4xl md:text-5xl font-bold mb-6"
+                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-4xl md:text-5xl font-bold mb-6"
                 style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.02em" }}
               >
                 关于我
@@ -64,19 +64,19 @@ export default function About() {
 
               <div className="space-y-5">
                 <p
-                  className="text-[#2A2A2A] text-base leading-[1.9]"
+                  className="text-[#2A2A2A] dark:text-[#D0D0D0] text-base leading-[1.9]"
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
                 >
                   你好，我是这个博客的作者。我是一个喜欢阅读、写作和散步的人，相信文字是思想最好的容器，相信慢下来是这个时代最重要的能力。
                 </p>
                 <p
-                  className="text-[#2A2A2A] text-base leading-[1.9]"
+                  className="text-[#2A2A2A] dark:text-[#D0D0D0] text-base leading-[1.9]"
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
                 >
                   这个博客叫做「墨迹」，取自墨水在纸上留下的痕迹。我希望这里的每一篇文章，都像墨迹一样——有深有浅，有浓有淡，但都是真实的。
                 </p>
                 <p
-                  className="text-[#2A2A2A] text-base leading-[1.9]"
+                  className="text-[#2A2A2A] dark:text-[#D0D0D0] text-base leading-[1.9]"
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
                 >
                   我写作的主题包括：哲学与思考、阅读笔记、写作方法、生活方式，以及偶尔的技术思考。不追求系统，只追求真实。
@@ -84,9 +84,9 @@ export default function About() {
               </div>
 
               {/* Quote */}
-              <div className="mt-8 border-l-2 border-[#1A1A1A]/20 pl-5 py-1">
+              <div className="mt-8 border-l-2 border-[#1A1A1A]/20 dark:border-[#F5F5F5]/20 pl-5 py-1">
                 <p
-                  className="text-[#4A4A4A] text-sm leading-relaxed italic"
+                  className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed italic"
                   style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
                 >
                   "写作是一种与沉默的对话。那片空白本身就是一种语言。"
@@ -96,12 +96,12 @@ export default function About() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-[#1A1A1A]/8 mb-20" />
+          <div className="h-px bg-[#1A1A1A]/8 dark:bg-[#F5F5F5]/8 mb-20" />
 
           {/* Interests */}
           <div className="mb-20 fade-in-up fade-in-up-delay-1">
             <h2
-              className="text-[#1A1A1A] text-2xl font-semibold mb-10"
+              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mb-10"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               关注的事
@@ -110,13 +110,13 @@ export default function About() {
               {SKILLS.map((skill, i) => (
                 <div key={skill.label} className={`fade-in-up fade-in-up-delay-${i + 1}`}>
                   <h3
-                    className="text-[#1A1A1A] text-lg font-semibold mb-2"
+                    className="text-[#1A1A1A] dark:text-[#F5F5F5] text-lg font-semibold mb-2"
                     style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
                   >
                     {skill.label}
                   </h3>
                   <p
-                    className="text-[#6B6B6B] text-sm leading-relaxed"
+                    className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm leading-relaxed"
                     style={{ fontFamily: "'Noto Serif SC', serif" }}
                   >
                     {skill.desc}
@@ -127,12 +127,12 @@ export default function About() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-[#1A1A1A]/8 mb-20" />
+          <div className="h-px bg-[#1A1A1A]/8 dark:bg-[#F5F5F5]/8 mb-20" />
 
           {/* Favorites */}
           <div className="mb-20 fade-in-up">
             <h2
-              className="text-[#1A1A1A] text-2xl font-semibold mb-10"
+              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mb-10"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               喜欢的事物
@@ -141,7 +141,7 @@ export default function About() {
               {FAVORITES.map(fav => (
                 <div key={fav.category}>
                   <h3
-                    className="text-[#1A1A1A] text-xs font-semibold tracking-[0.15em] uppercase mb-4"
+                    className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xs font-semibold tracking-[0.15em] uppercase mb-4"
                     style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                   >
                     {fav.category}
@@ -150,7 +150,7 @@ export default function About() {
                     {fav.items.map(item => (
                       <li
                         key={item}
-                        className="text-[#4A4A4A] text-sm leading-relaxed"
+                        className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed"
                         style={{ fontFamily: "'Noto Serif SC', serif" }}
                       >
                         {item}
@@ -163,20 +163,20 @@ export default function About() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-[#1A1A1A]/8 mb-20" />
+          <div className="h-px bg-[#1A1A1A]/8 dark:bg-[#F5F5F5]/8 mb-20" />
 
           {/* Recent Articles */}
           <div className="fade-in-up">
             <div className="flex items-baseline justify-between mb-8">
               <h2
-                className="text-[#1A1A1A] text-2xl font-semibold"
+                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold"
                 style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
               >
                 最近写了
               </h2>
               <Link href="/blog">
                 <span
-                  className="text-[#9B9B9B] text-xs tracking-[0.1em] hover:text-[#1A1A1A] transition-colors"
+                  className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.1em] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   全部文章 →

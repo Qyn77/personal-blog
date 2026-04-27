@@ -23,19 +23,19 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
         <article className="article-card group py-4 px-2 -mx-2 transition-colors duration-150 cursor-pointer">
           <div className="flex items-baseline justify-between gap-4">
             <h3
-              className="text-[#1A1A1A] text-base font-medium group-hover:text-[#000] transition-colors line-clamp-1 flex-1"
+              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-base font-medium group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors line-clamp-1 flex-1"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               {article.title}
             </h3>
             <span
-              className="text-[#9B9B9B] text-xs shrink-0"
+              className="text-[#9B9B9B] dark:text-[#808080] text-xs shrink-0"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               {article.date.slice(0, 7)}
             </span>
           </div>
-          <p className="text-[#6B6B6B] text-sm mt-1 line-clamp-1" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+          <p className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm mt-1 line-clamp-1" style={{ fontFamily: "'Noto Serif SC', serif" }}>
             {article.excerpt}
           </p>
         </article>
@@ -58,35 +58,35 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
           )}
           <div className="flex items-center gap-3 mb-3">
             <span
-              className="text-[#9B9B9B] text-xs tracking-[0.08em]"
+              className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               {formatDate(article.date)}
             </span>
-            <span className="w-px h-3 bg-[#D4D4D0]" />
+            <span className="w-px h-3 bg-[#D4D4D0] dark:bg-[#333333]" />
             <span
-              className="text-[#9B9B9B] text-xs tracking-[0.08em]"
+              className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               {article.readTime} min read
             </span>
           </div>
           <h2
-            className="text-[#1A1A1A] text-2xl font-semibold mb-2 leading-tight group-hover:text-[#000] transition-colors"
+            className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mb-2 leading-tight group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors"
             style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
           >
             {article.title}
           </h2>
           {article.subtitle && (
             <p
-              className="text-[#6B6B6B] text-sm mb-3 italic"
+              className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm mb-3 italic"
               style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
             >
               {article.subtitle}
             </p>
           )}
           <p
-            className="text-[#4A4A4A] text-sm leading-relaxed line-clamp-3"
+            className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed line-clamp-3"
             style={{ fontFamily: "'Noto Serif SC', serif" }}
           >
             {article.excerpt}
@@ -104,38 +104,38 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
   // Default variant
   return (
     <Link href={`/article/${article.slug}`}>
-      <article className="article-card group py-6 px-4 -mx-4 cursor-pointer border-b border-[#1A1A1A]/8">
+      <article className="article-card group py-6 px-4 -mx-4 cursor-pointer border-b border-[#1A1A1A]/8 dark:border-[#F5F5F5]/8">
         <div className="flex items-center gap-3 mb-2">
           <span
-            className="text-[#9B9B9B] text-xs tracking-[0.08em]"
+            className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
           >
             {formatDate(article.date)}
           </span>
-          <span className="w-px h-3 bg-[#D4D4D0]" />
+          <span className="w-px h-3 bg-[#D4D4D0] dark:bg-[#333333]" />
           <span
-            className="text-[#9B9B9B] text-xs tracking-[0.08em]"
+            className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
           >
             {article.readTime} min
           </span>
         </div>
         <h2
-          className="text-[#1A1A1A] text-xl font-semibold mb-2 group-hover:text-[#000] transition-colors"
+          className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mb-2 group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors"
           style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
         >
           {article.title}
         </h2>
         {article.subtitle && (
           <p
-            className="text-[#6B6B6B] text-sm mb-2 italic"
+            className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm mb-2 italic"
             style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
           >
             {article.subtitle}
           </p>
         )}
         <p
-          className="text-[#4A4A4A] text-sm leading-relaxed line-clamp-2"
+          className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed line-clamp-2"
           style={{ fontFamily: "'Noto Serif SC', serif" }}
         >
           {article.excerpt}

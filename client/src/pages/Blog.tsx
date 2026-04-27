@@ -47,26 +47,26 @@ export default function Blog() {
   filtered = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1A1A1A]">
       <Navbar />
 
       <main className="pt-28 pb-20 max-w-5xl mx-auto px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-16 fade-in-up">
           <p
-            className="text-[#9B9B9B] text-xs tracking-[0.2em] uppercase mb-3"
+            className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.2em] uppercase mb-3"
             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
           >
             All Articles
           </p>
           <h1
-            className="text-[#1A1A1A] text-4xl md:text-5xl font-bold mb-4"
+            className="text-[#1A1A1A] dark:text-[#F5F5F5] text-4xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.02em" }}
           >
             文章
           </h1>
           <p
-            className="text-[#6B6B6B] text-base"
+            className="text-[#6B6B6B] dark:text-[#A0A0A0] text-base"
             style={{ fontFamily: "'Noto Serif SC', serif" }}
           >
             共 {ARTICLES.length} 篇文章，关于思考、阅读、写作与生活。
@@ -81,11 +81,11 @@ export default function Blog() {
               placeholder="搜索文章..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-b border-[#1A1A1A]/20 py-2 pr-8 text-sm text-[#1A1A1A] placeholder-[#C4C4C0] focus:outline-none focus:border-[#1A1A1A] transition-colors"
+              className="w-full bg-transparent border-b border-[#1A1A1A]/20 dark:border-[#F5F5F5]/20 py-2 pr-8 text-sm text-[#1A1A1A] dark:text-[#F5F5F5] placeholder-[#C4C4C0] dark:placeholder-[#555555] focus:outline-none focus:border-[#1A1A1A] dark:focus:border-[#F5F5F5] transition-colors"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             />
             <svg
-              className="absolute right-2 top-2.5 w-4 h-4 text-[#9B9B9B]"
+              className="absolute right-2 top-2.5 w-4 h-4 text-[#9B9B9B] dark:text-[#808080]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -101,7 +101,7 @@ export default function Blog() {
             {/* Categories */}
             <div className="mb-10">
               <h3
-                className="text-[#1A1A1A] text-xs font-semibold tracking-[0.15em] uppercase mb-4"
+                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xs font-semibold tracking-[0.15em] uppercase mb-4"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 分类
@@ -112,8 +112,8 @@ export default function Blog() {
                     onClick={() => { setActiveCategory("all"); setActiveTag(""); }}
                     className={`text-sm transition-colors w-full text-left py-1 ${
                       activeCategory === "all" && !activeTag
-                        ? "text-[#1A1A1A] font-medium"
-                        : "text-[#6B6B6B] hover:text-[#1A1A1A]"
+                        ? "text-[#1A1A1A] dark:text-[#F5F5F5] font-medium"
+                        : "text-[#6B6B6B] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5]"
                     }`}
                     style={{ fontFamily: "'Noto Serif SC', serif" }}
                   >
@@ -126,8 +126,8 @@ export default function Blog() {
                       onClick={() => { setActiveCategory(cat.id); setActiveTag(""); }}
                       className={`text-sm transition-colors w-full text-left py-1 ${
                         activeCategory === cat.id
-                          ? "text-[#1A1A1A] font-medium"
-                          : "text-[#6B6B6B] hover:text-[#1A1A1A]"
+                          ? "text-[#1A1A1A] dark:text-[#F5F5F5] font-medium"
+                          : "text-[#6B6B6B] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5]"
                       }`}
                       style={{ fontFamily: "'Noto Serif SC', serif" }}
                     >
@@ -141,7 +141,7 @@ export default function Blog() {
             {/* Tags */}
             <div>
               <h3
-                className="text-[#1A1A1A] text-xs font-semibold tracking-[0.15em] uppercase mb-4"
+                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xs font-semibold tracking-[0.15em] uppercase mb-4"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 标签
@@ -156,7 +156,7 @@ export default function Blog() {
                     }}
                     className={`tag-pill transition-all ${
                       activeTag === tag
-                        ? "bg-[#1A1A1A] text-[#FAFAF8] border-[#1A1A1A]"
+                        ? "bg-[#1A1A1A] dark:bg-[#F5F5F5] text-[#FAFAF8] dark:text-[#1A1A1A] border-[#1A1A1A] dark:border-[#F5F5F5]"
                         : ""
                     }`}
                   >
@@ -172,7 +172,7 @@ export default function Blog() {
             {filtered.length === 0 ? (
               <div className="py-20 text-center">
                 <p
-                  className="text-[#9B9B9B] text-sm"
+                  className="text-[#9B9B9B] dark:text-[#808080] text-sm"
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
                 >
                   没有找到相关文章
@@ -181,7 +181,7 @@ export default function Blog() {
             ) : (
               <div>
                 <p
-                  className="text-[#9B9B9B] text-xs tracking-[0.08em] mb-6"
+                  className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em] mb-6"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   {filtered.length} 篇文章
