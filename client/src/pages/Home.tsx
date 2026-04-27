@@ -17,7 +17,7 @@ export default function Home() {
   const recent = getRecentArticles(6);
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#1A1A1A]">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
       {/* Hero Section */}
@@ -29,26 +29,26 @@ export default function Home() {
             alt=""
             className="w-full h-full object-cover opacity-40"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAF8]/20 via-transparent to-[#FAFAF8]/90 dark:from-[#1A1A1A]/20 dark:to-[#1A1A1A]/90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/90" />
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-8 w-full">
           <div className="max-w-2xl fade-in-up">
             <p
-              className="text-[#6B6B6B] dark:text-[#A0A0A0] text-xs tracking-[0.2em] uppercase mb-6 fade-in-up fade-in-up-delay-1"
+              className="text-muted-foreground text-xs tracking-[0.2em] uppercase mb-6 fade-in-up fade-in-up-delay-1"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               Personal Blog · 个人博客
             </p>
             <h1
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-5xl md:text-7xl font-bold leading-[1.1] mb-6 fade-in-up fade-in-up-delay-2"
+              className="text-foreground text-5xl md:text-7xl font-bold leading-[1.1] mb-6 fade-in-up fade-in-up-delay-2"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.03em" }}
             >
               墨迹
             </h1>
             <p
-              className="text-[#4A4A4A] dark:text-[#D0D0D0] text-lg md:text-xl leading-relaxed mb-8 fade-in-up fade-in-up-delay-3"
+              className="text-foreground/70 text-lg md:text-xl leading-relaxed mb-8 fade-in-up fade-in-up-delay-3"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               以文字对抗遗忘，以思考丈量世界。
@@ -58,7 +58,7 @@ export default function Home() {
             <div className="flex items-center gap-6 fade-in-up fade-in-up-delay-4">
               <Link href="/blog">
                 <span
-                  className="inline-block text-[#1A1A1A] dark:text-[#F5F5F5] text-sm tracking-[0.1em] border-b border-[#1A1A1A] dark:border-[#F5F5F5] pb-0.5 hover:border-opacity-50 transition-all duration-200"
+                  className="inline-block text-foreground text-sm tracking-[0.1em] border-b border-foreground pb-0.5 hover:border-opacity-50 transition-all duration-200"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   浏览文章 →
@@ -66,7 +66,7 @@ export default function Home() {
               </Link>
               <Link href="/about">
                 <span
-                  className="inline-block text-[#6B6B6B] dark:text-[#A0A0A0] text-sm tracking-[0.1em] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors duration-200"
+                  className="inline-block text-muted-foreground text-sm tracking-[0.1em] hover:text-foreground transition-colors duration-200"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   关于我
@@ -76,46 +76,46 @@ export default function Home() {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-8 mt-16 pt-8 border-t border-[#1A1A1A]/10 dark:border-[#F5F5F5]/10">
+          <div className="flex items-center gap-8 mt-16 pt-8 border-t border-foreground/10">
             <div>
               <p
-                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-bold"
+                className="text-foreground text-2xl font-bold"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 {ARTICLES.length}
               </p>
               <p
-                className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.1em] mt-0.5"
+                className="text-muted-foreground text-xs tracking-[0.1em] mt-0.5"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 篇文章
               </p>
             </div>
-            <div className="w-px h-8 bg-[#D4D4D0] dark:bg-[#333333]" />
+            <div className="w-px h-8 bg-border" />
             <div>
               <p
-                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-bold"
+                className="text-foreground text-2xl font-bold"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 {CATEGORIES.length}
               </p>
               <p
-                className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.1em] mt-0.5"
+                className="text-muted-foreground text-xs tracking-[0.1em] mt-0.5"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 个分类
               </p>
             </div>
-            <div className="w-px h-8 bg-[#D4D4D0] dark:bg-[#333333]" />
+            <div className="w-px h-8 bg-border" />
             <div>
               <p
-                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-bold"
+                className="text-foreground text-2xl font-bold"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 2023
               </p>
               <p
-                className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.1em] mt-0.5"
+                className="text-muted-foreground text-xs tracking-[0.1em] mt-0.5"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 年开始写作
@@ -129,14 +129,14 @@ export default function Home() {
       <section className="py-20 max-w-5xl mx-auto px-6 lg:px-8">
         <div className="flex items-baseline justify-between mb-12">
           <h2
-            className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold"
+            className="text-foreground text-2xl font-semibold"
             style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
           >
             精选文章
           </h2>
           <Link href="/blog">
             <span
-              className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.1em] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
+              className="text-muted-foreground text-xs tracking-[0.1em] hover:text-foreground transition-colors"
               style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
               全部文章 →
@@ -155,7 +155,7 @@ export default function Home() {
 
       {/* Divider */}
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
-        <div className="h-px bg-[#1A1A1A]/8 dark:bg-[#F5F5F5]/8" />
+        <div className="h-px bg-border" />
       </div>
 
       {/* Recent Articles + Sidebar */}
@@ -164,7 +164,7 @@ export default function Home() {
           {/* Main: Recent Articles */}
           <div className="lg:col-span-2">
             <h2
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mb-8"
+              className="text-foreground text-2xl font-semibold mb-8"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               最新文章
@@ -177,7 +177,7 @@ export default function Home() {
             <div className="mt-8">
               <Link href="/blog">
                 <span
-                  className="inline-block text-[#6B6B6B] dark:text-[#A0A0A0] text-sm tracking-[0.1em] border border-[#D4D4D0] dark:border-[#333333] px-6 py-3 hover:bg-[#1A1A1A] hover:text-[#FAFAF8] dark:hover:bg-[#F5F5F5] dark:hover:text-[#1A1A1A] hover:border-[#1A1A1A] dark:hover:border-[#F5F5F5] transition-all duration-200"
+                  className="inline-block text-muted-foreground text-sm tracking-[0.1em] border border-border px-6 py-3 hover:bg-foreground hover:text-background dark:hover:bg-background dark:hover:text-foreground hover:border-foreground transition-all duration-200"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   查看全部文章
@@ -191,7 +191,7 @@ export default function Home() {
             {/* Categories */}
             <div className="mb-12">
               <h3
-                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-sm font-semibold tracking-[0.1em] uppercase mb-6"
+                className="text-foreground text-sm font-semibold tracking-[0.1em] uppercase mb-6"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 分类
@@ -202,13 +202,13 @@ export default function Home() {
                     <Link href={`/blog?category=${cat.id}`}>
                       <span className="flex items-center justify-between group cursor-pointer">
                         <span
-                          className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm group-hover:text-[#1A1A1A] dark:group-hover:text-[#F5F5F5] transition-colors"
+                          className="text-foreground/70 text-sm group-hover:text-foreground transition-colors"
                           style={{ fontFamily: "'Noto Serif SC', serif" }}
                         >
                           {cat.name}
                         </span>
                         <span
-                          className="text-[#9B9B9B] dark:text-[#808080] text-xs"
+                          className="text-muted-foreground text-xs"
                           style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                         >
                           {cat.count}
@@ -221,15 +221,15 @@ export default function Home() {
             </div>
 
             {/* Quote */}
-            <div className="border-l-2 border-[#1A1A1A]/20 dark:border-[#F5F5F5]/20 pl-4 py-2">
+            <div className="border-l-2 border-foreground/20 pl-4 py-2">
               <p
-                className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed italic"
+                className="text-foreground/70 text-sm leading-relaxed italic"
                 style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
               >
                 "我走进森林，因为我想从容地生活，只面对生活的本质。"
               </p>
               <p
-                className="text-[#9B9B9B] dark:text-[#808080] text-xs mt-2 tracking-[0.05em]"
+                className="text-muted-foreground text-xs mt-2 tracking-[0.05em]"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 — 梭罗《瓦尔登湖》
@@ -239,20 +239,20 @@ export default function Home() {
             {/* About snippet */}
             <div className="mt-12">
               <h3
-                className="text-[#1A1A1A] dark:text-[#F5F5F5] text-sm font-semibold tracking-[0.1em] uppercase mb-4"
+                className="text-foreground text-sm font-semibold tracking-[0.1em] uppercase mb-4"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 关于博主
               </h3>
               <p
-                className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm leading-relaxed"
+                className="text-muted-foreground text-sm leading-relaxed"
                 style={{ fontFamily: "'Noto Serif SC', serif" }}
               >
                 一个喜欢阅读、写作和散步的人。相信文字是思想最好的容器，相信慢下来是这个时代最重要的能力。
               </p>
               <Link href="/about">
                 <span
-                  className="inline-block text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.1em] mt-3 hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
+                  className="inline-block text-muted-foreground text-xs tracking-[0.1em] mt-3 hover:text-foreground transition-colors"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   了解更多 →

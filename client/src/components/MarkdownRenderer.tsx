@@ -27,7 +27,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           // 标题
           h1: ({ children }) => (
             <h1
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-3xl md:text-4xl font-bold mt-12 mb-6 leading-tight"
+              className="text-foreground text-3xl md:text-4xl font-bold mt-12 mb-6 leading-tight"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -35,7 +35,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           h2: ({ children }) => (
             <h2
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mt-10 mb-4"
+              className="text-foreground text-2xl font-semibold mt-10 mb-4"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -43,7 +43,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           h3: ({ children }) => (
             <h3
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mt-8 mb-3"
+              className="text-foreground text-xl font-semibold mt-8 mb-3"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -51,7 +51,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           h4: ({ children }) => (
             <h4
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-lg font-semibold mt-6 mb-2"
+              className="text-foreground text-lg font-semibold mt-6 mb-2"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -59,7 +59,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           h5: ({ children }) => (
             <h5
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] font-semibold mt-4 mb-2"
+              className="text-foreground font-semibold mt-4 mb-2"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -67,7 +67,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           h6: ({ children }) => (
             <h6
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] font-semibold mt-4 mb-2"
+              className="text-foreground font-semibold mt-4 mb-2"
               style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -76,7 +76,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           // 段落
           p: ({ children }) => (
             <p
-              className="text-[#2A2A2A] dark:text-[#D0D0D0] text-[1.0625rem] leading-[1.9] mb-5"
+              className="text-foreground/80 text-[1.0625rem] leading-[1.9] mb-5"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               {children}
@@ -86,7 +86,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           a: ({ href, children }) => (
             <a
               href={href}
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] underline hover:opacity-70 transition-opacity"
+              className="text-foreground underline hover:opacity-70 transition-opacity"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -95,12 +95,12 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           // 强调
           strong: ({ children }) => (
-            <strong className="font-semibold text-[#1A1A1A] dark:text-[#F5F5F5]">
+            <strong className="font-semibold text-foreground">
               {children}
             </strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-[#4A4A4A] dark:text-[#D0D0D0]" style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}>
+            <em className="italic text-foreground/70" style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}>
               {children}
             </em>
           ),
@@ -110,7 +110,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
             if (inline) {
               return (
                 <code
-                  className="bg-[#F0F0EE] dark:bg-[#22222A] text-[#C41E3A] dark:text-[#FF6B6B] px-2 py-0.5 rounded text-sm"
+                  className="bg-card text-red-600 dark:text-red-400 px-2 py-0.5 rounded text-sm"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   {children}
@@ -119,7 +119,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
             }
             return (
               <pre
-                className="bg-[#F0F0EE] dark:bg-[#22222A] p-4 rounded-lg overflow-x-auto my-6 border border-[#E0E0DC] dark:border-[#333333]"
+                className="bg-card p-4 rounded-lg overflow-x-auto my-6 border border-border"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 <code className={className}>{children}</code>
@@ -129,7 +129,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           // 引用块
           blockquote: ({ children }) => (
             <blockquote
-              className="border-l-2 border-[#1A1A1A]/25 dark:border-[#F5F5F5]/25 pl-5 py-1 my-6 text-[#4A4A4A] dark:text-[#D0D0D0] italic"
+              className="border-l-2 border-foreground/25 pl-5 py-1 my-6 text-foreground/70 italic"
               style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
             >
               {children}
@@ -137,12 +137,12 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           // 列表
           ul: ({ children }) => (
-            <ul className="list-disc list-inside text-[#2A2A2A] dark:text-[#D0D0D0] mb-5 space-y-2" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+            <ul className="list-disc list-inside text-foreground/80 mb-5 space-y-2" style={{ fontFamily: "'Noto Serif SC', serif" }}>
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal list-inside text-[#2A2A2A] dark:text-[#D0D0D0] mb-5 space-y-2" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+            <ol className="list-decimal list-inside text-foreground/80 mb-5 space-y-2" style={{ fontFamily: "'Noto Serif SC', serif" }}>
               {children}
             </ol>
           ),
@@ -151,18 +151,18 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           // 分割线
           hr: () => (
-            <hr className="my-8 border-t border-[#1A1A1A]/10 dark:border-[#F5F5F5]/10" />
+            <hr className="my-8 border-t border-border" />
           ),
           // 表格
           table: ({ children }) => (
             <div className="overflow-x-auto my-6">
-              <table className="w-full border-collapse border border-[#D4D4D0] dark:border-[#333333]">
+              <table className="w-full border-collapse border border-border">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-[#F0F0EE] dark:bg-[#22222A]">
+            <thead className="bg-card">
               {children}
             </thead>
           ),
@@ -170,13 +170,13 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
             <tbody>{children}</tbody>
           ),
           tr: ({ children }) => (
-            <tr className="border-b border-[#D4D4D0] dark:border-[#333333]">
+            <tr className="border-b border-border">
               {children}
             </tr>
           ),
           th: ({ children }) => (
             <th
-              className="border border-[#D4D4D0] dark:border-[#333333] px-4 py-2 text-left font-semibold text-[#1A1A1A] dark:text-[#F5F5F5]"
+              className="border border-border px-4 py-2 text-left font-semibold text-foreground"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               {children}
@@ -184,7 +184,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
           ),
           td: ({ children }) => (
             <td
-              className="border border-[#D4D4D0] dark:border-[#333333] px-4 py-2 text-[#2A2A2A] dark:text-[#D0D0D0]"
+              className="border border-border px-4 py-2 text-foreground/80"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               {children}
@@ -195,7 +195,7 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
             <img
               src={src}
               alt={alt}
-              className="max-w-full h-auto rounded-lg my-6 border border-[#E0E0DC] dark:border-[#333333]"
+              className="max-w-full h-auto rounded-lg my-6 border border-border"
             />
           ),
         }}
