@@ -9,8 +9,8 @@ import Blog from "./pages/Blog";
 import Article from "./pages/Article";
 import Archive from "./pages/Archive";
 import About from "./pages/About";
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Home} />
