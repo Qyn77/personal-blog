@@ -1,75 +1,20 @@
 /*
  * 设计哲学：日式极简主义
  * 文章详情页：宽边距，内容列居中但不满屏，衬线字体，大量留白
+ * 使用 Markdown 渲染器渲染文章内容
  */
 
 import { useParams, Link } from "wouter";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { getArticleBySlug, ARTICLES } from "@/lib/blogData";
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
   return date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
-}
-
-function renderContent(content: string) {
-  const lines = content.split("\n");
-  const elements: ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    if (line.startsWith("## ")) {
-      elements.push(
-        <h2
-          key={i}
-          className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mt-12 mb-4"
-          style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
-        >
-          {line.slice(3)}
-        </h2>
-      );
-    } else if (line.startsWith("### ")) {
-      elements.push(
-        <h3
-          key={i}
-          className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mt-8 mb-3"
-          style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
-        >
-          {line.slice(4)}
-        </h3>
-      );
-    } else if (line.startsWith("> ")) {
-      elements.push(
-        <blockquote
-          key={i}
-          className="border-l-2 border-[#1A1A1A]/25 dark:border-[#F5F5F5]/25 pl-5 py-1 my-6 text-[#4A4A4A] dark:text-[#D0D0D0] italic"
-          style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
-        >
-          {line.slice(2)}
-        </blockquote>
-      );
-    } else if (line.trim() === "") {
-      // skip empty lines (paragraph breaks handled by p margin)
-    } else {
-      elements.push(
-        <p
-          key={i}
-          className="text-[#2A2A2A] dark:text-[#D0D0D0] text-[1.0625rem] leading-[1.9] mb-5"
-          style={{ fontFamily: "'Noto Serif SC', serif" }}
-        >
-          {line}
-        </p>
-      );
-    }
-    i++;
-  }
-
-  return elements;
 }
 
 export default function Article() {
@@ -219,10 +164,10 @@ export default function Article() {
           </div>
         )}
 
-        {/* Article Content */}
+        {/* Article Content - Using Markdown Renderer */}
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <div className="fade-in-up fade-in-up-delay-2">
-            {renderContent(article.content)}
+            <MarkdownRenderer content={article.content} />
           </div>
 
           {/* Article Footer */}
