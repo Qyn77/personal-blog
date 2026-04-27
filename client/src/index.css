@@ -89,6 +89,35 @@
   --sidebar-ring: oklch(0.15 0.005 60);
 }
 
+/* 深色模式 */
+.dark {
+  --background: oklch(0.12 0.004 60);
+  --foreground: oklch(0.92 0.003 80);
+  --card: oklch(0.18 0.005 60);
+  --card-foreground: oklch(0.92 0.003 80);
+  --popover: oklch(0.18 0.005 60);
+  --popover-foreground: oklch(0.92 0.003 80);
+  --primary: oklch(0.95 0.003 80);
+  --primary-foreground: oklch(0.12 0.005 60);
+  --secondary: oklch(0.22 0.005 60);
+  --secondary-foreground: oklch(0.75 0.003 80);
+  --muted: oklch(0.25 0.005 60);
+  --muted-foreground: oklch(0.65 0.008 80);
+  --accent: oklch(0.22 0.005 60);
+  --accent-foreground: oklch(0.92 0.003 80);
+  --border: oklch(0.92 0.003 80 / 15%);
+  --input: oklch(0.92 0.003 80 / 20%);
+  --ring: oklch(0.92 0.003 80 / 40%);
+  --sidebar: oklch(0.18 0.005 60);
+  --sidebar-foreground: oklch(0.92 0.003 80);
+  --sidebar-primary: oklch(0.95 0.003 80);
+  --sidebar-primary-foreground: oklch(0.12 0.005 60);
+  --sidebar-accent: oklch(0.22 0.005 60);
+  --sidebar-accent-foreground: oklch(0.92 0.003 80);
+  --sidebar-border: oklch(0.92 0.003 80 / 15%);
+  --sidebar-ring: oklch(0.92 0.003 80 / 40%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -159,6 +188,9 @@
   .article-card:hover {
     background-color: oklch(0.96 0.002 80);
   }
+  .dark .article-card:hover {
+    background-color: oklch(0.22 0.005 60);
+  }
 
   /* 下划线动画 */
   .underline-animate {
@@ -177,6 +209,9 @@
   }
   .underline-animate:hover::after {
     width: 100%;
+  }
+  .dark .underline-animate::after {
+    background: oklch(0.92 0.003 80);
   }
 
   /* 等宽字体样式 */
@@ -222,6 +257,15 @@
     background: oklch(0.15 0.005 60);
     color: oklch(0.985 0.003 80);
     border-color: oklch(0.15 0.005 60);
+  }
+  .dark .tag-pill {
+    border-color: oklch(0.92 0.003 80 / 0.25);
+    color: oklch(0.75 0.003 80);
+  }
+  .dark .tag-pill:hover {
+    background: oklch(0.92 0.003 80);
+    color: oklch(0.12 0.005 60);
+    border-color: oklch(0.92 0.003 80);
   }
 
   /* 文章正文排版 */
