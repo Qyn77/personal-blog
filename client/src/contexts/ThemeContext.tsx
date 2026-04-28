@@ -44,6 +44,10 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = document.documentElement;
+    
+    // 添加过渡动画类
+    root.classList.add("theme-transition");
+    
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
@@ -53,6 +57,13 @@ export function ThemeProvider({
     if (switchable) {
       localStorage.setItem("theme", theme);
     }
+    
+    // 动画完成后移除过渡类
+    const timer = setTimeout(() => {
+      root.classList.remove("theme-transition");
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, [theme, switchable]);
 
   // 监听系统主题变化
@@ -79,6 +90,9 @@ export function ThemeProvider({
 
   const toggleTheme = switchable
     ? () => {
+        // 添加过渡动画
+        const root = document.documentElement;
+        root.classList.add("theme-transition");
         setTheme(prev => (prev === "light" ? "dark" : "light"));
       }
     : undefined;

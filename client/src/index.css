@@ -89,6 +89,12 @@
   --sidebar-ring: oklch(0.15 0.005 60);
 }
 
+/* 主题切换过渡动画 */
+html.theme-transition,
+html.theme-transition * {
+  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease !important;
+}
+
 /* 深色模式 */
 .dark {
   --background: oklch(0.12 0.004 60);
