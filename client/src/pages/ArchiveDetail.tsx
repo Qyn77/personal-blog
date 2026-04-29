@@ -93,7 +93,7 @@ export default function ArchiveDetail() {
     <div className="min-h-screen bg-background text-foreground">
       {/* 阅读进度条 */}
       <div
-        className="fixed top-0 left-0 h-1 bg-foreground transition-all duration-300 z-50"
+        className="fixed top-0 left-0 h-1 bg-foreground transition-all duration-300 z-[60]"
         style={{ width: `${readProgress}%` }}
       />
 
