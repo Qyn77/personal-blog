@@ -1,6 +1,6 @@
 /**
  * 初始化数据库脚本
- * 从 books 文件夹加载 Markdown 文章到 SQLite 数据库
+ * 从 books 和 archives 文件夹加载 Markdown 文章到 SQLite 数据库
  */
 
 import fs from "fs";
@@ -8,10 +8,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 import initSqlJs from "sql.js";
 import { drizzle } from "drizzle-orm/sql-js";
-import { articles } from "../../drizzle/sqlite-schema";
+import { articles, archives } from "../../drizzle/sqlite-schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BOOKS_DIR = path.join(__dirname, "..", "..", "books");
+const ARCHIVES_DIR = path.join(__dirname, "..", "..", "archives");
 const DB_PATH = path.join(__dirname, "..", "..", "blog.db");
 
 interface BlogArticle {
@@ -27,6 +28,19 @@ interface BlogArticle {
   category: string;
   featured?: boolean;
   coverImage?: string;
+}
+
+interface ArchiveItem {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle?: string;
+  excerpt: string;
+  content: string;
+  date: string;
+  readTime: number;
+  tags: string[];
+  category: string;
 }
 
 /**
@@ -116,6 +130,42 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
 }
 
 /**
+ * 从单个 Markdown 文件加载归档
+ */
+function loadArchiveFromFile(filePath: string): ArchiveItem | null {
+  try {
+    const content = fs.readFileSync(filePath, "utf-8");
+    const { metadata, body } = parseFrontmatter(content);
+
+    const excerpt =
+      (typeof metadata.excerpt === "string" ? metadata.excerpt : undefined) ||
+      body
+        .replace(/^#+\s+.+\n/gm, "")
+        .replace(/\[.+?\]\(.+?\)/g, "")
+        .substring(0, 150)
+        .trim() + "...";
+
+    const item: ArchiveItem = {
+      id: (metadata.id as string) || path.basename(filePath, ".md"),
+      slug: (metadata.slug as string) || path.basename(filePath, ".md"),
+      title: (metadata.title as string) || "Untitled",
+      subtitle: (metadata.subtitle as string),
+      excerpt,
+      content: body,
+      date: (metadata.date as string) || new Date().toISOString().split("T")[0],
+      readTime: calculateReadTime(body),
+      tags: (metadata.tags as string[]) || [],
+      category: (metadata.category as string) || "uncategorized",
+    };
+
+    return item;
+  } catch (error) {
+    console.error(`Error loading file ${filePath}:`, error);
+    return null;
+  }
+}
+
+/**
  * 从 books 文件夹加载所有文章
  */
 function loadAllArticles(): BlogArticle[] {
@@ -148,6 +198,41 @@ function loadAllArticles(): BlogArticle[] {
   }
 
   return articleList;
+}
+
+/**
+ * 从 archives 文件夹加载所有归档
+ */
+function loadAllArchives(): ArchiveItem[] {
+  const archiveList: ArchiveItem[] = [];
+
+  try {
+    if (!fs.existsSync(ARCHIVES_DIR)) {
+      console.warn(`Archives directory not found: ${ARCHIVES_DIR}`);
+      return archiveList;
+    }
+
+    const files = fs.readdirSync(ARCHIVES_DIR);
+
+    for (const file of files) {
+      if (!file.endsWith(".md")) continue;
+
+      const filePath = path.join(ARCHIVES_DIR, file);
+      const item = loadArchiveFromFile(filePath);
+
+      if (item) {
+        archiveList.push(item);
+      }
+    }
+
+    archiveList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    console.log(`Loaded ${archiveList.length} archives from ${ARCHIVES_DIR}`);
+  } catch (error) {
+    console.error("Error loading archives:", error);
+  }
+
+  return archiveList;
 }
 
 /**
@@ -185,41 +270,75 @@ async function initDatabase() {
       );
     `);
 
+    sqlJsDb.run(`
+      CREATE TABLE IF NOT EXISTS archives (
+        id TEXT PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        subtitle TEXT,
+        excerpt TEXT NOT NULL,
+        content TEXT NOT NULL,
+        date TEXT NOT NULL,
+        readTime INTEGER NOT NULL,
+        tags TEXT NOT NULL,
+        category TEXT NOT NULL,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      );
+    `);
+
     // 加载文章
     console.log("Loading articles from books folder...");
     const loadedArticles = loadAllArticles();
 
-    if (loadedArticles.length === 0) {
-      console.log("No articles found to import.");
-      // 保存空数据库
-      const data = sqlJsDb.export();
-      const buffer = Buffer.from(data);
-      fs.writeFileSync(DB_PATH, buffer);
-      console.log(`✓ Empty database created at ${DB_PATH}`);
-      return;
-    }
+    // 加载归档
+    console.log("Loading archives from archives folder...");
+    const loadedArchives = loadAllArchives();
 
-    // 插入文章到数据库
-    console.log(`Inserting ${loadedArticles.length} articles into database...`);
     const now = Date.now();
 
-    for (const article of loadedArticles) {
-      await db.insert(articles as any).values({
-        id: article.id,
-        slug: article.slug,
-        title: article.title,
-        subtitle: article.subtitle,
-        excerpt: article.excerpt,
-        content: article.content,
-        date: article.date,
-        readTime: article.readTime,
-        tags: JSON.stringify(article.tags),
-        category: article.category,
-        featured: article.featured ? 1 : 0,
-        coverImage: article.coverImage,
-        createdAt: now,
-        updatedAt: now,
-      });
+    // 插入文章到数据库
+    if (loadedArticles.length > 0) {
+      console.log(`Inserting ${loadedArticles.length} articles into database...`);
+      for (const article of loadedArticles) {
+        await db.insert(articles as any).values({
+          id: article.id,
+          slug: article.slug,
+          title: article.title,
+          subtitle: article.subtitle,
+          excerpt: article.excerpt,
+          content: article.content,
+          date: article.date,
+          readTime: article.readTime,
+          tags: JSON.stringify(article.tags),
+          category: article.category,
+          featured: article.featured ? 1 : 0,
+          coverImage: article.coverImage,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    // 插入归档到数据库
+    if (loadedArchives.length > 0) {
+      console.log(`Inserting ${loadedArchives.length} archives into database...`);
+      for (const archive of loadedArchives) {
+        await db.insert(archives as any).values({
+          id: archive.id,
+          slug: archive.slug,
+          title: archive.title,
+          subtitle: archive.subtitle,
+          excerpt: archive.excerpt,
+          content: archive.content,
+          date: archive.date,
+          readTime: archive.readTime,
+          tags: JSON.stringify(archive.tags),
+          category: archive.category,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
     }
 
     // 保存数据库到文件
@@ -229,6 +348,7 @@ async function initDatabase() {
 
     console.log("✓ Database initialized successfully!");
     console.log(`✓ ${loadedArticles.length} articles imported`);
+    console.log(`✓ ${loadedArchives.length} archives imported`);
     console.log(`✓ Database file: ${DB_PATH}`);
   } catch (error) {
     console.error("Failed to initialize database:", error);

@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Blog from "./pages/Blog";
 import Article from "./pages/Article";
 import Archive from "./pages/Archive";
+import ArchiveDetail from "./pages/ArchiveDetail";
 import About from "./pages/About";
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/blog" component={Blog} />
       <Route path="/article/:slug" component={Article} />
       <Route path="/archive" component={Archive} />
+      <Route path="/archive/:slug" component={ArchiveDetail} />
       <Route path="/about" component={About} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

@@ -5,7 +5,7 @@ import type { Database as SqlJsDatabase } from "sql.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { articles, InsertArticle, Article } from "../drizzle/sqlite-schema";
+import { articles, InsertArticle, Article, archives, InsertArchive, Archive } from "../drizzle/sqlite-schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.join(__dirname, "..", "blog.db");
@@ -164,3 +164,98 @@ export async function deleteArticle(slug: string): Promise<void> {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+// ============================================================================
+// 归档相关函数
+// ============================================================================
+
+/**
+ * 获取所有归档
+ */
+export async function getAllArchives(): Promise<Archive[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get archives: database not available");
+    return [];
+  }
+
+  try {
+    // @ts-ignore
+    const result = await db.select().from(archives);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get archives:", error);
+    return [];
+  }
+}
+
+/**
+ * 根据 slug 获取单个归档
+ */
+export async function getArchiveBySlug(slug: string): Promise<Archive | undefined> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get archive: database not available");
+    return undefined;
+  }
+
+  try {
+    // @ts-ignore
+    const result = await db.select().from(archives).where(eq(archives.slug, slug)).limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get archive:", error);
+    return undefined;
+  }
+}
+
+/**
+ * 创建或更新归档
+ */
+export async function upsertArchive(archive: InsertArchive): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot upsert archive: database not available");
+    return;
+  }
+
+  try {
+    const now = Date.now();
+    const data: InsertArchive = {
+      ...archive,
+      createdAt: archive.createdAt || now,
+      updatedAt: now,
+    };
+
+    // @ts-ignore
+    await db.insert(archives).values(data).onConflictDoUpdate({
+      target: archives.slug,
+      set: data as any,
+    });
+    
+    await saveDb();
+  } catch (error) {
+    console.error("[Database] Failed to upsert archive:", error);
+    throw error;
+  }
+}
+
+/**
+ * 删除归档
+ */
+export async function deleteArchive(slug: string): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete archive: database not available");
+    return;
+  }
+
+  try {
+    // @ts-ignore
+    await db.delete(archives).where(eq(archives.slug, slug));
+    await saveDb();
+  } catch (error) {
+    console.error("[Database] Failed to delete archive:", error);
+    throw error;
+  }
+}

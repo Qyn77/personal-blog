@@ -23,3 +23,25 @@ export const articles = sqliteTable("articles", {
 
 export type Article = typeof articles.$inferSelect;
 export type InsertArticle = typeof articles.$inferInsert;
+
+/**
+ * SQLite 归档表
+ * 用于存储归档内容的元数据和内容
+ */
+export const archives = sqliteTable("archives", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(),
+  date: text("date").notNull(),
+  readTime: integer("readTime").notNull(),
+  tags: text("tags").notNull(), // JSON 字符串
+  category: text("category").notNull(),
+  createdAt: integer("createdAt").notNull(), // Unix timestamp
+  updatedAt: integer("updatedAt").notNull(), // Unix timestamp
+});
+
+export type Archive = typeof archives.$inferSelect;
+export type InsertArchive = typeof archives.$inferInsert;
