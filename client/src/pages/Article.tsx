@@ -42,7 +42,12 @@ export default function Article() {
   // 当文章数据加载完成时
   useEffect(() => {
     if (articleData && articleData.success && articleData.article) {
-      setArticle(articleData.article as Article);
+      const article = articleData.article as any;
+      // 如果 tags 是字符串，解析为数组
+      if (typeof article.tags === 'string') {
+        article.tags = JSON.parse(article.tags);
+      }
+      setArticle(article as Article);
       setIsLoading(false);
     } else {
       setIsLoading(false);
@@ -53,10 +58,14 @@ export default function Article() {
   useEffect(() => {
     if (article && allArticlesData && allArticlesData.success && Array.isArray(allArticlesData.articles)) {
       const related = (allArticlesData.articles as any[])
+        .map(a => ({
+          ...a,
+          tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        }))
         .filter(
           (a: any) =>
             a.id !== article.id &&
-            (a.category === article.category || a.tags.some((t: string) => article.tags.includes(t)))
+            (a.category === article.category || (Array.isArray(a.tags) && a.tags.some((t: string) => article.tags.includes(t))))
         )
         .slice(0, 3);
       setRelatedArticles(related);

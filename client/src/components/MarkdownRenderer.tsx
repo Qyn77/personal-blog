@@ -191,13 +191,20 @@ export default function MarkdownRenderer({ content, className = "" }: MarkdownRe
             </td>
           ),
           // 图片
-          img: ({ src, alt }) => (
-            <img
-              src={src}
-              alt={alt}
-              className="max-w-full h-auto rounded-lg my-6 border border-border"
-            />
-          ),
+          img: ({ src, alt }) => {
+            // 处理相对路径：如果是 images/ 开头的相对路径，转换为绝对路径
+            let imageSrc = src || '';
+            if (imageSrc.startsWith('images/')) {
+              imageSrc = `/books/${imageSrc}`;
+            }
+            return (
+              <img
+                src={imageSrc}
+                alt={alt}
+                className="max-w-full h-auto rounded-lg my-6 border border-border"
+              />
+            );
+          },
         }}
       >
         {content}

@@ -51,18 +51,25 @@ export default function Blog() {
   // 当文章数据加载完成时，提取分类和标签
   useEffect(() => {
     if (articlesData && articlesData.success && Array.isArray(articlesData.articles)) {
-      setArticles(articlesData.articles as BlogArticle[]);
+      // 处理 tags 字符串转数组
+      const processedArticles = articlesData.articles.map((a: any) => ({
+        ...a,
+        tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
+      }));
+      
+      setArticles(processedArticles as BlogArticle[]);
       setIsLoading(false);
 
       // 提取所有唯一的分类
       const uniqueCategories = Array.from(
-        new Set(articlesData.articles.map((a: any) => a.category))
+        new Set(processedArticles.map((a: any) => a.category))
       ).sort() as string[];
       setCategories(uniqueCategories);
 
       // 提取所有唯一的标签
       const uniqueTags = Array.from(
-        new Set(articlesData.articles.flatMap((a: any) => a.tags))
+        new Set(processedArticles.flatMap((a: any) => a.tags))
       ).sort() as string[];
       setTags(uniqueTags);
     } else if (articlesData && !articlesData.success) {

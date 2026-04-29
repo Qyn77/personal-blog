@@ -1,11 +1,11 @@
 /*
  * 博客 tRPC 路由
- * 提供从本地 books 文件夹加载博客文章的 API
+ * 提供从 SQLite 数据库加载博客文章的 API
  */
 
 import { publicProcedure, router } from "../_core/trpc";
 import { z } from "zod";
-import { loadAllArticles, getArticleBySlug } from "../lib/blogLoader";
+import * as db from "../db";
 
 export const blogRouter = router({
   /**
@@ -13,7 +13,7 @@ export const blogRouter = router({
    */
   listArticles: publicProcedure.query(async () => {
     try {
-      const articles = loadAllArticles();
+      const articles = await db.getAllArticles();
       return {
         success: true,
         articles,
@@ -37,7 +37,7 @@ export const blogRouter = router({
     .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => {
       try {
-        const article = getArticleBySlug(input.slug);
+        const article = await db.getArticleBySlug(input.slug);
         if (!article) {
           return {
             success: false,
@@ -66,7 +66,8 @@ export const blogRouter = router({
     .input(z.object({ category: z.string() }))
     .query(async ({ input }) => {
       try {
-        const articles = loadAllArticles().filter(a => a.category === input.category);
+        const allArticles = await db.getAllArticles();
+        const articles = allArticles.filter(a => a.category === input.category);
         return {
           success: true,
           articles,
@@ -90,7 +91,11 @@ export const blogRouter = router({
     .input(z.object({ tag: z.string() }))
     .query(async ({ input }) => {
       try {
-        const articles = loadAllArticles().filter(a => a.tags.includes(input.tag));
+        const allArticles = await db.getAllArticles();
+        const articles = allArticles.filter(a => {
+          const tags = typeof a.tags === 'string' ? JSON.parse(a.tags) : (a.tags || []);
+          return Array.isArray(tags) && tags.includes(input.tag);
+        });
         return {
           success: true,
           articles,
@@ -115,12 +120,17 @@ export const blogRouter = router({
     .query(async ({ input }) => {
       try {
         const query = input.query.toLowerCase();
-        const articles = loadAllArticles().filter(
-          a =>
-            a.title.toLowerCase().includes(query) ||
-            a.excerpt.toLowerCase().includes(query) ||
-            a.content.toLowerCase().includes(query) ||
-            a.tags.some(tag => tag.toLowerCase().includes(query))
+        const allArticles = await db.getAllArticles();
+        const articles = allArticles.filter(
+          a => {
+            const tags = typeof a.tags === 'string' ? JSON.parse(a.tags) : (a.tags || []);
+            return (
+              a.title.toLowerCase().includes(query) ||
+              a.excerpt.toLowerCase().includes(query) ||
+              a.content.toLowerCase().includes(query) ||
+              (Array.isArray(tags) && tags.some((tag: string) => tag.toLowerCase().includes(query)))
+            );
+          }
         );
         return {
           success: true,
