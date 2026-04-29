@@ -3,29 +3,78 @@
  * 关于页：左侧插图，右侧文字，大量留白，衬线字体
  */
 
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
-import { getRecentArticles } from "@/lib/blogData";
+import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
+import { Loader2 } from "lucide-react";
 
-const ABOUT_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/about-portrait-LjyC39wzLU5FpMeSGZr8Yy.webp";
-
-const SKILLS = [
-  { label: "阅读", desc: "每年约 40-50 本书，偏爱哲学、文学与自然写作" },
-  { label: "写作", desc: "坚持写日记 10 年，博客写作 2 年" },
-  { label: "散步", desc: "相信行走是最好的思考方式" },
-  { label: "茶道", desc: "修习日本茶道三年，寻找「間」的哲学" },
-];
-
-const FAVORITES = [
-  { category: "书", items: ["《瓦尔登湖》梭罗", "《局外人》加缪", "《禅与摩托车维修艺术》波西格", "《给一位年轻诗人的信》里尔克"] },
-  { category: "概念", items: ["物の哀れ（物哀）", "侘寂（Wabi-sabi）", "間（Ma）", "一期一会"] },
-  { category: "习惯", items: ["晨间写作", "无手机散步", "慢读", "每日冥想"] },
-];
+interface AboutConfig {
+  hero: {
+    image: string;
+    title: string;
+    paragraphs: string[];
+    quote: string;
+  };
+  interests: Array<{
+    label: string;
+    description: string;
+  }>;
+  favorites: Array<{
+    category: string;
+    items: string[];
+  }>;
+}
 
 export default function About() {
-  const recent = getRecentArticles(3);
+  const [config, setConfig] = useState<AboutConfig | null>(null);
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 加载配置文件
+  useEffect(() => {
+    fetch('/about-config.json')
+      .then(res => res.json())
+      .then(data => setConfig(data))
+      .catch(err => console.error('Failed to load about config:', err));
+  }, []);
+
+  // 加载最新文章
+  const { data: articlesData } = trpc.blog.listArticles.useQuery();
+
+  useEffect(() => {
+    if (articlesData && articlesData.success) {
+      const processedArticles = articlesData.articles.map((a: any) => ({
+        ...a,
+        tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
+      }));
+      
+      // 获取最新 3 篇文章
+      const recent = processedArticles
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 3);
+      
+      setRecentArticles(recent);
+    }
+  }, [articlesData]);
+
+  useEffect(() => {
+    if (config && articlesData) {
+      setIsLoading(false);
+    }
+  }, [config, articlesData]);
+
+  if (isLoading || !config) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <Navbar />
+        <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -39,8 +88,8 @@ export default function About() {
             <div className="fade-in-up">
               <div className="relative">
                 <img
-                  src={ABOUT_IMG}
-                  alt="关于我"
+                  src={config.hero.image}
+                  alt={config.hero.title}
                   className="w-full max-w-sm aspect-[3/4] object-cover"
                 />
                 <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-foreground/15 hidden lg:block" />
@@ -59,28 +108,19 @@ export default function About() {
                 className="text-foreground text-4xl md:text-5xl font-bold mb-6"
                 style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.02em" }}
               >
-                关于我
+                {config.hero.title}
               </h1>
 
               <div className="space-y-5">
-                <p
-                  className="text-foreground/80 text-base leading-[1.9]"
-                  style={{ fontFamily: "'Noto Serif SC', serif" }}
-                >
-                  你好，我是这个博客的作者。我是一个喜欢阅读、写作和散步的人，相信文字是思想最好的容器，相信慢下来是这个时代最重要的能力。
-                </p>
-                <p
-                  className="text-foreground/80 text-base leading-[1.9]"
-                  style={{ fontFamily: "'Noto Serif SC', serif" }}
-                >
-                  这个博客叫做「墨迹」，取自墨水在纸上留下的痕迹。我希望这里的每一篇文章，都像墨迹一样——有深有浅，有浓有淡，但都是真实的。
-                </p>
-                <p
-                  className="text-foreground/80 text-base leading-[1.9]"
-                  style={{ fontFamily: "'Noto Serif SC', serif" }}
-                >
-                  我写作的主题包括：哲学与思考、阅读笔记、写作方法、生活方式，以及偶尔的技术思考。不追求系统，只追求真实。
-                </p>
+                {config.hero.paragraphs.map((paragraph, index) => (
+                  <p
+                    key={index}
+                    className="text-foreground/80 text-base leading-[1.9]"
+                    style={{ fontFamily: "'Noto Serif SC', serif" }}
+                  >
+                    {paragraph}
+                  </p>
+                ))}
               </div>
 
               {/* Quote */}
@@ -89,7 +129,7 @@ export default function About() {
                   className="text-foreground/70 text-sm leading-relaxed italic"
                   style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
                 >
-                  "写作是一种与沉默的对话。那片空白本身就是一种语言。"
+                  "{config.hero.quote}"
                 </p>
               </div>
             </div>
@@ -107,19 +147,19 @@ export default function About() {
               关注的事
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {SKILLS.map((skill, i) => (
-                <div key={skill.label} className={`fade-in-up fade-in-up-delay-${i + 1}`}>
+              {config.interests.map((interest, i) => (
+                <div key={interest.label} className={`fade-in-up fade-in-up-delay-${i + 1}`}>
                   <h3
                     className="text-foreground text-lg font-semibold mb-2"
                     style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
                   >
-                    {skill.label}
+                    {interest.label}
                   </h3>
                   <p
                     className="text-foreground/70 text-sm leading-relaxed"
                     style={{ fontFamily: "'Noto Serif SC', serif" }}
                   >
-                    {skill.desc}
+                    {interest.description}
                   </p>
                 </div>
               ))}
@@ -138,7 +178,7 @@ export default function About() {
               喜欢的事物
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {FAVORITES.map(fav => (
+              {config.favorites.map(fav => (
                 <div key={fav.category}>
                   <h3
                     className="text-foreground text-xs font-semibold tracking-[0.15em] uppercase mb-4"
@@ -176,18 +216,22 @@ export default function About() {
               </h2>
               <Link href="/blog">
                 <span
-                  className="text-muted-foreground text-xs tracking-[0.1em] hover:text-foreground transition-colors"
+                  className="text-muted-foreground text-xs tracking-[0.1em] hover:text-foreground transition-colors cursor-pointer"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   全部文章 →
                 </span>
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {recent.map(article => (
-                <ArticleCard key={article.id} article={article} variant="compact" />
-              ))}
-            </div>
+            {recentArticles.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {recentArticles.map(article => (
+                  <ArticleCard key={article.id} article={article} variant="compact" />
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">暂无文章</p>
+            )}
           </div>
         </div>
       </main>
