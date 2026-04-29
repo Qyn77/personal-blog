@@ -311,4 +311,280 @@ html.theme-transition * {
     background: oklch(0.93 0.003 80);
     padding: 0.1em 0.4em;
   }
+
+  /* Markdown 内容样式 */
+  .markdown-content {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4,
+  .markdown-content h5,
+  .markdown-content h6 {
+    scroll-margin-top: 5rem;
+  }
+
+  .markdown-content p {
+    margin-bottom: 1.5rem;
+  }
+
+  .markdown-content ul,
+  .markdown-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .markdown-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.75;
+  }
+
+  .markdown-content li > ul,
+  .markdown-content li > ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .markdown-content blockquote {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+    border-left: 4px solid oklch(0.15 0.005 60 / 0.3);
+  }
+
+  .dark .markdown-content blockquote {
+    border-left-color: oklch(0.92 0.003 80 / 0.3);
+  }
+
+  .markdown-content pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .markdown-content pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  .markdown-content code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.9em;
+  }
+
+  .markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+  }
+
+  .markdown-content th,
+  .markdown-content td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid oklch(0.88 0.004 80);
+  }
+
+  .dark .markdown-content th,
+  .dark .markdown-content td {
+    border-bottom-color: oklch(0.92 0.003 80 / 0.15);
+  }
+
+  .markdown-content th {
+    font-weight: 600;
+    background-color: oklch(0.96 0.002 80);
+  }
+
+  .dark .markdown-content th {
+    background-color: oklch(0.18 0.005 60);
+  }
+
+  .markdown-content tr:hover {
+    background-color: oklch(0.98 0.002 80);
+  }
+
+  .dark .markdown-content tr:hover {
+    background-color: oklch(0.22 0.005 60);
+  }
+
+  .markdown-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 2rem auto;
+    border-radius: 0.5rem;
+  }
+
+  .markdown-content figure {
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .markdown-content figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: oklch(0.52 0.008 60);
+  }
+
+  .dark .markdown-content figcaption {
+    color: oklch(0.65 0.008 80);
+  }
+
+  .markdown-content hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 1px solid oklch(0.88 0.004 80);
+  }
+
+  .dark .markdown-content hr {
+    border-top-color: oklch(0.92 0.003 80 / 0.15);
+  }
+
+  /* 代码块复制按钮 */
+  .markdown-content pre {
+    position: relative;
+  }
+
+  .markdown-content pre button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem;
+    background: oklch(0.15 0.005 60 / 0.1);
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+
+  .markdown-content pre button:hover {
+    background: oklch(0.15 0.005 60 / 0.2);
+  }
+
+  .dark .markdown-content pre button {
+    background: oklch(0.92 0.003 80 / 0.1);
+  }
+
+  .dark .markdown-content pre button:hover {
+    background: oklch(0.92 0.003 80 / 0.2);
+  }
+
+  /* 代码高亮样式覆盖 */
+  .markdown-content pre code.hljs {
+    background: transparent;
+    padding: 0;
+  }
+
+  .markdown-content pre {
+    background: #0d1117 !important;
+  }
+
+  .dark .markdown-content pre {
+    background: #0d1117 !important;
+  }
+
+  /* 确保代码高亮颜色正确显示 */
+  .markdown-content pre code {
+    color: #e6edf3;
+    display: block;
+  }
+
+  /* GitHub Dark 主题颜色 */
+  .markdown-content pre code .hljs-doctag,
+  .markdown-content pre code .hljs-keyword,
+  .markdown-content pre code .hljs-meta .hljs-keyword,
+  .markdown-content pre code .hljs-template-tag,
+  .markdown-content pre code .hljs-template-variable,
+  .markdown-content pre code .hljs-type,
+  .markdown-content pre code .hljs-variable.language_ {
+    color: #ff7b72;
+  }
+
+  .markdown-content pre code .hljs-title,
+  .markdown-content pre code .hljs-title.class_,
+  .markdown-content pre code .hljs-title.class_.inherited__,
+  .markdown-content pre code .hljs-title.function_ {
+    color: #d2a8ff;
+  }
+
+  .markdown-content pre code .hljs-attr,
+  .markdown-content pre code .hljs-attribute,
+  .markdown-content pre code .hljs-literal,
+  .markdown-content pre code .hljs-meta,
+  .markdown-content pre code .hljs-number,
+  .markdown-content pre code .hljs-operator,
+  .markdown-content pre code .hljs-selector-attr,
+  .markdown-content pre code .hljs-selector-class,
+  .markdown-content pre code .hljs-selector-id,
+  .markdown-content pre code .hljs-variable {
+    color: #79c0ff;
+  }
+
+  .markdown-content pre code .hljs-meta .hljs-string,
+  .markdown-content pre code .hljs-regexp,
+  .markdown-content pre code .hljs-string {
+    color: #a5d6ff;
+  }
+
+  .markdown-content pre code .hljs-built_in,
+  .markdown-content pre code .hljs-symbol {
+    color: #ffa657;
+  }
+
+  .markdown-content pre code .hljs-code,
+  .markdown-content pre code .hljs-comment,
+  .markdown-content pre code .hljs-formula {
+    color: #8b949e;
+  }
+
+  .markdown-content pre code .hljs-name,
+  .markdown-content pre code .hljs-quote,
+  .markdown-content pre code .hljs-selector-pseudo,
+  .markdown-content pre code .hljs-selector-tag {
+    color: #7ee787;
+  }
+
+  .markdown-content pre code .hljs-subst {
+    color: #e6edf3;
+  }
+
+  .markdown-content pre code .hljs-section {
+    color: #1f6feb;
+    font-weight: 700;
+  }
+
+  .markdown-content pre code .hljs-bullet {
+    color: #f2cc60;
+  }
+
+  .markdown-content pre code .hljs-emphasis {
+    color: #e6edf3;
+    font-style: italic;
+  }
+
+  .markdown-content pre code .hljs-strong {
+    color: #e6edf3;
+    font-weight: 700;
+  }
+
+  .markdown-content pre code .hljs-addition {
+    color: #aff5b4;
+    background-color: #033a16;
+  }
+
+  .markdown-content pre code .hljs-deletion {
+    color: #ffdcd7;
+    background-color: #67060c;
+  }
+
+  .markdown-content pre code .hljs-char.escape_,
+  .markdown-content pre code .hljs-link,
+  .markdown-content pre code .hljs-params,
+  .markdown-content pre code .hljs-property,
+  .markdown-content pre code .hljs-punctuation,
+  .markdown-content pre code .hljs-tag {
+    /* purposely ignored */
+  }
 }
