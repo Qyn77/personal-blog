@@ -1,5 +1,5 @@
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { router } from "./_core/trpc";
 import { blogRouter } from "./routers/blog";
 import { blogImagesRouter } from "./routers/blogImages";
 import { archiveRouter } from "./routers/archive";

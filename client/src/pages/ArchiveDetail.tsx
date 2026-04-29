@@ -23,7 +23,7 @@ export default function ArchiveDetail() {
   const [isLoading, setIsLoading] = useState(true);
 
   // 调用 tRPC API 获取单个归档
-  const { data: archiveData, isLoading: isLoadingArchive } = trpc.archive.getArchive.useQuery({
+  const { data: archiveData } = trpc.archive.getArchive.useQuery({
     slug: params.slug || "",
   });
 

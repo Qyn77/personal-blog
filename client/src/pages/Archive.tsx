@@ -20,7 +20,7 @@ export default function Archive() {
   const [isLoading, setIsLoading] = useState(true);
 
   // 调用 tRPC API 获取归档数据
-  const { data: archiveData, isLoading: isLoadingArchive } = trpc.archive.getByYear.useQuery();
+  const { data: archiveData } = trpc.archive.getByYear.useQuery();
 
   useEffect(() => {
     if (archiveData && archiveData.success) {

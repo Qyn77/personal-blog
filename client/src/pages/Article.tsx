@@ -28,7 +28,7 @@ export default function Article() {
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
 
   // 调用 tRPC API 获取单篇文章
-  const { data: articleData, isLoading: isLoadingArticle } = trpc.blog.getArticle.useQuery({
+  const { data: articleData } = trpc.blog.getArticle.useQuery({
     slug: params.slug || "",
   });
 
