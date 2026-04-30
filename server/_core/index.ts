@@ -5,7 +5,6 @@ import net from "net";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -41,8 +40,7 @@ async function startServer() {
   // 提供 books 文件夹中的静态文件（用于图片等资源）
   const booksPath = path.resolve(__dirname, "..", "..", "books");
   app.use("/books", express.static(booksPath));
-  
-  registerStorageProxy(app);
+
   // tRPC API
   app.use(
     "/api/trpc",
