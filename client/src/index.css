@@ -128,6 +128,9 @@ html.theme-transition * {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    font-size: 115%;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: 'Noto Serif SC', 'Lora', Georgia, serif;
