@@ -8,7 +8,7 @@ date: 2024-04-27
 category: technology
 tags: [markdown, 博客, 技术]
 featured: true
-coverImage: ./images/ai.png
+coverImage: ./images/ai.svg
 ---
 
 # 欢迎使用本地 Markdown 文件

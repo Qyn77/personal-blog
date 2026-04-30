@@ -3,13 +3,12 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = process.cwd();
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,9 +36,9 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   
-  // 提供 books 文件夹中的静态文件（用于图片等资源）
-  const booksPath = path.resolve(__dirname, "..", "..", "books");
-  app.use("/books", express.static(booksPath));
+  // 提供打包内容中的 books / archives 文件夹静态文件
+  app.use("/books", express.static(path.join(PROJECT_ROOT, "dist", "books")));
+  app.use("/archives", express.static(path.join(PROJECT_ROOT, "dist", "archives")));
 
   // tRPC API
   app.use(
@@ -51,9 +50,9 @@ async function startServer() {
   );
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
+    await setupVite(app, server, PROJECT_ROOT);
   } else {
-    serveStatic(app);
+    serveStatic(app, PROJECT_ROOT);
   }
 
   const preferredPort = parseInt(process.env.PORT || "3000");

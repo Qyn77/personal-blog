@@ -82,7 +82,7 @@ function processImagePaths(content: string): string {
       return match;
     }
 
-    let filename = src.replace(/^\.\//,  "").replace(/^images\//,  "");
+    let filename = src.replace(/^\.\//, "");
     const imageUrl = `/archives/${filename}`;
 
     return `![${alt}](${imageUrl})`;
