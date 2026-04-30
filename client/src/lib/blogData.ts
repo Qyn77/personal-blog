@@ -200,6 +200,7 @@ export const ARTICLES: Article[] = [
     readTime: 5,
     tags: ["生活方式", "专注", "时间"],
     category: "life",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-3-6qv9G4jN5L8q2WmKk1p9N.webp",
   },
   {
     id: "5",
@@ -242,6 +243,7 @@ export const ARTICLES: Article[] = [
     readTime: 6,
     tags: ["孤独", "思考", "创作"],
     category: "thinking",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-4-4hM9wP2r7QnZ1sYx8v3K5.webp",
   },
   {
     id: "6",
@@ -278,6 +280,7 @@ export const ARTICLES: Article[] = [
     readTime: 7,
     tags: ["设计", "语言", "创作"],
     category: "technology",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-5-8wR2pJ4nQ6tL1xF9.webp",
   },
   {
     id: "7",
@@ -314,6 +317,7 @@ export const ARTICLES: Article[] = [
     readTime: 5,
     tags: ["生活方式", "自然", "思考"],
     category: "life",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-6-2nS7vA4mK8cQ5dL.webp",
   },
   {
     id: "8",
@@ -354,6 +358,7 @@ export const ARTICLES: Article[] = [
     readTime: 6,
     tags: ["写作", "记忆", "时间"],
     category: "writing",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-7-9aH3kL6mN1pQ8rT.webp",
   },
   {
     id: "9",
@@ -396,6 +401,7 @@ export const ARTICLES: Article[] = [
     readTime: 6,
     tags: ["阅读", "文学", "生活方式"],
     category: "reading",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-8-5dV2nQ9wP7xR4sL.webp",
   },
   {
     id: "10",
@@ -440,6 +446,7 @@ export const ARTICLES: Article[] = [
     readTime: 7,
     tags: ["专注", "技术", "思考"],
     category: "technology",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-9-1mK8pQ3rT6zV5nX.webp",
   },
   {
     id: "11",
@@ -482,6 +489,7 @@ export const ARTICLES: Article[] = [
     readTime: 6,
     tags: ["生活方式", "哲学", "自然"],
     category: "life",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-10-7kP4qR2tL9mN1sV.webp",
   },
   {
     id: "12",
@@ -520,6 +528,7 @@ export const ARTICLES: Article[] = [
     readTime: 7,
     tags: ["语言", "哲学", "思考"],
     category: "thinking",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-11-3pQ8rT6vW1xY5m.webp",
   },
   {
     id: "13",
@@ -562,6 +571,7 @@ export const ARTICLES: Article[] = [
     readTime: 5,
     tags: ["写作", "创作", "思考"],
     category: "writing",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-12-6xN2qR8tL3pV5m.webp",
   },
   {
     id: "14",
@@ -610,6 +620,7 @@ export const ARTICLES: Article[] = [
     readTime: 8,
     tags: ["阅读", "文学", "哲学"],
     category: "reading",
+    coverImage: "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/article-cover-13-9tP4qR7vX2m.webp",
   },
 ];
 

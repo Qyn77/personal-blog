@@ -91,6 +91,29 @@ function calculateReadTime(content: string): number {
   return Math.max(1, Math.ceil(totalWords / 200));
 }
 
+function resolveBooksAsset(src: string): string {
+  const trimmed = src.trim();
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/")
+  ) {
+    return trimmed;
+  }
+
+  const normalized = trimmed
+    .replace(/^\.\//, "")
+    .replace(/^\/+/, "");
+
+  return `/books/${normalized}`;
+}
+
+function processMarkdownImages(content: string): string {
+  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+    return `![${alt}](${resolveBooksAsset(src)})`;
+  });
+}
+
 /**
  * 从单个 Markdown 文件加载文章
  */
@@ -99,9 +122,10 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
     const content = fs.readFileSync(filePath, "utf-8");
     const { metadata, body } = parseFrontmatter(content);
 
+    const processedBody = processMarkdownImages(body);
     const excerpt =
       (typeof metadata.excerpt === "string" ? metadata.excerpt : undefined) ||
-      body
+      processedBody
         .replace(/^#+\s+.+\n/gm, "")
         .replace(/\[.+?\]\(.+?\)/g, "")
         .substring(0, 150)
@@ -113,13 +137,16 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
       title: (metadata.title as string) || "Untitled",
       subtitle: (metadata.subtitle as string),
       excerpt,
-      content: body,
+      content: processedBody,
       date: (metadata.date as string) || new Date().toISOString().split("T")[0],
       readTime: calculateReadTime(body),
       tags: (metadata.tags as string[]) || [],
       category: (metadata.category as string) || "uncategorized",
       featured: (metadata.featured as boolean) || false,
-      coverImage: (metadata.coverImage as string),
+      coverImage:
+        typeof metadata.coverImage === "string"
+          ? resolveBooksAsset(metadata.coverImage)
+          : undefined,
     };
 
     return article;
