@@ -49,7 +49,7 @@ interface ArchiveItem {
  * 从 Markdown 文件的 frontmatter 中提取元数据
  */
 function parseFrontmatter(content: string): { metadata: Record<string, unknown>; body: string } {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+  const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
 
   if (!match) {
