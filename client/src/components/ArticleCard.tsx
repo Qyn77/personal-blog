@@ -4,7 +4,7 @@
  */
 
 import { Link } from "wouter";
-import type { Article } from "@/lib/blogData";
+import type { Article } from "@/type/blogData";
 
 interface ArticleCardProps {
   article: Article;

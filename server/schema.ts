@@ -22,7 +22,6 @@ export const articles = sqliteTable("articles", {
 });
 
 export type Article = typeof articles.$inferSelect;
-export type InsertArticle = typeof articles.$inferInsert;
 
 /**
  * SQLite 归档表
@@ -44,4 +43,4 @@ export const archives = sqliteTable("archives", {
 });
 
 export type Archive = typeof archives.$inferSelect;
-export type InsertArchive = typeof archives.$inferInsert;
+

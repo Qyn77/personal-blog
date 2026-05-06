@@ -13,7 +13,7 @@ import ArticleCard from "@/components/ArticleCard";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
-import type { Article } from "@/lib/blogData";
+import type { Article } from "@/type/blogData";
 
 function resolveBookImage(src: string) {
   if (

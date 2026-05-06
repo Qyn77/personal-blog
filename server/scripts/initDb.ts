@@ -8,14 +8,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 import initSqlJs from "sql.js";
 import { drizzle } from "drizzle-orm/sql-js";
-import { articles, archives } from "../../drizzle/sqlite-schema";
+import { articles, archives } from "../schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.join(__dirname, "..", "..");
 const BOOKS_DIR = path.join(PROJECT_ROOT, "books");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "archives");
 const DB_PATH = path.join(PROJECT_ROOT, "blog.db");
-const DIST_ROOT = path.join(PROJECT_ROOT, "dist");
+
 
 interface BlogArticle {
   id: string;
@@ -116,16 +116,6 @@ function processMarkdownImages(content: string): string {
   });
 }
 
-function copyContentToDist() {
-  fs.mkdirSync(DIST_ROOT, { recursive: true });
-  for (const folder of ["books", "archives"] as const) {
-    const sourcePath = path.join(PROJECT_ROOT, folder);
-    const targetPath = path.join(DIST_ROOT, folder);
-    if (fs.existsSync(sourcePath)) {
-      fs.cpSync(sourcePath, targetPath, { recursive: true, force: true });
-    }
-  }
-}
 
 /**
  * 从单个 Markdown 文件加载文章
@@ -385,8 +375,6 @@ async function initDatabase() {
     const data = sqlJsDb.export();
     const buffer = Buffer.from(data);
     fs.writeFileSync(DB_PATH, buffer);
-
-    copyContentToDist();
 
     console.log("✓ Database initialized successfully!");
     console.log(`✓ ${loadedArticles.length} articles imported`);

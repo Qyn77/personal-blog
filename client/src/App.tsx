@@ -11,7 +11,6 @@ import Archive from "./pages/Archive";
 import ArchiveDetail from "./pages/ArchiveDetail";
 import About from "./pages/About";
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Home} />
