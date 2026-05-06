@@ -36,9 +36,11 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   
-  // 提供打包内容中的 books / archives 文件夹静态文件
-  app.use("/books", express.static(path.join(PROJECT_ROOT, "dist", "books")));
-  app.use("/archives", express.static(path.join(PROJECT_ROOT, "dist", "archives")));
+  // 提供 books / archives 文件夹静态文件（开发模式直接读源目录，生产模式读 dist）
+  const isDev = process.env.NODE_ENV === "development";
+  const contentRoot = isDev ? PROJECT_ROOT : path.join(PROJECT_ROOT, "dist");
+  app.use("/books", express.static(path.join(contentRoot, "books")));
+  app.use("/archives", express.static(path.join(contentRoot, "archives")));
 
   // tRPC API
   app.use(

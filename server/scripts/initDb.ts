@@ -111,7 +111,7 @@ function resolveBooksAsset(src: string): string {
 }
 
 function processMarkdownImages(content: string): string {
-  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, src) => {
     return `![${alt}](${resolveBooksAsset(src)})`;
   });
 }
@@ -149,7 +149,7 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
       coverImage:
         typeof metadata.coverImage === "string"
           ? resolveBooksAsset(metadata.coverImage)
-          : undefined,
+          : "/books/default/ai.svg",
     };
 
     return article;
