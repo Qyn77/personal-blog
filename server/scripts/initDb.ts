@@ -9,13 +9,19 @@ import { fileURLToPath } from "url";
 import initSqlJs from "sql.js";
 import { drizzle } from "drizzle-orm/sql-js";
 import { articles, archives } from "../schema";
+import {
+  parseFrontmatter,
+  calculateReadTime,
+  resolveBooksAsset,
+  processMarkdownImages,
+  generateExcerpt,
+} from "../lib/markdown";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.join(__dirname, "..", "..");
 const BOOKS_DIR = path.join(PROJECT_ROOT, "books");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "archives");
 const DB_PATH = path.join(PROJECT_ROOT, "blog.db");
-
 
 interface BlogArticle {
   id: string;
@@ -46,78 +52,6 @@ interface ArchiveItem {
 }
 
 /**
- * 从 Markdown 文件的 frontmatter 中提取元数据
- */
-function parseFrontmatter(content: string): { metadata: Record<string, unknown>; body: string } {
-  const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
-  const match = content.match(frontmatterRegex);
-
-  if (!match) {
-    return { metadata: {}, body: content };
-  }
-
-  const [, frontmatterStr, body] = match;
-  const metadata: Record<string, unknown> = {};
-
-  frontmatterStr.split("\n").forEach(line => {
-    const colonIndex = line.indexOf(":");
-    if (colonIndex > 0) {
-      const key = line.substring(0, colonIndex).trim();
-      let valueStr = line.substring(colonIndex + 1).trim();
-      let value: unknown = valueStr;
-
-      if (valueStr === "true") value = true;
-      else if (valueStr === "false") value = false;
-      else if (!isNaN(Number(valueStr))) value = Number(valueStr);
-      else if (valueStr.startsWith("[") && valueStr.endsWith("]")) {
-        value = valueStr
-          .slice(1, -1)
-          .split(",")
-          .map((v: string) => v.trim().replace(/^["']|["']$/g, ""));
-      }
-
-      metadata[key] = value;
-    }
-  });
-
-  return { metadata, body };
-}
-
-/**
- * 计算阅读时间
- */
-function calculateReadTime(content: string): number {
-  const chineseCharCount = (content.match(/[\u4e00-\u9fff]/g) || []).length;
-  const englishWordCount = (content.match(/\b\w+\b/g) || []).length;
-  const totalWords = chineseCharCount + Math.ceil(englishWordCount / 1.5);
-  return Math.max(1, Math.ceil(totalWords / 200));
-}
-
-function resolveBooksAsset(src: string): string {
-  const trimmed = src.trim();
-  if (
-    trimmed.startsWith("http://") ||
-    trimmed.startsWith("https://") ||
-    trimmed.startsWith("/")
-  ) {
-    return trimmed;
-  }
-
-  const normalized = trimmed
-    .replace(/^\.\//, "")
-    .replace(/^\/+/, "");
-
-  return `/books/${normalized}`;
-}
-
-function processMarkdownImages(content: string): string {
-  return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, src) => {
-    return `![${alt}](${resolveBooksAsset(src)})`;
-  });
-}
-
-
-/**
  * 从单个 Markdown 文件加载文章
  */
 function loadArticleFromFile(filePath: string): BlogArticle | null {
@@ -126,13 +60,7 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
     const { metadata, body } = parseFrontmatter(content);
 
     const processedBody = processMarkdownImages(body);
-    const excerpt =
-      (typeof metadata.excerpt === "string" ? metadata.excerpt : undefined) ||
-      processedBody
-        .replace(/^#+\s+.+\n/gm, "")
-        .replace(/\[.+?\]\(.+?\)/g, "")
-        .substring(0, 150)
-        .trim() + "...";
+    const excerpt = generateExcerpt(processedBody, metadata.excerpt as string);
 
     const article: BlogArticle = {
       id: (metadata.id as string) || path.basename(filePath, ".md"),
@@ -167,13 +95,7 @@ function loadArchiveFromFile(filePath: string): ArchiveItem | null {
     const content = fs.readFileSync(filePath, "utf-8");
     const { metadata, body } = parseFrontmatter(content);
 
-    const excerpt =
-      (typeof metadata.excerpt === "string" ? metadata.excerpt : undefined) ||
-      body
-        .replace(/^#+\s+.+\n/gm, "")
-        .replace(/\[.+?\]\(.+?\)/g, "")
-        .substring(0, 150)
-        .trim() + "...";
+    const excerpt = generateExcerpt(body, metadata.excerpt as string);
 
     const item: ArchiveItem = {
       id: (metadata.id as string) || path.basename(filePath, ".md"),

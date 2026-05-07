@@ -7,7 +7,14 @@ import App from "./App";
 import "./index.css";
 
 // React Query 客户端，负责管理服务端数据的缓存
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30 * 1000,
+      refetchOnWindowFocus: true,
+    },
+  },
+});
 
 // tRPC 客户端，通过 /api/trpc 端点与后端通信
 const trpcClient = trpc.createClient({

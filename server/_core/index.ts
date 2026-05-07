@@ -7,6 +7,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { uploadRouter } from "../routes/upload";
 
 const PROJECT_ROOT = process.cwd();
 
@@ -41,6 +42,9 @@ async function startServer() {
   const contentRoot = isDev ? PROJECT_ROOT : path.join(PROJECT_ROOT, "dist");
   app.use("/books", express.static(path.join(contentRoot, "books")));
   app.use("/archives", express.static(path.join(contentRoot, "archives")));
+
+  // 文件上传 API
+  app.use("/api/upload", uploadRouter);
 
   // tRPC API
   app.use(
