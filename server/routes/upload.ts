@@ -11,6 +11,12 @@ import { nanoid } from "nanoid";
 
 const PROJECT_ROOT = process.cwd();
 
+// 根据环境变量决定上传路径根目录
+// 开发模式：上传到项目根目录下的 books/archives
+// 生产模式：上传到 dist 目录下的 books/archives
+const isDev = process.env.NODE_ENV === "development";
+const CONTENT_ROOT = isDev ? PROJECT_ROOT : path.join(PROJECT_ROOT, "dist");
+
 const ALLOWED_TYPES = ["books", "archives"] as const;
 
 const storage = multer.diskStorage({
@@ -20,7 +26,7 @@ const storage = multer.diskStorage({
       cb(new Error("Invalid upload type"), "");
       return;
     }
-    const dir = path.join(PROJECT_ROOT, type);
+    const dir = path.join(CONTENT_ROOT, type);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
@@ -85,7 +91,7 @@ uploadRouter.post(
       if (files.coverImage?.[0]) {
         // 封面图片保存到 images 子目录
         const imageFile = files.coverImage[0];
-        const imagesDir = path.join(PROJECT_ROOT, type, "images");
+        const imagesDir = path.join(CONTENT_ROOT, type, "images");
         if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
 
         const ext = path.extname(imageFile.originalname);
@@ -116,7 +122,7 @@ uploadRouter.delete("/:type/:filename", (req, res) => {
       return;
     }
 
-    const filePath = path.join(PROJECT_ROOT, type, filename);
+    const filePath = path.join(CONTENT_ROOT, type, filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

@@ -1,0 +1,33 @@
+# 统一使用 LF 行尾符
+* text=auto eol=lf
+
+# 二进制文件（不转换）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# 特定文件类型保持 LF
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.sql text eol=lf
+
+# Windows 脚本文件使用 CRLF（如果有）
+*.bat text eol=crlf
+*.cmd text eol=crlf
