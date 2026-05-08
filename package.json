@@ -12,7 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "db:init": "tsx server/scripts/initDb.ts"
+    "db:init": "tsx server/scripts/initDb.ts",
+    "hash-password": "node -e \"const b=require('bcryptjs');process.argv[1]?console.log(b.hashSync(process.argv[1],10)):console.log('用法: pnpm hash-password 你的密码')\" --",
+    "gen-secret": "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
