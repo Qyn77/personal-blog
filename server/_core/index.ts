@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { uploadRouter } from "../routes/upload";
+import { authRouter } from "../routes/auth";
 
 const PROJECT_ROOT = process.cwd();
 
@@ -43,7 +44,10 @@ async function startServer() {
   app.use("/books", express.static(path.join(contentRoot, "books")));
   app.use("/archives", express.static(path.join(contentRoot, "archives")));
 
-  // 文件上传 API
+  // 认证 API
+  app.use("/api/auth", authRouter);
+
+  // 文件上传 API（需要认证）
   app.use("/api/upload", uploadRouter);
 
   // tRPC API

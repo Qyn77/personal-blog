@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Upload, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { getToken } from "@/lib/auth";
 
 export default function AdminArticleEdit() {
   const [, navigate] = useLocation();
@@ -131,7 +132,12 @@ export default function AdminArticleEdit() {
       const formData = new FormData();
       formData.append("coverImage", file);
 
-      const res = await fetch("/api/upload/books", { method: "POST", body: formData });
+      const token = getToken();
+      const res = await fetch("/api/upload/books", {
+        method: "POST",
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json();
 
       if (data.success && data.coverImagePath) {

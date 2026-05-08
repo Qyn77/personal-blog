@@ -3,7 +3,7 @@
  * 提供博客文章和归档的 CRUD 操作
  */
 
-import { publicProcedure, router } from "../_core/trpc";
+import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import * as db from "../db";
@@ -21,7 +21,7 @@ export const adminRouter = router({
   // ========================================================================
 
   /** 获取所有文章（管理用） */
-  listArticles: publicProcedure.query(async () => {
+  listArticles: protectedProcedure.query(async () => {
     try {
       const articles = await db.getAllArticles();
       return { success: true, articles, total: articles.length };
@@ -32,7 +32,7 @@ export const adminRouter = router({
   }),
 
   /** 按 ID 获取单篇文章 */
-  getArticle: publicProcedure
+  getArticle: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -48,7 +48,7 @@ export const adminRouter = router({
     }),
 
   /** 创建文章 */
-  createArticle: publicProcedure
+  createArticle: protectedProcedure
     .input(
       z.object({
         title: z.string(),
@@ -104,7 +104,7 @@ export const adminRouter = router({
     }),
 
   /** 更新文章 */
-  updateArticle: publicProcedure
+  updateArticle: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -145,7 +145,7 @@ export const adminRouter = router({
     }),
 
   /** 删除文章 */
-  deleteArticle: publicProcedure
+  deleteArticle: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {
@@ -159,7 +159,7 @@ export const adminRouter = router({
     }),
 
   /** 解析 Markdown 文件内容，提取 frontmatter 元数据 */
-  parseMarkdown: publicProcedure
+  parseMarkdown: protectedProcedure
     .input(z.object({ content: z.string() }))
     .mutation(async ({ input }) => {
       const { metadata, body } = parseFrontmatter(input.content);
@@ -187,7 +187,7 @@ export const adminRouter = router({
   // ========================================================================
 
   /** 获取所有归档（管理用） */
-  listArchives: publicProcedure.query(async () => {
+  listArchives: protectedProcedure.query(async () => {
     try {
       const archives = await db.getAllArchives();
       return { success: true, archives, total: archives.length };
@@ -198,7 +198,7 @@ export const adminRouter = router({
   }),
 
   /** 按 ID 获取单个归档 */
-  getArchive: publicProcedure
+  getArchive: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -214,7 +214,7 @@ export const adminRouter = router({
     }),
 
   /** 创建归档 */
-  createArchive: publicProcedure
+  createArchive: protectedProcedure
     .input(
       z.object({
         title: z.string(),
@@ -262,7 +262,7 @@ export const adminRouter = router({
     }),
 
   /** 更新归档 */
-  updateArchive: publicProcedure
+  updateArchive: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -298,7 +298,7 @@ export const adminRouter = router({
     }),
 
   /** 删除归档 */
-  deleteArchive: publicProcedure
+  deleteArchive: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {

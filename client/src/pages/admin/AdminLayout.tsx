@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Archive, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, FileText, Archive, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { verify, logout } from "@/lib/auth";
+import LoginPage from "./LoginPage";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -14,7 +17,32 @@ const navItems = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
+  useEffect(() => {
+    verify().then(setIsAuthed);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setIsAuthed(false);
+  };
+
+  // 加载中
+  if (isAuthed === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground text-sm">验证中...</p>
+      </div>
+    );
+  }
+
+  // 未登录
+  if (!isAuthed) {
+    return <LoginPage onLoginSuccess={() => setIsAuthed(true)} />;
+  }
+
+  // 已登录
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       {/* 侧边栏 */}
@@ -51,13 +79,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           })}
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-border">
+        <div className="mt-auto pt-4 border-t border-border space-y-2">
           <Link href="/">
             <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
               <ArrowLeft className="h-4 w-4" />
               返回博客
             </div>
           </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors cursor-pointer w-full"
+          >
+            <LogOut className="h-4 w-4" />
+            退出登录
+          </button>
         </div>
       </aside>
 

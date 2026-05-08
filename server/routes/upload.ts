@@ -8,6 +8,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
+import { verifyToken } from "../lib/auth";
 
 const PROJECT_ROOT = process.cwd();
 
@@ -59,6 +60,21 @@ const upload = multer({
 });
 
 export const uploadRouter = Router();
+
+// 认证中间件
+uploadRouter.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ success: false, error: "未登录" });
+    return;
+  }
+  const payload = verifyToken(authHeader.slice(7));
+  if (!payload) {
+    res.status(401).json({ success: false, error: "登录已过期" });
+    return;
+  }
+  next();
+});
 
 /**
  * POST /api/upload/:type
