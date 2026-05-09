@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Upload, Loader2, X } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { getToken } from "@/lib/auth";
@@ -48,7 +49,7 @@ export default function AdminArchiveEdit() {
       setSlug(a.slug);
       setDate(a.date);
       setCategory(a.category);
-      setTags(typeof a.tags === "string" ? JSON.parse(a.tags) : a.tags);
+      setTags(parseTags(a.tags));
       setExcerpt(a.excerpt);
       setContent(a.content);
     }
@@ -182,6 +183,7 @@ export default function AdminArchiveEdit() {
   };
 
   const handleSubmit = async () => {
+    if (isSaving) return;
     if (!title.trim()) {
       toast.error("请输入标题");
       return;

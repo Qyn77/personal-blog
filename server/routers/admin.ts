@@ -51,16 +51,16 @@ export const adminRouter = router({
   createArticle: protectedProcedure
     .input(
       z.object({
-        title: z.string(),
-        subtitle: z.string().optional(),
-        excerpt: z.string().optional(),
-        content: z.string(),
-        date: z.string(),
-        tags: z.array(z.string()),
-        category: z.string(),
+        title: z.string().min(1, "标题不能为空").max(200),
+        subtitle: z.string().max(200).optional(),
+        excerpt: z.string().max(500).optional(),
+        content: z.string().min(1, "内容不能为空"),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式应为 YYYY-MM-DD"),
+        tags: z.array(z.string().max(30)).max(20),
+        category: z.string().min(1).max(50),
         featured: z.boolean().default(false),
         coverImage: z.string().optional(),
-        slug: z.string().optional(),
+        slug: z.string().max(100).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -108,16 +108,16 @@ export const adminRouter = router({
     .input(
       z.object({
         id: z.string(),
-        title: z.string().optional(),
-        subtitle: z.string().optional(),
-        excerpt: z.string().optional(),
-        content: z.string().optional(),
-        date: z.string().optional(),
-        tags: z.array(z.string()).optional(),
-        category: z.string().optional(),
+        title: z.string().min(1).max(200).optional(),
+        subtitle: z.string().max(200).optional(),
+        excerpt: z.string().max(500).optional(),
+        content: z.string().min(1).optional(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        tags: z.array(z.string().max(30)).max(20).optional(),
+        category: z.string().min(1).max(50).optional(),
         featured: z.boolean().optional(),
         coverImage: z.string().optional(),
-        slug: z.string().optional(),
+        slug: z.string().max(100).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -217,14 +217,14 @@ export const adminRouter = router({
   createArchive: protectedProcedure
     .input(
       z.object({
-        title: z.string(),
-        subtitle: z.string().optional(),
-        excerpt: z.string().optional(),
-        content: z.string(),
-        date: z.string(),
-        tags: z.array(z.string()),
-        category: z.string(),
-        slug: z.string().optional(),
+        title: z.string().min(1, "标题不能为空").max(200),
+        subtitle: z.string().max(200).optional(),
+        excerpt: z.string().max(500).optional(),
+        content: z.string().min(1, "内容不能为空"),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式应为 YYYY-MM-DD"),
+        tags: z.array(z.string().max(30)).max(20),
+        category: z.string().min(1).max(50),
+        slug: z.string().max(100).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -266,14 +266,14 @@ export const adminRouter = router({
     .input(
       z.object({
         id: z.string(),
-        title: z.string().optional(),
-        subtitle: z.string().optional(),
-        excerpt: z.string().optional(),
-        content: z.string().optional(),
-        date: z.string().optional(),
-        tags: z.array(z.string()).optional(),
-        category: z.string().optional(),
-        slug: z.string().optional(),
+        title: z.string().min(1).max(200).optional(),
+        subtitle: z.string().max(200).optional(),
+        excerpt: z.string().max(500).optional(),
+        content: z.string().min(1).optional(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        tags: z.array(z.string().max(30)).max(20).optional(),
+        category: z.string().min(1).max(50).optional(),
+        slug: z.string().max(100).optional(),
       })
     )
     .mutation(async ({ input }) => {

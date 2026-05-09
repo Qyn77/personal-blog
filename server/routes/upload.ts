@@ -12,11 +12,9 @@ import { verifyToken } from "../lib/auth";
 
 const PROJECT_ROOT = process.cwd();
 
-// 根据环境变量决定上传路径根目录
-// 开发模式：上传到项目根目录下的 books/archives
-// 生产模式：上传到 dist 目录下的 books/archives
-const isDev = process.env.NODE_ENV === "development";
-const CONTENT_ROOT = isDev ? PROJECT_ROOT : path.join(PROJECT_ROOT, "dist");
+// 始终上传到项目根目录下的 books/archives（开发和生产模式一致）
+// 生产模式下静态文件服务会从 dist/ 读取，但上传内容保留在源目录
+const CONTENT_ROOT = PROJECT_ROOT;
 
 const ALLOWED_TYPES = ["books", "archives"] as const;
 
@@ -33,7 +31,9 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     if (file.fieldname === "markdown") {
-      cb(null, file.originalname);
+      // 清理文件名，防止路径遍历
+      const safeName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._\u4e00-\u9fff-]/g, "_");
+      cb(null, safeName);
     } else {
       const ext = path.extname(file.originalname);
       cb(null, `${nanoid()}${ext}`);
@@ -171,7 +171,20 @@ uploadRouter.delete("/:type/:filename", (req, res) => {
       return;
     }
 
+    // 防止路径遍历：文件名不能包含 / \ 或 ..
+    if (filename.includes("/") || filename.includes("\\") || filename.includes("..")) {
+      res.status(400).json({ success: false, error: "Invalid filename" });
+      return;
+    }
+
     const filePath = path.join(CONTENT_ROOT, type, filename);
+    // 二次校验：解析后的路径必须在预期目录内
+    const expectedDir = path.join(CONTENT_ROOT, type);
+    if (!filePath.startsWith(expectedDir + path.sep) && filePath !== expectedDir) {
+      res.status(400).json({ success: false, error: "Invalid filename" });
+      return;
+    }
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -35,10 +36,7 @@ export default function ArchiveDetail() {
   useEffect(() => {
     if (archiveData && archiveData.success && archiveData.archive) {
       const item = archiveData.archive as any;
-      // 如果 tags 是字符串，解析为数组
-      if (typeof item.tags === 'string') {
-        item.tags = JSON.parse(item.tags);
-      }
+      item.tags = parseTags(item.tags);
       setArchive(item);
       setIsLoading(false);
     } else {
@@ -52,7 +50,7 @@ export default function ArchiveDetail() {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       setReadProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

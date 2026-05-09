@@ -10,6 +10,7 @@ import ArticleCard from "@/components/ArticleCard";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 
 interface AboutConfig {
   hero: {
@@ -32,23 +33,27 @@ export default function About() {
   const [config, setConfig] = useState<AboutConfig | null>(null);
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [configError, setConfigError] = useState(false);
 
   // 加载配置文件
   useEffect(() => {
     fetch('/about-config.json')
       .then(res => res.json())
       .then(data => setConfig(data))
-      .catch(err => console.error('Failed to load about config:', err));
+      .catch(err => {
+        console.error('Failed to load about config:', err);
+        setConfigError(true);
+      });
   }, []);
 
   // 加载最新文章
-  const { data: articlesData } = trpc.blog.listArticles.useQuery();
+  const { data: articlesData, isLoading: articlesLoading } = trpc.blog.listArticles.useQuery();
 
   useEffect(() => {
     if (articlesData && articlesData.success) {
       const processedArticles = articlesData.articles.map((a: any) => ({
         ...a,
-        tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        tags: parseTags(a.tags),
         featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
       }));
       
@@ -62,16 +67,29 @@ export default function About() {
   }, [articlesData]);
 
   useEffect(() => {
-    if (config && articlesData) {
+    // 配置加载完成（成功或失败）且文章查询完成
+    if ((config !== null || configError) && !articlesLoading) {
       setIsLoading(false);
     }
-  }, [config, articlesData]);
+  }, [config, configError, articlesLoading]);
 
-  if (isLoading || !config) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <Navbar />
         <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
+      </div>
+    );
+  }
+
+  if (!config) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <main className="pt-28 pb-20 max-w-5xl mx-auto px-6 lg:px-8">
+          <p className="text-muted-foreground">加载失败，请刷新重试。</p>
+        </main>
+        <Footer />
       </div>
     );
   }

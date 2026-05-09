@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { parseTags } from "@/lib/utils";
 
 export default function AdminArticles() {
   const utils = trpc.useUtils();
@@ -36,7 +37,7 @@ export default function AdminArticles() {
   // 反序列化 tags
   const parsed = articles.map(a => ({
     ...a,
-    tags: typeof a.tags === "string" ? JSON.parse(a.tags) : a.tags,
+    tags: parseTags(a.tags),
   }));
 
   return (

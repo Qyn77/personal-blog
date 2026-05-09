@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 
 const HERO_BG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/hero-bg-PxUBraARxan7JRGzDyxUyN.webp";
 
@@ -21,16 +22,16 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   // 加载文章数据
-  const { data: articlesData } = trpc.blog.listArticles.useQuery();
-  
+  const { data: articlesData, isLoading: articlesLoading } = trpc.blog.listArticles.useQuery();
+
   // 加载归档数据
-  const { data: archivesData } = trpc.archive.listArchives.useQuery();
+  const { data: archivesData, isLoading: archivesLoading } = trpc.archive.listArchives.useQuery();
 
   useEffect(() => {
     if (articlesData && articlesData.success) {
       const processedArticles = articlesData.articles.map((a: any) => ({
         ...a,
-        tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        tags: parseTags(a.tags),
         featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
       }));
       setArticles(processedArticles);
@@ -53,28 +54,28 @@ export default function Home() {
     if (archivesData && archivesData.success) {
       const processedArchives = archivesData.archives.map((a: any) => ({
         ...a,
-        tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        tags: parseTags(a.tags),
       }));
       setArchives(processedArchives);
     }
   }, [archivesData]);
 
   useEffect(() => {
-    if (articlesData && archivesData) {
+    if (!articlesLoading && !archivesLoading) {
       setIsLoading(false);
     }
-  }, [articlesData, archivesData]);
+  }, [articlesLoading, archivesLoading]);
 
   // 获取精选文章（featured 为 true 的文章）
   const featured = articles.filter(a => a.featured).slice(0, 2);
-  
+
   // 获取最新文章
-  const recent = articles
+  const recent = [...articles]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
 
   // 获取最新归档
-  const recentArchives = archives
+  const recentArchives = [...archives]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
 

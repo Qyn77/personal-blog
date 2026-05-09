@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 
 interface BlogArticle {
   id: string;
@@ -54,7 +55,7 @@ export default function Blog() {
       // 处理 tags 字符串转数组
       const processedArticles = articlesData.articles.map((a: any) => ({
         ...a,
-        tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+        tags: parseTags(a.tags),
         featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
       }));
       

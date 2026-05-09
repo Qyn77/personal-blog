@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 
 function formatShortDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -20,16 +21,16 @@ export default function Archive() {
   const [isLoading, setIsLoading] = useState(true);
 
   // 调用 tRPC API 获取归档数据
-  const { data: archiveData } = trpc.archive.getByYear.useQuery();
+  const { data: archiveData, isLoading: isQueryLoading } = trpc.archive.getByYear.useQuery();
 
   useEffect(() => {
-    if (archiveData && archiveData.success) {
-      setArchive(archiveData.archive);
-      setIsLoading(false);
-    } else {
+    if (!isQueryLoading) {
+      if (archiveData?.success) {
+        setArchive(archiveData.archive);
+      }
       setIsLoading(false);
     }
-  }, [archiveData]);
+  }, [archiveData, isQueryLoading]);
 
   const years = Object.keys(archive);
   const totalArchives = Object.values(archive).reduce((sum, arr) => sum + arr.length, 0);
@@ -95,7 +96,7 @@ export default function Archive() {
                 {/* Archives */}
                 <ul className="space-y-0">
                   {archive[year].map((item) => {
-                    const tags = typeof item.tags === 'string' ? JSON.parse(item.tags) : (item.tags || []);
+                    const tags = parseTags(item.tags);
                     return (
                       <li key={item.id}>
                         <Link href={`/archive/${item.slug}`}>

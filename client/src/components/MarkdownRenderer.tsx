@@ -44,7 +44,7 @@ function CodeBlockCopyButton({ code }: { code: string }) {
 
 export default function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
   return (
-    <div className={`markdown-content prose prose-invert max-w-none ${className}`}>
+    <div className={`markdown-content prose dark:prose-invert max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex, rehypeHighlight]}

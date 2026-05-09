@@ -34,15 +34,13 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Body parser — 2MB 足够博客文章内容（文件上传由 multer 单独处理）
+  app.use(express.json({ limit: "2mb" }));
+  app.use(express.urlencoded({ limit: "2mb", extended: true }));
   
-  // 提供 books / archives 文件夹静态文件（开发模式直接读源目录，生产模式读 dist）
-  const isDev = process.env.NODE_ENV === "development";
-  const contentRoot = isDev ? PROJECT_ROOT : path.join(PROJECT_ROOT, "dist");
-  app.use("/books", express.static(path.join(contentRoot, "books")));
-  app.use("/archives", express.static(path.join(contentRoot, "archives")));
+  // 提供 books / archives 文件夹静态文件（始终从项目根目录读取，与上传路径一致）
+  app.use("/books", express.static(path.join(PROJECT_ROOT, "books")));
+  app.use("/archives", express.static(path.join(PROJECT_ROOT, "archives")));
 
   // 认证 API
   app.use("/api/auth", authRouter);

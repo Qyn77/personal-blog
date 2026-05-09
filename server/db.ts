@@ -3,11 +3,9 @@ import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs from "sql.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { articles, Article, archives, Archive } from "./schema";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, "..", "blog.db");
+const DB_PATH = path.join(process.cwd(), "blog.db");
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _SQL: Awaited<ReturnType<typeof initSqlJs>> | null = null;
@@ -84,12 +82,18 @@ async function getDb() {
   return _db;
 }
 
-/** 将内存中的数据库持久化到磁盘 */
+/** 将内存中的数据库持久化到磁盘（原子写入，防止写入中断导致数据库损坏） */
 function saveDb() {
   if (!_sqlJsDb) return;
-  const data = _sqlJsDb.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(DB_PATH, buffer);
+  try {
+    const data = _sqlJsDb.export();
+    const buffer = Buffer.from(data);
+    const tmpPath = DB_PATH + ".tmp";
+    fs.writeFileSync(tmpPath, buffer);
+    fs.renameSync(tmpPath, DB_PATH);
+  } catch (error) {
+    console.error("[Database] Failed to save database:", error);
+  }
 }
 
 // ============================================================================

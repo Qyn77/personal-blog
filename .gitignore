@@ -106,6 +106,15 @@ temp/
 *.sqlite
 *.sqlite3
 
+# Claude Code local config
+.claude/
+
+# Manus logs
+.manus-logs/
+
+# Lock files (use pnpm only)
+bun.lock
+
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
 

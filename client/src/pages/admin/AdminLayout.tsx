@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { LayoutDashboard, FileText, Archive, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { verify, logout } from "@/lib/auth";
@@ -18,6 +19,7 @@ const navItems = [
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     verify().then(setIsAuthed);
@@ -25,6 +27,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = () => {
     logout();
+    queryClient.clear();
     setIsAuthed(false);
   };
 

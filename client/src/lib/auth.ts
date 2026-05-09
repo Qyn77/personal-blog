@@ -18,19 +18,23 @@ export function removeToken(): void {
 }
 
 export async function login(username: string, password: string): Promise<{ success: boolean; error?: string }> {
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  const data = await res.json();
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
 
-  if (data.success && data.token) {
-    setToken(data.token);
-    return { success: true };
+    if (data.success && data.token) {
+      setToken(data.token);
+      return { success: true };
+    }
+
+    return { success: false, error: data.error || "登录失败" };
+  } catch {
+    return { success: false, error: "网络错误，请稍后重试" };
   }
-
-  return { success: false, error: data.error || "登录失败" };
 }
 
 export async function verify(): Promise<boolean> {
@@ -41,6 +45,7 @@ export async function verify(): Promise<boolean> {
     const res = await fetch("/api/auth/verify", {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!res.ok) return false;
     const data = await res.json();
     if (!data.valid) {
       removeToken();
@@ -48,7 +53,7 @@ export async function verify(): Promise<boolean> {
     }
     return true;
   } catch {
-    removeToken();
+    // 网络错误时不删除 token，可能只是暂时不可用
     return false;
   }
 }

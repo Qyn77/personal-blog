@@ -13,6 +13,7 @@ import ArticleCard from "@/components/ArticleCard";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
+import { parseTags } from "@/lib/utils";
 import type { Article } from "@/type/blogData";
 
 function resolveBookImage(src: string) {
@@ -61,10 +62,7 @@ export default function Article() {
   useEffect(() => {
     if (articleData && articleData.success && articleData.article) {
       const article = articleData.article as any;
-      // 如果 tags 是字符串，解析为数组
-      if (typeof article.tags === 'string') {
-        article.tags = JSON.parse(article.tags);
-      }
+      article.tags = parseTags(article.tags);
       setArticle(article as Article);
       setIsLoading(false);
     } else {
@@ -78,7 +76,7 @@ export default function Article() {
       const related = (allArticlesData.articles as any[])
         .map(a => ({
           ...a,
-          tags: typeof a.tags === 'string' ? JSON.parse(a.tags) : a.tags,
+          tags: parseTags(a.tags),
         }))
         .filter(
           (a: any) =>
