@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Upload, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { getToken } from "@/lib/auth";
 
 export default function AdminArchiveEdit() {
   const [, navigate] = useLocation();
@@ -30,7 +31,9 @@ export default function AdminArchiveEdit() {
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [isParsing, setIsParsing] = useState(false);
+  const [isPastingImage, setIsPastingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: existingData, isLoading: isLoadingExisting } = trpc.admin.getArchive.useQuery(
     { id: editId! },
@@ -107,6 +110,55 @@ export default function AdminArchiveEdit() {
     } finally {
       setIsParsing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // 粘贴图片上传
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageItem = Array.from(items).find(item => item.type.startsWith("image/"));
+    if (!imageItem) return;
+
+    e.preventDefault();
+    const file = imageItem.getAsFile();
+    if (!file) return;
+
+    setIsPastingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const token = getToken();
+      const res = await fetch(`/api/upload/archives/image`, {
+        method: "POST",
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+
+      if (data.success && data.imagePath) {
+        const textarea = contentRef.current;
+        if (textarea) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const mdImage = `![](${data.imagePath})`;
+          const newContent = content.slice(0, start) + mdImage + content.slice(end);
+          setContent(newContent);
+          setTimeout(() => {
+            textarea.selectionStart = textarea.selectionEnd = start + mdImage.length;
+            textarea.focus();
+          }, 0);
+        }
+        toast.success("图片已上传");
+      } else {
+        toast.error("图片上传失败");
+      }
+    } catch {
+      toast.error("图片上传失败");
+    } finally {
+      setIsPastingImage(false);
     }
   };
 
@@ -320,13 +372,20 @@ export default function AdminArchiveEdit() {
         <div className="space-y-2">
           <Label htmlFor="content">正文 (Markdown) *</Label>
           <Textarea
+            ref={contentRef}
             id="content"
             value={content}
             onChange={e => setContent(e.target.value)}
-            placeholder="在此输入 Markdown 内容..."
+            onPaste={handlePaste}
+            placeholder="在此输入 Markdown 内容...（可直接粘贴图片）"
             rows={20}
             className="font-mono text-sm"
           />
+          {isPastingImage && (
+            <p className="text-xs text-muted-foreground animate-pulse">
+              正在上传图片...
+            </p>
+          )}
         </div>
 
         <div className="flex gap-3 pt-2">

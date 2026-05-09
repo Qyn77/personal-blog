@@ -36,8 +36,10 @@ export default function AdminArticleEdit() {
   const [coverImage, setCoverImage] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [isPastingImage, setIsPastingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   // 编辑模式：加载现有文章
   const { data: existingData, isLoading: isLoadingExisting } = trpc.admin.getArticle.useQuery(
@@ -151,6 +153,56 @@ export default function AdminArticleEdit() {
     } finally {
       setIsUploadingImage(false);
       if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  };
+
+  // 粘贴图片上传
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageItem = Array.from(items).find(item => item.type.startsWith("image/"));
+    if (!imageItem) return;
+
+    e.preventDefault();
+    const file = imageItem.getAsFile();
+    if (!file) return;
+
+    setIsPastingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const token = getToken();
+      const res = await fetch(`/api/upload/books/image`, {
+        method: "POST",
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+
+      if (data.success && data.imagePath) {
+        const textarea = contentRef.current;
+        if (textarea) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const mdImage = `![](${data.imagePath})`;
+          const newContent = content.slice(0, start) + mdImage + content.slice(end);
+          setContent(newContent);
+          // 恢复光标位置
+          setTimeout(() => {
+            textarea.selectionStart = textarea.selectionEnd = start + mdImage.length;
+            textarea.focus();
+          }, 0);
+        }
+        toast.success("图片已上传");
+      } else {
+        toast.error("图片上传失败");
+      }
+    } catch {
+      toast.error("图片上传失败");
+    } finally {
+      setIsPastingImage(false);
     }
   };
 
@@ -424,13 +476,20 @@ export default function AdminArticleEdit() {
         <div className="space-y-2">
           <Label htmlFor="content">正文 (Markdown) *</Label>
           <Textarea
+            ref={contentRef}
             id="content"
             value={content}
             onChange={e => setContent(e.target.value)}
-            placeholder="在此输入 Markdown 内容..."
+            onPaste={handlePaste}
+            placeholder="在此输入 Markdown 内容...（可直接粘贴图片）"
             rows={20}
             className="font-mono text-sm"
           />
+          {isPastingImage && (
+            <p className="text-xs text-muted-foreground animate-pulse">
+              正在上传图片...
+            </p>
+          )}
         </div>
 
         {/* 提交按钮 */}

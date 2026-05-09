@@ -51,7 +51,7 @@ const upload = multer({
         file.mimetype === "text/plain" ||
         file.originalname.endsWith(".md");
       cb(null, isMd);
-    } else if (file.fieldname === "coverImage") {
+    } else if (file.fieldname === "coverImage" || file.fieldname === "image") {
       cb(null, file.mimetype.startsWith("image/"));
     } else {
       cb(null, false);
@@ -125,6 +125,39 @@ uploadRouter.post(
     }
   }
 );
+
+/**
+ * POST /api/upload/:type/image
+ * 粘贴上传单张图片，返回图片路径
+ */
+uploadRouter.post("/:type/image", upload.single("image"), (req, res) => {
+  try {
+    const type = req.params.type;
+    if (!ALLOWED_TYPES.includes(type as any)) {
+      res.status(400).json({ success: false, error: "Invalid upload type" });
+      return;
+    }
+
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ success: false, error: "No image provided" });
+      return;
+    }
+
+    const imagesDir = path.join(CONTENT_ROOT, type, "images");
+    if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+
+    const ext = path.extname(file.originalname) || ".png";
+    const newName = `${nanoid()}${ext}`;
+    const finalPath = path.join(imagesDir, newName);
+    fs.renameSync(file.path, finalPath);
+
+    res.json({ success: true, imagePath: `/${type}/images/${newName}` });
+  } catch (error) {
+    console.error("[Upload] Image error:", error);
+    res.status(500).json({ success: false, error: "Upload failed" });
+  }
+});
 
 /**
  * DELETE /api/upload/:type/:filename
