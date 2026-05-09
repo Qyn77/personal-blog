@@ -14,6 +14,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
+import { setPageMeta } from "@/lib/seo";
 import type { Article } from "@/type/blogData";
 
 function resolveBookImage(src: string) {
@@ -65,6 +66,14 @@ export default function Article() {
       article.tags = parseTags(article.tags);
       setArticle(article as Article);
       setIsLoading(false);
+
+      // 动态 meta 标签
+      setPageMeta({
+        title: article.title,
+        description: article.excerpt,
+        ogImage: article.coverImage,
+        ogType: "article",
+      });
     } else {
       setIsLoading(false);
     }

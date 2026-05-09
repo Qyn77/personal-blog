@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
+import { setPageMeta } from "@/lib/seo";
 
 interface AboutConfig {
   hero: {
@@ -34,6 +35,11 @@ export default function About() {
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
+
+  // 页面 meta
+  useEffect(() => {
+    setPageMeta({ title: "关于", description: "关于博主的故事、兴趣和喜欢的事物。" });
+  }, []);
 
   // 加载配置文件
   useEffect(() => {

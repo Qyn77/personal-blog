@@ -32,6 +32,17 @@ export default function AdminArticles() {
     },
   });
 
+  const toggleStatusMutation = trpc.admin.toggleArticleStatus.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(result.status === "published" ? "文章已发布" : "文章已转为草稿");
+        utils.admin.listArticles.invalidate();
+        utils.blog.listArticles.invalidate();
+      }
+    },
+    onError: () => toast.error("状态切换失败"),
+  });
+
   const articles = data?.articles ?? [];
 
   // 反序列化 tags
@@ -70,6 +81,7 @@ export default function AdminArticles() {
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left text-sm font-medium px-4 py-3">标题</th>
+                <th className="text-left text-sm font-medium px-4 py-3">状态</th>
                 <th className="text-left text-sm font-medium px-4 py-3">分类</th>
                 <th className="text-left text-sm font-medium px-4 py-3">日期</th>
                 <th className="text-left text-sm font-medium px-4 py-3">标签</th>
@@ -89,6 +101,20 @@ export default function AdminArticles() {
                         置顶
                       </Badge>
                     ) : null}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => toggleStatusMutation.mutate({ id: article.id })}
+                      className="cursor-pointer"
+                      title={article.status === "published" ? "点击转为草稿" : "点击发布"}
+                    >
+                      <Badge
+                        variant={article.status === "published" ? "default" : "secondary"}
+                        className={`text-xs ${article.status === "published" ? "bg-green-600 hover:bg-green-700" : "bg-muted-foreground/20 hover:bg-muted-foreground/30"}`}
+                      >
+                        {article.status === "published" ? "已发布" : "草稿"}
+                      </Badge>
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {article.category}

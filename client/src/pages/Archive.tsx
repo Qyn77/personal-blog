@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
+import { setPageMeta } from "@/lib/seo";
 
 function formatShortDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -19,6 +20,11 @@ function formatShortDate(dateStr: string) {
 export default function Archive() {
   const [archive, setArchive] = useState<Record<string, any[]>>({});
   const [isLoading, setIsLoading] = useState(true);
+
+  // 页面 meta
+  useEffect(() => {
+    setPageMeta({ title: "归档", description: "按年份分组的时间线归档。" });
+  }, []);
 
   // 调用 tRPC API 获取归档数据
   const { data: archiveData, isLoading: isQueryLoading } = trpc.archive.getByYear.useQuery();

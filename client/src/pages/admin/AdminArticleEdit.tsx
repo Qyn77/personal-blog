@@ -32,6 +32,7 @@ export default function AdminArticleEdit() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [featured, setFeatured] = useState(false);
+  const [status, setStatus] = useState<"draft" | "published">("published");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
@@ -58,6 +59,7 @@ export default function AdminArticleEdit() {
       setCategory(a.category);
       setTags(parseTags(a.tags));
       setFeatured(a.featured === 1);
+      setStatus((a.status as "draft" | "published") || "published");
       setExcerpt(a.excerpt);
       setContent(a.content);
       setCoverImage(a.coverImage || "");
@@ -250,6 +252,7 @@ export default function AdminArticleEdit() {
       featured,
       coverImage: coverImage || undefined,
       slug: slug.trim() || undefined,
+      status,
     };
 
     if (isNew) {
@@ -411,10 +414,24 @@ export default function AdminArticleEdit() {
           )}
         </div>
 
-        {/* 置顶 */}
-        <div className="flex items-center gap-3">
-          <Switch checked={featured} onCheckedChange={setFeatured} id="featured" />
-          <Label htmlFor="featured">置顶文章</Label>
+        {/* 置顶 + 发布状态 */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <Switch checked={featured} onCheckedChange={setFeatured} id="featured" />
+            <Label htmlFor="featured">置顶文章</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="status" className="text-sm">状态</Label>
+            <select
+              id="status"
+              value={status}
+              onChange={e => setStatus(e.target.value as "draft" | "published")}
+              className="px-3 py-1.5 text-sm bg-card border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            >
+              <option value="published">已发布</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
         </div>
 
         {/* 摘要 */}

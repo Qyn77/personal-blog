@@ -1,110 +1,132 @@
 /*
  * 设计哲学：日式极简主义
  * 博客列表页：左侧分类筛选，右侧文章列表，大量留白
- * 动态从本地 Markdown 文件加载文章
+ * 支持服务端分页、搜索、标签筛选
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearch } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { parseTags } from "@/lib/utils";
+import { setPageMeta } from "@/lib/seo";
 
-interface BlogArticle {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle?: string;
-  excerpt: string;
-  date: string;
-  category: string;
-  tags: string[];
-  featured: boolean;
-  readTime: number;
-  content?: string;
-}
+const PAGE_SIZE = 10;
 
 export default function Blog() {
   const search = useSearch();
   const params = new URLSearchParams(search);
-  const initialCategory = params.get("category") || "all";
-  const initialTag = params.get("tag") || "";
 
-  const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const [activeTag, setActiveTag] = useState(initialTag);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [articles, setArticles] = useState<BlogArticle[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // 筛选状态（从 URL 初始化）
+  const [activeCategory, setActiveCategory] = useState(params.get("category") || "all");
+  const [activeTag, setActiveTag] = useState(params.get("tag") || "");
+  const [searchQuery, setSearchQuery] = useState(params.get("q") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(params.get("q") || "");
+  const [page, setPage] = useState(parseInt(params.get("page") || "1", 10));
 
-  // 调用 tRPC API 加载所有文章
-  const { data: articlesData, isLoading: isLoadingArticles } = trpc.blog.listArticles.useQuery();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // 页面 meta
+  useEffect(() => {
+    setPageMeta({ title: "文章", description: "关于阅读、写作、生活与思考的碎片。" });
+  }, []);
+
+  // 同步 URL 参数
   useEffect(() => {
     setActiveCategory(params.get("category") || "all");
     setActiveTag(params.get("tag") || "");
+    setSearchQuery(params.get("q") || "");
+    setDebouncedSearch(params.get("q") || "");
+    setPage(parseInt(params.get("page") || "1", 10));
   }, [search]);
 
-  // 当文章数据加载完成时，提取分类和标签
-  useEffect(() => {
-    if (articlesData && articlesData.success && Array.isArray(articlesData.articles)) {
-      // 处理 tags 字符串转数组
-      const processedArticles = articlesData.articles.map((a: any) => ({
-        ...a,
-        tags: parseTags(a.tags),
-        featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
-      }));
-      
-      setArticles(processedArticles as BlogArticle[]);
-      setIsLoading(false);
+  // 更新 URL 参数
+  const updateUrl = useCallback((updates: Record<string, string>) => {
+    const p = new URLSearchParams(window.location.search);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== "all" && value !== "1" && key !== "page" || (key === "page" && value !== "1")) {
+        p.set(key, value);
+      } else {
+        p.delete(key);
+      }
+    });
+    const qs = p.toString();
+    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+  }, []);
 
-      // 提取所有唯一的分类
-      const uniqueCategories = Array.from(
-        new Set(processedArticles.map((a: any) => a.category))
-      ).sort() as string[];
-      setCategories(uniqueCategories);
+  // 搜索防抖
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(value);
+      setPage(1);
+      updateUrl({ q: value, page: "1" });
+    }, 300);
+  };
 
-      // 提取所有唯一的标签
-      const uniqueTags = Array.from(
-        new Set(processedArticles.flatMap((a: any) => a.tags))
-      ).sort() as string[];
-      setTags(uniqueTags);
-    } else if (articlesData && !articlesData.success) {
-      setIsLoading(false);
-      console.error("Failed to load articles:", articlesData.error);
-    }
-  }, [articlesData]);
+  // 分类切换
+  const handleCategoryChange = (cat: string) => {
+    setActiveCategory(cat);
+    setPage(1);
+    updateUrl({ category: cat, page: "1" });
+  };
 
-  useEffect(() => {
-    setIsLoading(isLoadingArticles);
-  }, [isLoadingArticles]);
+  // 标签切换
+  const handleTagChange = (tag: string) => {
+    const newTag = activeTag === tag ? "" : tag;
+    setActiveTag(newTag);
+    setPage(1);
+    updateUrl({ tag: newTag, page: "1" });
+  };
 
-  let filtered = articles;
+  // 翻页
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    updateUrl({ page: String(newPage) });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-  if (activeCategory !== "all") {
-    filtered = filtered.filter((a) => a.category === activeCategory);
-  }
-  if (activeTag) {
-    filtered = filtered.filter((a) => a.tags.includes(activeTag));
-  }
-  if (searchQuery.trim()) {
-    const q = searchQuery.toLowerCase();
-    filtered = filtered.filter(
-      (a) =>
-        a.title.toLowerCase().includes(q) ||
-        a.excerpt.toLowerCase().includes(q) ||
-        a.tags.some((t) => t.toLowerCase().includes(q))
-    );
-  }
+  // 获取筛选选项
+  const { data: filterData } = trpc.blog.getFilterOptions.useQuery();
+  const categories = filterData?.categories ?? [];
+  const tags = filterData?.tags ?? [];
 
-  // Sort by date descending
-  filtered = [...filtered].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  // 获取文章列表（服务端分页+筛选）
+  const hasFilters = !!debouncedSearch || activeCategory !== "all" || !!activeTag || page > 1;
+  const { data: articlesData, isLoading } = trpc.blog.listArticles.useQuery(
+    hasFilters
+      ? {
+          page,
+          pageSize: PAGE_SIZE,
+          search: debouncedSearch || undefined,
+          category: activeCategory !== "all" ? activeCategory : undefined,
+          tag: activeTag || undefined,
+        }
+      : undefined
   );
+
+  const articles = (articlesData?.articles ?? []).map((a: any) => ({
+    ...a,
+    tags: parseTags(a.tags),
+    featured: typeof a.featured === "number" ? a.featured === 1 : a.featured,
+  }));
+
+  const total = articlesData?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // 生成页码数组（最多显示 5 个页码）
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    let start = Math.max(1, page - 2);
+    let end = Math.min(totalPages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -137,119 +159,177 @@ export default function Blog() {
             </p>
           </div>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Sidebar - Categories & Tags */}
-              <aside className="lg:col-span-1 fade-in-up fade-in-up-delay-1">
-                {/* Categories */}
-                <div className="mb-12">
-                  <h3
-                    className="text-foreground text-sm font-semibold uppercase tracking-[0.1em] mb-4"
-                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar - Categories & Tags */}
+            <aside className="lg:col-span-1 fade-in-up fade-in-up-delay-1">
+              {/* Categories */}
+              <div className="mb-12">
+                <h3
+                  className="text-foreground text-sm font-semibold uppercase tracking-[0.1em] mb-4"
+                  style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                >
+                  分类
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleCategoryChange("all")}
+                    className={`block text-left text-sm transition-colors ${
+                      activeCategory === "all"
+                        ? "text-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    style={{ fontFamily: "'Noto Serif SC', serif" }}
                   >
-                    分类
-                  </h3>
-                  <div className="space-y-2">
+                    全部
+                  </button>
+                  {categories.map(cat => (
                     <button
-                      onClick={() => setActiveCategory("all")}
+                      key={cat}
+                      onClick={() => handleCategoryChange(cat)}
                       className={`block text-left text-sm transition-colors ${
-                        activeCategory === "all"
+                        activeCategory === cat
                           ? "text-foreground font-semibold"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                       style={{ fontFamily: "'Noto Serif SC', serif" }}
                     >
-                      全部
+                      {cat}
                     </button>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setActiveCategory(cat)}
-                        className={`block text-left text-sm transition-colors ${
-                          activeCategory === cat
-                            ? "text-foreground font-semibold"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                        style={{ fontFamily: "'Noto Serif SC', serif" }}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-
-                {/* Tags */}
-                <div>
-                  <h3
-                    className="text-foreground text-sm font-semibold uppercase tracking-[0.1em] mb-4"
-                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-                  >
-                    标签
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => setActiveTag(activeTag === tag ? "" : tag)}
-                        className={`px-3 py-1 text-xs rounded transition-colors ${
-                          activeTag === tag
-                            ? "bg-foreground text-background"
-                            : "bg-card text-foreground hover:bg-foreground/10"
-                        }`}
-                        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </aside>
-
-              {/* Main Content */}
-              <div className="lg:col-span-3 fade-in-up fade-in-up-delay-2">
-                {/* Search */}
-                <div className="mb-8">
-                  <input
-                    type="text"
-                    placeholder="搜索文章..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2 bg-card text-foreground border border-border rounded-lg placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
-                    style={{ fontFamily: "'Noto Serif SC', serif" }}
-                  />
-                </div>
-
-                {/* Articles */}
-                {filtered.length > 0 ? (
-                  <div className="space-y-6">
-                    {filtered.map((article) => {
-                      // 转换为 ArticleCard 期望的类型
-                      const cardArticle = {
-                        ...article,
-                        content: article.content || "",
-                      };
-                      return (
-                        <ArticleCard key={article.id} article={cardArticle as any} />
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p
-                      className="text-muted-foreground text-lg"
-                      style={{ fontFamily: "'Noto Serif SC', serif" }}
-                    >
-                      未找到匹配的文章
-                    </p>
-                  </div>
-                )}
               </div>
+
+              {/* Tags */}
+              <div>
+                <h3
+                  className="text-foreground text-sm font-semibold uppercase tracking-[0.1em] mb-4"
+                  style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                >
+                  标签
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => handleTagChange(tag)}
+                      className={`px-3 py-1 text-xs rounded transition-colors ${
+                        activeTag === tag
+                          ? "bg-foreground text-background"
+                          : "bg-card text-foreground hover:bg-foreground/10"
+                      }`}
+                      style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3 fade-in-up fade-in-up-delay-2">
+              {/* Search */}
+              <div className="mb-8 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="搜索文章..."
+                  value={searchQuery}
+                  onChange={e => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-card text-foreground border border-border rounded-lg placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
+                  style={{ fontFamily: "'Noto Serif SC', serif" }}
+                />
+              </div>
+
+              {/* Active filters indicator */}
+              {(activeCategory !== "all" || activeTag || debouncedSearch) && (
+                <div className="mb-6 flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-muted-foreground" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                    筛选:
+                  </span>
+                  {activeCategory !== "all" && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent rounded">
+                      {activeCategory}
+                      <button onClick={() => handleCategoryChange("all")} className="hover:text-destructive">&times;</button>
+                    </span>
+                  )}
+                  {activeTag && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent rounded">
+                      #{activeTag}
+                      <button onClick={() => handleTagChange(activeTag)} className="hover:text-destructive">&times;</button>
+                    </span>
+                  )}
+                  {debouncedSearch && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent rounded">
+                      &quot;{debouncedSearch}&quot;
+                      <button onClick={() => handleSearchChange("")} className="hover:text-destructive">&times;</button>
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground ml-1" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                    {total} 篇结果
+                  </span>
+                </div>
+              )}
+
+              {/* Articles */}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
+                </div>
+              ) : articles.length > 0 ? (
+                <>
+                  <div className="space-y-6">
+                    {articles.map(article => (
+                      <ArticleCard key={article.id} article={article as any} />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-12 flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handlePageChange(page - 1)}
+                        disabled={page <= 1}
+                        className="p-2 rounded-md border border-border text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent transition-colors"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      {getPageNumbers().map(p => (
+                        <button
+                          key={p}
+                          onClick={() => handlePageChange(p)}
+                          className={`w-9 h-9 rounded-md text-sm transition-colors ${
+                            p === page
+                              ? "bg-foreground text-background"
+                              : "border border-border hover:bg-accent"
+                          }`}
+                          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={page >= totalPages}
+                        className="p-2 rounded-md border border-border text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent transition-colors"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <p
+                    className="text-muted-foreground text-lg"
+                    style={{ fontFamily: "'Noto Serif SC', serif" }}
+                  >
+                    未找到匹配的文章
+                  </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </main>
 

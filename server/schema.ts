@@ -17,6 +17,7 @@ export const articles = sqliteTable("articles", {
   category: text("category").notNull(),
   featured: integer("featured").notNull().default(0), // SQLite 没有 boolean，用 0/1
   coverImage: text("coverImage"),
+  status: text("status").notNull().default("published"), // "draft" | "published"
   createdAt: integer("createdAt").notNull(), // Unix timestamp
   updatedAt: integer("updatedAt").notNull(), // Unix timestamp
 });

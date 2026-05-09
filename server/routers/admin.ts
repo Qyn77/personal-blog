@@ -61,6 +61,7 @@ export const adminRouter = router({
         featured: z.boolean().default(false),
         coverImage: z.string().optional(),
         slug: z.string().max(100).optional(),
+        status: z.enum(["draft", "published"]).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -91,6 +92,7 @@ export const adminRouter = router({
           category: input.category,
           featured: input.featured,
           coverImage: input.coverImage,
+          status: input.status,
         });
 
         if (!success) {
@@ -118,6 +120,7 @@ export const adminRouter = router({
         featured: z.boolean().optional(),
         coverImage: z.string().optional(),
         slug: z.string().max(100).optional(),
+        status: z.enum(["draft", "published"]).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -155,6 +158,24 @@ export const adminRouter = router({
       } catch (error) {
         console.error("[Admin] Error deleting article:", error);
         return { success: false, error: "Failed to delete article" };
+      }
+    }),
+
+  /** 切换文章草稿/发布状态 */
+  toggleArticleStatus: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const article = await db.getArticleById(input.id);
+        if (!article) return { success: false, error: "Article not found" };
+
+        const newStatus = article.status === "published" ? "draft" : "published";
+        const success = await db.updateArticle(input.id, { status: newStatus });
+        if (!success) return { success: false, error: "Failed to update status" };
+        return { success: true, status: newStatus };
+      } catch (error) {
+        console.error("[Admin] Error toggling article status:", error);
+        return { success: false, error: "Failed to toggle status" };
       }
     }),
 

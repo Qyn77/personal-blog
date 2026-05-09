@@ -34,10 +34,21 @@ function ensureTables(sqlJsDb: any) {
       category TEXT NOT NULL,
       featured INTEGER NOT NULL DEFAULT 0,
       coverImage TEXT,
+      status TEXT NOT NULL DEFAULT 'published',
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
     );
   `);
+  // 兼容旧数据库：如果 articles 表没有 status 列，自动添加
+  try {
+    const columns = sqlJsDb.exec("PRAGMA table_info(articles)");
+    const colNames = columns[0]?.values.map((row: any[]) => row[1]) || [];
+    if (!colNames.includes("status")) {
+      sqlJsDb.run("ALTER TABLE articles ADD COLUMN status TEXT NOT NULL DEFAULT 'published'");
+      console.log("[Database] Added status column to articles table");
+    }
+  } catch { /* 表可能还不存在，忽略 */ }
+
   sqlJsDb.run(`
     CREATE TABLE IF NOT EXISTS archives (
       id TEXT PRIMARY KEY,
@@ -100,16 +111,139 @@ function saveDb() {
 // 博客文章 - 读取
 // ============================================================================
 
-export async function getAllArticles(): Promise<Article[]> {
+export interface ArticleQueryOptions {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  category?: string;
+  tag?: string;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function getAllArticles(options?: ArticleQueryOptions): Promise<Article[]> {
   const db = await getDb();
   if (!db) return [];
 
   try {
-    // @ts-ignore
-    return await db.select().from(articles);
+    if (!options) {
+      // @ts-ignore
+      return await db.select().from(articles);
+    }
+
+    // 使用原始 SQL 实现灵活的筛选和分页
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (options.status) {
+      conditions.push("status = ?");
+      params.push(options.status);
+    }
+    if (options.search) {
+      conditions.push("(title LIKE ? OR excerpt LIKE ?)");
+      const q = `%${options.search}%`;
+      params.push(q, q);
+    }
+    if (options.category) {
+      conditions.push("category = ?");
+      params.push(options.category);
+    }
+    if (options.tag) {
+      conditions.push("tags LIKE ?");
+      params.push(`%"${options.tag}"%`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // 查询总数
+    const countResult = _sqlJsDb.exec(`SELECT COUNT(*) as total FROM articles ${where}`, params);
+    const total = countResult[0]?.values[0]?.[0] as number || 0;
+
+    // 分页查询
+    const page = options.page || 1;
+    const pageSize = options.pageSize || 10;
+    const offset = (page - 1) * pageSize;
+
+    const dataResult = _sqlJsDb.exec(
+      `SELECT * FROM articles ${where} ORDER BY date DESC LIMIT ? OFFSET ?`,
+      [...params, pageSize, offset]
+    );
+
+    if (!dataResult[0]) return [];
+
+    const cols = dataResult[0].columns;
+    const rows = dataResult[0].values.map((row: any[]) => {
+      const obj: any = {};
+      cols.forEach((col: string, i: number) => { obj[col] = row[i]; });
+      return obj as Article;
+    });
+
+    return rows;
   } catch (error) {
     console.error("[Database] Failed to get articles:", error);
     return [];
+  }
+}
+
+export async function getArticlesWithPagination(options: ArticleQueryOptions): Promise<PaginatedResult<Article>> {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0, page: 1, pageSize: 10 };
+
+  try {
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (options.status) {
+      conditions.push("status = ?");
+      params.push(options.status);
+    }
+    if (options.search) {
+      conditions.push("(title LIKE ? OR excerpt LIKE ?)");
+      const q = `%${options.search}%`;
+      params.push(q, q);
+    }
+    if (options.category) {
+      conditions.push("category = ?");
+      params.push(options.category);
+    }
+    if (options.tag) {
+      conditions.push("tags LIKE ?");
+      params.push(`%"${options.tag}"%`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const countResult = _sqlJsDb.exec(`SELECT COUNT(*) FROM articles ${where}`, params);
+    const total = countResult[0]?.values[0]?.[0] as number || 0;
+
+    const page = options.page || 1;
+    const pageSize = options.pageSize || 10;
+    const offset = (page - 1) * pageSize;
+
+    const dataResult = _sqlJsDb.exec(
+      `SELECT * FROM articles ${where} ORDER BY date DESC LIMIT ? OFFSET ?`,
+      [...params, pageSize, offset]
+    );
+
+    if (!dataResult[0]) return { items: [], total, page, pageSize };
+
+    const cols = dataResult[0].columns;
+    const items = dataResult[0].values.map((row: any[]) => {
+      const obj: any = {};
+      cols.forEach((col: string, i: number) => { obj[col] = row[i]; });
+      return obj as Article;
+    });
+
+    return { items, total, page, pageSize };
+  } catch (error) {
+    console.error("[Database] Failed to get articles with pagination:", error);
+    return { items: [], total: 0, page: 1, pageSize: 10 };
   }
 }
 
@@ -158,6 +292,7 @@ export async function insertArticle(article: {
   category: string;
   featured?: boolean;
   coverImage?: string;
+  status?: string;
 }): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
@@ -178,6 +313,7 @@ export async function insertArticle(article: {
       category: article.category,
       featured: article.featured ? 1 : 0,
       coverImage: article.coverImage || "/books/default/ai.svg",
+      status: article.status || "published",
       createdAt: now,
       updatedAt: now,
     });
@@ -203,6 +339,7 @@ export async function updateArticle(
     category: string;
     featured: boolean;
     coverImage: string;
+    status: string;
   }>
 ): Promise<boolean> {
   const db = await getDb();
@@ -224,6 +361,7 @@ export async function updateArticle(
     if (data.category !== undefined) updateData.category = data.category;
     if (data.featured !== undefined) updateData.featured = data.featured ? 1 : 0;
     if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
+    if (data.status !== undefined) updateData.status = data.status;
 
     // @ts-ignore
     await db.update(articles).set(updateData).where(eq(articles.id, id));

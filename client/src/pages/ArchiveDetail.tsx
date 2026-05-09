@@ -11,6 +11,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
+import { setPageMeta } from "@/lib/seo";
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -39,6 +40,13 @@ export default function ArchiveDetail() {
       item.tags = parseTags(item.tags);
       setArchive(item);
       setIsLoading(false);
+
+      // 动态 meta 标签
+      setPageMeta({
+        title: item.title,
+        description: item.excerpt,
+        ogType: "article",
+      });
     } else {
       setIsLoading(false);
     }
