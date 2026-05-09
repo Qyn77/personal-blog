@@ -173,7 +173,7 @@ export async function insertArticle(article: {
       tags: JSON.stringify(article.tags),
       category: article.category,
       featured: article.featured ? 1 : 0,
-      coverImage: article.coverImage,
+      coverImage: article.coverImage || "/books/default/ai.svg",
       createdAt: now,
       updatedAt: now,
     });
