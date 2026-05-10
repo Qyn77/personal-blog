@@ -534,10 +534,16 @@ export const adminRouter = router({
   // About 页面配置
   // ========================================================================
 
-  /** 获取 About 页面配置 */
+  /** 获取 About 页面配置（优先读 dist，回退到源目录） */
   getAboutConfig: protectedProcedure.query(async () => {
     try {
-      const configPath = path.resolve(process.cwd(), "client/public/about-config.json");
+      const distPath = path.resolve(process.cwd(), "dist/public/about-config.json");
+      const srcPath = path.resolve(process.cwd(), "client/public/about-config.json");
+      let configPath = srcPath;
+      try {
+        await fs.access(distPath);
+        configPath = distPath;
+      } catch { /* dist 不存在，用源目录 */ }
       const raw = await fs.readFile(configPath, "utf-8");
       return { success: true, config: JSON.parse(raw) };
     } catch (error) {
@@ -546,7 +552,7 @@ export const adminRouter = router({
     }
   }),
 
-  /** 更新 About 页面配置 */
+  /** 更新 About 页面配置（同时写入源目录和 dist） */
   updateAboutConfig: protectedProcedure
     .input(
       z.object({
@@ -568,8 +574,15 @@ export const adminRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        const configPath = path.resolve(process.cwd(), "client/public/about-config.json");
-        await fs.writeFile(configPath, JSON.stringify(input, null, 2) + "\n", "utf-8");
+        const json = JSON.stringify(input, null, 2) + "\n";
+        const srcPath = path.resolve(process.cwd(), "client/public/about-config.json");
+        const distPath = path.resolve(process.cwd(), "dist/public/about-config.json");
+        // 写入源目录（供未来 build）
+        await fs.writeFile(srcPath, json, "utf-8");
+        // 写入 dist（供当前生产环境立即生效）
+        try {
+          await fs.writeFile(distPath, json, "utf-8");
+        } catch { /* dist 不存在时忽略 */ }
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error updating about config:", error);
