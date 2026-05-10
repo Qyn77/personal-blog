@@ -3,7 +3,15 @@ import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs from "sql.js";
 import fs from "fs";
 import path from "path";
-import { articles, Article, archives, Archive, subscribers, Subscriber, settings } from "./schema";
+import {
+  articles,
+  Article,
+  archives,
+  Archive,
+  subscribers,
+  Subscriber,
+  settings,
+} from "./schema";
 import { ROOT_DIR } from "./root";
 
 const DB_PATH = path.join(ROOT_DIR, "blog.db");
@@ -45,10 +53,14 @@ function ensureTables(sqlJsDb: any) {
     const columns = sqlJsDb.exec("PRAGMA table_info(articles)");
     const colNames = columns[0]?.values.map((row: any[]) => row[1]) || [];
     if (!colNames.includes("status")) {
-      sqlJsDb.run("ALTER TABLE articles ADD COLUMN status TEXT NOT NULL DEFAULT 'published'");
+      sqlJsDb.run(
+        "ALTER TABLE articles ADD COLUMN status TEXT NOT NULL DEFAULT 'published'"
+      );
       console.log("[Database] Added status column to articles table");
     }
-  } catch { /* 表可能还不存在，忽略 */ }
+  } catch {
+    /* 表可能还不存在，忽略 */
+  }
 
   sqlJsDb.run(`
     CREATE TABLE IF NOT EXISTS archives (
@@ -85,9 +97,13 @@ function ensureTables(sqlJsDb: any) {
     const colNames = columns[0]?.values.map((row: any[]) => row[1]) || [];
     if (!colNames.includes("unsubscribeToken")) {
       sqlJsDb.run("ALTER TABLE subscribers ADD COLUMN unsubscribeToken TEXT");
-      console.log("[Database] Added unsubscribeToken column to subscribers table");
+      console.log(
+        "[Database] Added unsubscribeToken column to subscribers table"
+      );
     }
-  } catch { /* 表可能还不存在，忽略 */ }
+  } catch {
+    /* 表可能还不存在，忽略 */
+  }
 
   sqlJsDb.run(`
     CREATE TABLE IF NOT EXISTS settings (
@@ -163,7 +179,9 @@ export interface PaginatedResult<T> {
   pageSize: number;
 }
 
-export async function getAllArticles(options?: ArticleQueryOptions): Promise<Article[]> {
+export async function getAllArticles(
+  options?: ArticleQueryOptions
+): Promise<Article[]> {
   const db = await getDb();
   if (!db) return [];
 
@@ -195,11 +213,8 @@ export async function getAllArticles(options?: ArticleQueryOptions): Promise<Art
       params.push(`%"${options.tag}"%`);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    // 查询总数
-    const countResult = _sqlJsDb.exec(`SELECT COUNT(*) as total FROM articles ${where}`, params);
-    const total = countResult[0]?.values[0]?.[0] as number || 0;
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // 分页查询
     const page = options.page || 1;
@@ -216,7 +231,9 @@ export async function getAllArticles(options?: ArticleQueryOptions): Promise<Art
     const cols = dataResult[0].columns;
     const rows = dataResult[0].values.map((row: any[]) => {
       const obj: any = {};
-      cols.forEach((col: string, i: number) => { obj[col] = row[i]; });
+      cols.forEach((col: string, i: number) => {
+        obj[col] = row[i];
+      });
       return obj as Article;
     });
 
@@ -227,7 +244,9 @@ export async function getAllArticles(options?: ArticleQueryOptions): Promise<Art
   }
 }
 
-export async function getArticlesWithPagination(options: ArticleQueryOptions): Promise<PaginatedResult<Article>> {
+export async function getArticlesWithPagination(
+  options: ArticleQueryOptions
+): Promise<PaginatedResult<Article>> {
   const db = await getDb();
   if (!db) return { items: [], total: 0, page: 1, pageSize: 10 };
 
@@ -253,10 +272,14 @@ export async function getArticlesWithPagination(options: ArticleQueryOptions): P
       params.push(`%"${options.tag}"%`);
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const countResult = _sqlJsDb.exec(`SELECT COUNT(*) FROM articles ${where}`, params);
-    const total = countResult[0]?.values[0]?.[0] as number || 0;
+    const countResult = _sqlJsDb.exec(
+      `SELECT COUNT(*) FROM articles ${where}`,
+      params
+    );
+    const total = (countResult[0]?.values[0]?.[0] as number) || 0;
 
     const page = options.page || 1;
     const pageSize = options.pageSize || 10;
@@ -272,7 +295,9 @@ export async function getArticlesWithPagination(options: ArticleQueryOptions): P
     const cols = dataResult[0].columns;
     const items = dataResult[0].values.map((row: any[]) => {
       const obj: any = {};
-      cols.forEach((col: string, i: number) => { obj[col] = row[i]; });
+      cols.forEach((col: string, i: number) => {
+        obj[col] = row[i];
+      });
       return obj as Article;
     });
 
@@ -283,13 +308,19 @@ export async function getArticlesWithPagination(options: ArticleQueryOptions): P
   }
 }
 
-export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
+export async function getArticleBySlug(
+  slug: string
+): Promise<Article | undefined> {
   const db = await getDb();
   if (!db) return undefined;
 
   try {
     // @ts-ignore
-    const result = await db.select().from(articles).where(eq(articles.slug, slug)).limit(1);
+    const result = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.slug, slug))
+      .limit(1);
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get article:", error);
@@ -303,7 +334,11 @@ export async function getArticleById(id: string): Promise<Article | undefined> {
 
   try {
     // @ts-ignore
-    const result = await db.select().from(articles).where(eq(articles.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.id, id))
+      .limit(1);
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get article:", error);
@@ -395,7 +430,8 @@ export async function updateArticle(
     if (data.readTime !== undefined) updateData.readTime = data.readTime;
     if (data.tags !== undefined) updateData.tags = JSON.stringify(data.tags);
     if (data.category !== undefined) updateData.category = data.category;
-    if (data.featured !== undefined) updateData.featured = data.featured ? 1 : 0;
+    if (data.featured !== undefined)
+      updateData.featured = data.featured ? 1 : 0;
     if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
     if (data.status !== undefined) updateData.status = data.status;
 
@@ -441,13 +477,19 @@ export async function getAllArchives(): Promise<Archive[]> {
   }
 }
 
-export async function getArchiveBySlug(slug: string): Promise<Archive | undefined> {
+export async function getArchiveBySlug(
+  slug: string
+): Promise<Archive | undefined> {
   const db = await getDb();
   if (!db) return undefined;
 
   try {
     // @ts-ignore
-    const result = await db.select().from(archives).where(eq(archives.slug, slug)).limit(1);
+    const result = await db
+      .select()
+      .from(archives)
+      .where(eq(archives.slug, slug))
+      .limit(1);
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get archive:", error);
@@ -461,7 +503,11 @@ export async function getArchiveById(id: string): Promise<Archive | undefined> {
 
   try {
     // @ts-ignore
-    const result = await db.select().from(archives).where(eq(archives.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(archives)
+      .where(eq(archives.id, id))
+      .limit(1);
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get archive:", error);
@@ -604,13 +650,19 @@ export async function insertSubscriber(data: {
   }
 }
 
-export async function getSubscriberByEmail(email: string): Promise<Subscriber | undefined> {
+export async function getSubscriberByEmail(
+  email: string
+): Promise<Subscriber | undefined> {
   const db = await getDb();
   if (!db) return undefined;
 
   try {
     // @ts-ignore
-    const result = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
+    const result = await db
+      .select()
+      .from(subscribers)
+      .where(eq(subscribers.email, email))
+      .limit(1);
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get subscriber:", error);
@@ -618,27 +670,42 @@ export async function getSubscriberByEmail(email: string): Promise<Subscriber | 
   }
 }
 
-export async function getSubscriberByUnsubscribeToken(token: string): Promise<Subscriber | undefined> {
+export async function getSubscriberByUnsubscribeToken(
+  token: string
+): Promise<Subscriber | undefined> {
   const db = await getDb();
   if (!db) return undefined;
 
   try {
     // @ts-ignore
-    const result = await db.select().from(subscribers).where(eq(subscribers.unsubscribeToken, token)).limit(1);
+    const result = await db
+      .select()
+      .from(subscribers)
+      .where(eq(subscribers.unsubscribeToken, token))
+      .limit(1);
     return result[0];
   } catch (error) {
-    console.error("[Database] Failed to get subscriber by unsubscribe token:", error);
+    console.error(
+      "[Database] Failed to get subscriber by unsubscribe token:",
+      error
+    );
     return undefined;
   }
 }
 
-export async function getSubscriberByToken(token: string): Promise<Subscriber | undefined> {
+export async function getSubscriberByToken(
+  token: string
+): Promise<Subscriber | undefined> {
   const db = await getDb();
   if (!db) return undefined;
 
   try {
     // @ts-ignore
-    const result = await db.select().from(subscribers).where(eq(subscribers.verifyToken, token)).limit(1);
+    const result = await db
+      .select()
+      .from(subscribers)
+      .where(eq(subscribers.verifyToken, token))
+      .limit(1);
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get subscriber by token:", error);
@@ -662,10 +729,14 @@ export async function updateSubscriber(
   try {
     const updateData: Record<string, any> = {};
     if (data.status !== undefined) updateData.status = data.status;
-    if (data.verifyToken !== undefined) updateData.verifyToken = data.verifyToken;
-    if (data.tokenExpiresAt !== undefined) updateData.tokenExpiresAt = data.tokenExpiresAt;
-    if (data.confirmedAt !== undefined) updateData.confirmedAt = data.confirmedAt;
-    if (data.unsubscribeToken !== undefined) updateData.unsubscribeToken = data.unsubscribeToken;
+    if (data.verifyToken !== undefined)
+      updateData.verifyToken = data.verifyToken;
+    if (data.tokenExpiresAt !== undefined)
+      updateData.tokenExpiresAt = data.tokenExpiresAt;
+    if (data.confirmedAt !== undefined)
+      updateData.confirmedAt = data.confirmedAt;
+    if (data.unsubscribeToken !== undefined)
+      updateData.unsubscribeToken = data.unsubscribeToken;
 
     // @ts-ignore
     await db.update(subscribers).set(updateData).where(eq(subscribers.id, id));
@@ -711,7 +782,10 @@ export async function getConfirmedSubscribers(): Promise<Subscriber[]> {
 
   try {
     // @ts-ignore
-    return await db.select().from(subscribers).where(eq(subscribers.status, "confirmed"));
+    return await db
+      .select()
+      .from(subscribers)
+      .where(eq(subscribers.status, "confirmed"));
   } catch (error) {
     console.error("[Database] Failed to get confirmed subscribers:", error);
     return [];
@@ -728,7 +802,11 @@ export async function getSetting(key: string): Promise<string | undefined> {
 
   try {
     // @ts-ignore
-    const result = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
+    const result = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, key))
+      .limit(1);
     return result[0]?.value;
   } catch (error) {
     console.error("[Database] Failed to get setting:", error);

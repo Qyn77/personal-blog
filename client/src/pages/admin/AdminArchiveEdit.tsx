@@ -16,7 +16,7 @@ import { getToken } from "@/lib/auth";
 
 export default function AdminArchiveEdit() {
   const [, navigate] = useLocation();
-  const [match, params] = useRoute("/admin/archives/:id");
+  const [, params] = useRoute("/admin/archives/:id");
   const isNew = !params?.id || params.id === "new";
   const editId = isNew ? null : params!.id;
 
@@ -36,10 +36,8 @@ export default function AdminArchiveEdit() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: existingData, isLoading: isLoadingExisting } = trpc.admin.getArchive.useQuery(
-    { id: editId! },
-    { enabled: !!editId }
-  );
+  const { data: existingData, isLoading: isLoadingExisting } =
+    trpc.admin.getArchive.useQuery({ id: editId! }, { enabled: !!editId });
 
   useEffect(() => {
     if (existingData?.archive) {
@@ -119,7 +117,9 @@ export default function AdminArchiveEdit() {
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    const imageItem = Array.from(items).find(item => item.type.startsWith("image/"));
+    const imageItem = Array.from(items).find(item =>
+      item.type.startsWith("image/")
+    );
     if (!imageItem) return;
 
     e.preventDefault();
@@ -145,10 +145,12 @@ export default function AdminArchiveEdit() {
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
           const mdImage = `![](${data.imagePath})`;
-          const newContent = content.slice(0, start) + mdImage + content.slice(end);
+          const newContent =
+            content.slice(0, start) + mdImage + content.slice(end);
           setContent(newContent);
           setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = start + mdImage.length;
+            textarea.selectionStart = textarea.selectionEnd =
+              start + mdImage.length;
             textarea.focus();
           }, 0);
         }

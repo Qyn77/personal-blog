@@ -17,7 +17,7 @@ import { getToken } from "@/lib/auth";
 
 export default function AdminArticleEdit() {
   const [, navigate] = useLocation();
-  const [match, params] = useRoute("/admin/articles/:id");
+  const [, params] = useRoute("/admin/articles/:id");
   const isNew = !params?.id || params.id === "new";
   const editId = isNew ? null : params!.id;
 
@@ -44,10 +44,8 @@ export default function AdminArticleEdit() {
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   // 编辑模式：加载现有文章
-  const { data: existingData, isLoading: isLoadingExisting } = trpc.admin.getArticle.useQuery(
-    { id: editId! },
-    { enabled: !!editId }
-  );
+  const { data: existingData, isLoading: isLoadingExisting } =
+    trpc.admin.getArticle.useQuery({ id: editId! }, { enabled: !!editId });
 
   useEffect(() => {
     if (existingData?.article) {
@@ -164,7 +162,9 @@ export default function AdminArticleEdit() {
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    const imageItem = Array.from(items).find(item => item.type.startsWith("image/"));
+    const imageItem = Array.from(items).find(item =>
+      item.type.startsWith("image/")
+    );
     if (!imageItem) return;
 
     e.preventDefault();
@@ -190,11 +190,13 @@ export default function AdminArticleEdit() {
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
           const mdImage = `![](${data.imagePath})`;
-          const newContent = content.slice(0, start) + mdImage + content.slice(end);
+          const newContent =
+            content.slice(0, start) + mdImage + content.slice(end);
           setContent(newContent);
           // 恢复光标位置
           setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = start + mdImage.length;
+            textarea.selectionStart = textarea.selectionEnd =
+              start + mdImage.length;
             textarea.focus();
           }, 0);
         }
@@ -417,11 +419,17 @@ export default function AdminArticleEdit() {
         {/* 置顶 + 发布状态 */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <Switch checked={featured} onCheckedChange={setFeatured} id="featured" />
+            <Switch
+              checked={featured}
+              onCheckedChange={setFeatured}
+              id="featured"
+            />
             <Label htmlFor="featured">置顶文章</Label>
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="status" className="text-sm">状态</Label>
+            <Label htmlFor="status" className="text-sm">
+              状态
+            </Label>
             <select
               id="status"
               value={status}

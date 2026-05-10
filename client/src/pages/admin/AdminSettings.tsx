@@ -5,14 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Send, CheckCircle } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminSettings() {
   const utils = trpc.useUtils();
 
   // 推送配置
-  const { data: settingsData, isLoading: settingsLoading } = trpc.admin.getNotifySettings.useQuery();
+  const { data: settingsData, isLoading: settingsLoading } =
+    trpc.admin.getNotifySettings.useQuery();
   const [autoNotify, setAutoNotify] = useState(false);
 
   useEffect(() => {
@@ -92,7 +93,11 @@ export default function AdminSettings() {
             />
           </div>
           <div className="mt-3 flex justify-end">
-            <Button onClick={handleSaveSettings} disabled={updateSettings.isPending} size="sm">
+            <Button
+              onClick={handleSaveSettings}
+              disabled={updateSettings.isPending}
+              size="sm"
+            >
               {updateSettings.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />

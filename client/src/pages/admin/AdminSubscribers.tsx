@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2, Send } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminSubscribers() {
@@ -29,10 +29,29 @@ export default function AdminSubscribers() {
 
   const subscribers = data?.subscribers ?? [];
 
-  const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className: string }> = {
-    pending: { label: "待验证", variant: "secondary", className: "bg-muted-foreground/20" },
-    confirmed: { label: "已确认", variant: "default", className: "bg-green-600 hover:bg-green-700" },
-    unsubscribed: { label: "已退订", variant: "outline", className: "border-red-300 text-red-500" },
+  const statusMap: Record<
+    string,
+    {
+      label: string;
+      variant: "default" | "secondary" | "destructive" | "outline";
+      className: string;
+    }
+  > = {
+    pending: {
+      label: "待验证",
+      variant: "secondary",
+      className: "bg-muted-foreground/20",
+    },
+    confirmed: {
+      label: "已确认",
+      variant: "default",
+      className: "bg-green-600 hover:bg-green-700",
+    },
+    unsubscribed: {
+      label: "已退订",
+      variant: "outline",
+      className: "border-red-300 text-red-500",
+    },
   };
 
   const formatDate = (timestamp: number) => {
@@ -69,11 +88,21 @@ export default function AdminSubscribers() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-sm font-medium px-4 py-3">邮箱</th>
-                <th className="text-left text-sm font-medium px-4 py-3">状态</th>
-                <th className="text-left text-sm font-medium px-4 py-3">订阅时间</th>
-                <th className="text-left text-sm font-medium px-4 py-3">验证时间</th>
-                <th className="text-right text-sm font-medium px-4 py-3">操作</th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  邮箱
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  状态
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  订阅时间
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  验证时间
+                </th>
+                <th className="text-right text-sm font-medium px-4 py-3">
+                  操作
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -86,7 +115,10 @@ export default function AdminSubscribers() {
                   >
                     <td className="px-4 py-3 text-sm">{sub.email}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={status.variant} className={`text-xs ${status.className}`}>
+                      <Badge
+                        variant={status.variant}
+                        className={`text-xs ${status.className}`}
+                      >
                         {status.label}
                       </Badge>
                     </td>
@@ -107,13 +139,16 @@ export default function AdminSubscribers() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>确认删除</AlertDialogTitle>
                             <AlertDialogDescription>
-                              确定要删除订阅者「{sub.email}」吗？此操作不可撤销。
+                              确定要删除订阅者「{sub.email}
+                              」吗？此操作不可撤销。
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>取消</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => deleteMutation.mutate({ id: sub.id })}
+                              onClick={() =>
+                                deleteMutation.mutate({ id: sub.id })
+                              }
                             >
                               删除
                             </AlertDialogAction>
