@@ -131,7 +131,13 @@ function saveDb() {
     const buffer = Buffer.from(data);
     const tmpPath = DB_PATH + ".tmp";
     fs.writeFileSync(tmpPath, buffer);
-    fs.renameSync(tmpPath, DB_PATH);
+    try {
+      fs.renameSync(tmpPath, DB_PATH);
+    } catch {
+      // Windows 上 renameSync 可能因文件锁定失败，回退到 copy + delete
+      fs.copyFileSync(tmpPath, DB_PATH);
+      fs.unlinkSync(tmpPath);
+    }
   } catch (error) {
     console.error("[Database] Failed to save database:", error);
   }

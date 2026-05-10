@@ -13,6 +13,16 @@ import { ROOT_DIR } from "../root";
 
 const ALLOWED_TYPES = ["books", "archives", "images"] as const;
 
+/** 跨平台文件移动（Windows 上 renameSync 可能因文件锁定失败） */
+function moveFile(src: string, dest: string) {
+  try {
+    fs.renameSync(src, dest);
+  } catch {
+    fs.copyFileSync(src, dest);
+    fs.unlinkSync(src);
+  }
+}
+
 // images 上传目录：开发模式在 client/public/images，生产模式在 public/images
 const IMAGES_DIR = process.env.NODE_ENV === "development"
   ? path.join(ROOT_DIR, "client/public/images")
@@ -115,7 +125,7 @@ uploadRouter.post(
         const ext = path.extname(imageFile.originalname);
         const newName = `${nanoid()}${ext}`;
         const finalPath = path.join(imagesDir, newName);
-        fs.renameSync(imageFile.path, finalPath);
+        moveFile(imageFile.path, finalPath);
 
         result.coverImagePath = `/${type}/images/${newName}`;
       }
@@ -158,7 +168,7 @@ uploadRouter.post("/:type/image", upload.single("image"), (req, res) => {
     const ext = path.extname(file.originalname) || ".png";
     const newName = `${nanoid()}${ext}`;
     const finalPath = path.join(imagesDir, newName);
-    fs.renameSync(file.path, finalPath);
+    moveFile(file.path, finalPath);
 
     res.json({ success: true, imagePath: `/${type}/images/${newName}` });
   } catch (error) {

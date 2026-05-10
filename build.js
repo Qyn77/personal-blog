@@ -119,4 +119,4 @@ console.log('  cd dist');
 console.log('  # 使用你喜欢的包管理器安装生产依赖');
 console.log('  npm install --prod   # 或 yarn install --production / pnpm install --prod / bun install --production');
 console.log('  cp .env.example .env  # 编辑填入真实配置');
-console.log('  NODE_ENV=production node index.js\n');
+console.log('  node index.js\n');
