@@ -45,3 +45,28 @@ export const archives = sqliteTable("archives", {
 
 export type Archive = typeof archives.$inferSelect;
 
+/**
+ * SQLite 订阅者表
+ * 用于存储邮件订阅者信息
+ */
+export const subscribers = sqliteTable("subscribers", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  status: text("status").notNull().default("pending"), // "pending" | "confirmed" | "unsubscribed"
+  verifyToken: text("verifyToken"),
+  tokenExpiresAt: integer("tokenExpiresAt"), // Unix timestamp
+  createdAt: integer("createdAt").notNull(),
+  confirmedAt: integer("confirmedAt"),
+});
+
+export type Subscriber = typeof subscribers.$inferSelect;
+
+/**
+ * SQLite 设置表
+ * 用于存储系统配置项（key-value）
+ */
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+

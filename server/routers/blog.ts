@@ -5,7 +5,9 @@
 
 import { publicProcedure, router } from "../_core/trpc";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 import * as db from "../db";
+import { sendVerifyEmail } from "../lib/email";
 
 export const blogRouter = router({
   /**
@@ -112,6 +114,81 @@ export const blogRouter = router({
           article: null,
           error: "Failed to load article",
         };
+      }
+    }),
+
+  /**
+   * 订阅博客（发送验证邮件）
+   */
+  subscribe: publicProcedure
+    .input(z.object({ email: z.string().email("请输入有效的邮箱地址") }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const email = input.email.toLowerCase().trim();
+
+        // 检查是否已订阅
+        const existing = await db.getSubscriberByEmail(email);
+        if (existing) {
+          if (existing.status === "confirmed") {
+            return { success: false, error: "该邮箱已订阅" };
+          }
+          if (existing.status === "unsubscribed") {
+            // 重新订阅：生成新 token
+            const token = nanoid(32);
+            const expiresAt = Date.now() + 60 * 60 * 1000; // 1 小时
+            await db.updateSubscriber(existing.id, {
+              status: "pending",
+              verifyToken: token,
+              tokenExpiresAt: expiresAt,
+            });
+
+            const host = ctx.req.get("host") || "localhost:3000";
+            const protocol = ctx.req.protocol || "http";
+            const baseUrl = `${protocol}://${host}`;
+
+            const sent = await sendVerifyEmail(email, token, baseUrl);
+            if (!sent) return { success: false, error: "邮件发送失败，请稍后重试" };
+
+            return { success: true, message: "验证邮件已发送，请查收" };
+          }
+          // pending 状态：检查 token 是否还在有效期内
+          if (existing.tokenExpiresAt && existing.tokenExpiresAt > Date.now()) {
+            return { success: true, message: "验证邮件已发送，请查收（如未收到请稍后再试）" };
+          }
+        }
+
+        // 新订阅
+        const id = nanoid();
+        const token = nanoid(32);
+        const expiresAt = Date.now() + 60 * 60 * 1000; // 1 小时
+
+        if (existing) {
+          // 更新已有的 pending 记录
+          await db.updateSubscriber(existing.id, {
+            verifyToken: token,
+            tokenExpiresAt: expiresAt,
+          });
+        } else {
+          await db.insertSubscriber({
+            id,
+            email,
+            status: "pending",
+            verifyToken: token,
+            tokenExpiresAt: expiresAt,
+          });
+        }
+
+        const host = ctx.req.get("host") || "localhost:3000";
+        const protocol = ctx.req.protocol || "http";
+        const baseUrl = `${protocol}://${host}`;
+
+        const sent = await sendVerifyEmail(email, token, baseUrl);
+        if (!sent) return { success: false, error: "邮件发送失败，请稍后重试" };
+
+        return { success: true, message: "验证邮件已发送，请查收" };
+      } catch (error) {
+        console.error("[Blog] Subscribe error:", error);
+        return { success: false, error: "订阅失败，请稍后重试" };
       }
     }),
 

@@ -11,6 +11,7 @@ import { uploadRouter } from "../routes/upload";
 import { authRouter } from "../routes/auth";
 import { rssRouter } from "../routes/rss";
 import { sitemapRouter } from "../routes/sitemap";
+import { subscribeRouter } from "../routes/subscribe";
 
 const PROJECT_ROOT = process.cwd();
 
@@ -50,9 +51,10 @@ async function startServer() {
   // 文件上传 API（需要认证）
   app.use("/api/upload", uploadRouter);
 
-  // RSS + Sitemap
+  // RSS + Sitemap + 订阅验证
   app.use(rssRouter);
   app.use(sitemapRouter);
+  app.use("/api", subscribeRouter);
 
   // tRPC API
   app.use(

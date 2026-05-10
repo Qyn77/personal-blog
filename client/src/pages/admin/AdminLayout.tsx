@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, FileText, Archive, ArrowLeft, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, Archive, Mail, Settings, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { verify, logout } from "@/lib/auth";
 import LoginPage from "./LoginPage";
@@ -14,6 +14,8 @@ const navItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/admin/articles", icon: FileText, label: "文章管理" },
   { href: "/admin/archives", icon: Archive, label: "归档管理" },
+  { href: "/admin/subscribers", icon: Mail, label: "订阅管理" },
+  { href: "/admin/settings", icon: Settings, label: "系统设置" },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {

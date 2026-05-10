@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs from "sql.js";
 import fs from "fs";
 import path from "path";
-import { articles, Article, archives, Archive } from "./schema";
+import { articles, Article, archives, Archive, subscribers, Subscriber, settings } from "./schema";
 
 const DB_PATH = path.join(process.cwd(), "blog.db");
 
@@ -63,6 +63,25 @@ function ensureTables(sqlJsDb: any) {
       category TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
+    );
+  `);
+
+  sqlJsDb.run(`
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'pending',
+      verifyToken TEXT,
+      tokenExpiresAt INTEGER,
+      createdAt INTEGER NOT NULL,
+      confirmedAt INTEGER
+    );
+  `);
+
+  sqlJsDb.run(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
     );
   `);
 }
@@ -530,6 +549,175 @@ export async function deleteArchive(id: string): Promise<boolean> {
     return true;
   } catch (error) {
     console.error("[Database] Failed to delete archive:", error);
+    return false;
+  }
+}
+
+// ============================================================================
+// 订阅者
+// ============================================================================
+
+export async function insertSubscriber(data: {
+  id: string;
+  email: string;
+  status: string;
+  verifyToken: string;
+  tokenExpiresAt: number;
+}): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    // @ts-ignore
+    await db.insert(subscribers).values({
+      id: data.id,
+      email: data.email,
+      status: data.status,
+      verifyToken: data.verifyToken,
+      tokenExpiresAt: data.tokenExpiresAt,
+      createdAt: Date.now(),
+    });
+    saveDb();
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to insert subscriber:", error);
+    return false;
+  }
+}
+
+export async function getSubscriberByEmail(email: string): Promise<Subscriber | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    // @ts-ignore
+    const result = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to get subscriber:", error);
+    return undefined;
+  }
+}
+
+export async function getSubscriberByToken(token: string): Promise<Subscriber | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    // @ts-ignore
+    const result = await db.select().from(subscribers).where(eq(subscribers.verifyToken, token)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to get subscriber by token:", error);
+    return undefined;
+  }
+}
+
+export async function updateSubscriber(
+  id: string,
+  data: Partial<{
+    status: string;
+    verifyToken: string | null;
+    tokenExpiresAt: number | null;
+    confirmedAt: number;
+  }>
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    const updateData: Record<string, any> = {};
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.verifyToken !== undefined) updateData.verifyToken = data.verifyToken;
+    if (data.tokenExpiresAt !== undefined) updateData.tokenExpiresAt = data.tokenExpiresAt;
+    if (data.confirmedAt !== undefined) updateData.confirmedAt = data.confirmedAt;
+
+    // @ts-ignore
+    await db.update(subscribers).set(updateData).where(eq(subscribers.id, id));
+    saveDb();
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to update subscriber:", error);
+    return false;
+  }
+}
+
+export async function deleteSubscriber(id: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    // @ts-ignore
+    await db.delete(subscribers).where(eq(subscribers.id, id));
+    saveDb();
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to delete subscriber:", error);
+    return false;
+  }
+}
+
+export async function getAllSubscribers(): Promise<Subscriber[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    // @ts-ignore
+    return await db.select().from(subscribers);
+  } catch (error) {
+    console.error("[Database] Failed to get subscribers:", error);
+    return [];
+  }
+}
+
+export async function getConfirmedSubscribers(): Promise<Subscriber[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    // @ts-ignore
+    return await db.select().from(subscribers).where(eq(subscribers.status, "confirmed"));
+  } catch (error) {
+    console.error("[Database] Failed to get confirmed subscribers:", error);
+    return [];
+  }
+}
+
+// ============================================================================
+// 系统设置
+// ============================================================================
+
+export async function getSetting(key: string): Promise<string | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    // @ts-ignore
+    const result = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
+    return result[0]?.value;
+  } catch (error) {
+    console.error("[Database] Failed to get setting:", error);
+    return undefined;
+  }
+}
+
+export async function setSetting(key: string, value: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    const existing = await getSetting(key);
+    if (existing !== undefined) {
+      // @ts-ignore
+      await db.update(settings).set({ value }).where(eq(settings.key, key));
+    } else {
+      // @ts-ignore
+      await db.insert(settings).values({ key, value });
+    }
+    saveDb();
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to set setting:", error);
     return false;
   }
 }

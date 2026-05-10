@@ -14,6 +14,7 @@ import {
   generateExcerpt,
   slugify,
 } from "../lib/markdown";
+import { sendArticleNotify, sendTestEmail } from "../lib/email";
 
 export const adminRouter = router({
   // ========================================================================
@@ -123,9 +124,18 @@ export const adminRouter = router({
         status: z.enum(["draft", "published"]).optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         const { id, ...data } = input;
+
+        // 检查是否从草稿变为发布（用于自动推送）
+        let justPublished = false;
+        if (data.status === "published") {
+          const existing = await db.getArticleById(id);
+          if (existing && existing.status === "draft") {
+            justPublished = true;
+          }
+        }
 
         // 如果更新了内容，重新计算阅读时间和处理图片路径
         if (data.content) {
@@ -138,6 +148,35 @@ export const adminRouter = router({
         } else {
           const success = await db.updateArticle(id, data);
           if (!success) return { success: false, error: "Failed to update article" };
+        }
+
+        // 自动推送：文章从草稿变为发布时
+        if (justPublished) {
+          const autoNotify = await db.getSetting("auto_notify");
+          if (autoNotify === "true") {
+            // 异步发送，不阻塞响应
+            (async () => {
+              try {
+                const article = await db.getArticleById(id);
+                if (!article) return;
+                const subs = await db.getConfirmedSubscribers();
+                if (subs.length === 0) return;
+
+                const host = ctx.req.get("host") || "localhost:3000";
+                const protocol = ctx.req.protocol || "http";
+                const baseUrl = `${protocol}://${host}`;
+
+                await sendArticleNotify(
+                  subs.map(s => s.email),
+                  { title: article.title, excerpt: article.excerpt, slug: article.slug },
+                  baseUrl
+                );
+                console.log(`[Admin] Auto-notified ${subs.length} subscribers for article: ${article.title}`);
+              } catch (err) {
+                console.error("[Admin] Auto-notify failed:", err);
+              }
+            })();
+          }
         }
 
         return { success: true };
@@ -329,6 +368,108 @@ export const adminRouter = router({
       } catch (error) {
         console.error("[Admin] Error deleting archive:", error);
         return { success: false, error: "Failed to delete archive" };
+      }
+    }),
+
+  // ========================================================================
+  // 订阅管理
+  // ========================================================================
+
+  /** 获取所有订阅者 */
+  listSubscribers: protectedProcedure.query(async () => {
+    try {
+      const subscribers = await db.getAllSubscribers();
+      return { success: true, subscribers };
+    } catch (error) {
+      console.error("[Admin] Error listing subscribers:", error);
+      return { success: false, subscribers: [], error: "Failed to load subscribers" };
+    }
+  }),
+
+  /** 删除订阅者 */
+  deleteSubscriber: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const success = await db.deleteSubscriber(input.id);
+        if (!success) return { success: false, error: "Failed to delete subscriber" };
+        return { success: true };
+      } catch (error) {
+        console.error("[Admin] Error deleting subscriber:", error);
+        return { success: false, error: "Failed to delete subscriber" };
+      }
+    }),
+
+  // ========================================================================
+  // 推送配置
+  // ========================================================================
+
+  /** 获取推送配置 */
+  getNotifySettings: protectedProcedure.query(async () => {
+    try {
+      const autoNotify = await db.getSetting("auto_notify");
+      return { success: true, autoNotify: autoNotify === "true" };
+    } catch (error) {
+      console.error("[Admin] Error getting notify settings:", error);
+      return { success: true, autoNotify: false };
+    }
+  }),
+
+  /** 更新推送配置 */
+  updateNotifySettings: protectedProcedure
+    .input(z.object({ autoNotify: z.boolean() }))
+    .mutation(async ({ input }) => {
+      try {
+        await db.setSetting("auto_notify", String(input.autoNotify));
+        return { success: true };
+      } catch (error) {
+        console.error("[Admin] Error updating notify settings:", error);
+        return { success: false, error: "Failed to update settings" };
+      }
+    }),
+
+  /** 发送测试邮件 */
+  sendTestEmail: protectedProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      try {
+        const sent = await sendTestEmail(input.email);
+        if (!sent) return { success: false, error: "邮件发送失败，请检查 SMTP 配置" };
+        return { success: true };
+      } catch (error) {
+        console.error("[Admin] Error sending test email:", error);
+        return { success: false, error: "邮件发送失败" };
+      }
+    }),
+
+  /** 手动推送文章给所有已确认订阅者 */
+  notifyArticle: protectedProcedure
+    .input(z.object({ articleId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const article = await db.getArticleById(input.articleId);
+        if (!article) return { success: false, error: "文章不存在" };
+
+        const confirmedSubs = await db.getConfirmedSubscribers();
+        if (confirmedSubs.length === 0) {
+          return { success: false, error: "没有已确认的订阅者" };
+        }
+
+        const host = ctx.req.get("host") || "localhost:3000";
+        const protocol = ctx.req.protocol || "http";
+        const baseUrl = `${protocol}://${host}`;
+
+        const emails = confirmedSubs.map(s => s.email);
+        await sendArticleNotify(
+          emails,
+          { title: article.title, excerpt: article.excerpt, slug: article.slug },
+          baseUrl
+        );
+
+        return { success: true, count: emails.length };
+      } catch (error) {
+        console.error("[Admin] Error notifying article:", error);
+        return { success: false, error: "推送失败" };
       }
     }),
 });
