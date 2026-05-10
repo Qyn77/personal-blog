@@ -4,8 +4,9 @@ import initSqlJs from "sql.js";
 import fs from "fs";
 import path from "path";
 import { articles, Article, archives, Archive, subscribers, Subscriber, settings } from "./schema";
+import { ROOT_DIR } from "./root";
 
-const DB_PATH = path.join(process.cwd(), "blog.db");
+const DB_PATH = path.join(ROOT_DIR, "blog.db");
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _SQL: Awaited<ReturnType<typeof initSqlJs>> | null = null;

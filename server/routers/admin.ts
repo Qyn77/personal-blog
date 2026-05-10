@@ -17,6 +17,7 @@ import {
   slugify,
 } from "../lib/markdown";
 import { sendArticleNotify, sendTestEmail } from "../lib/email";
+import { ROOT_DIR } from "../root";
 
 export const adminRouter = router({
   // ========================================================================
@@ -534,17 +535,13 @@ export const adminRouter = router({
   // About 页面配置
   // ========================================================================
 
-  /** 获取 About 页面配置（优先读 dist，回退到源目录） */
+  /** 获取 About 页面配置 */
   getAboutConfig: protectedProcedure.query(async () => {
     try {
-      const distPath = path.resolve(process.cwd(), "dist/public/about-config.json");
-      const srcPath = path.resolve(process.cwd(), "client/public/about-config.json");
-      let configPath = srcPath;
-      try {
-        await fs.access(distPath);
-        configPath = distPath;
-      } catch { /* dist 不存在，用源目录 */ }
-      const raw = await fs.readFile(configPath, "utf-8");
+      const configDir = process.env.NODE_ENV === "development"
+        ? path.join(ROOT_DIR, "client/public")
+        : path.join(ROOT_DIR, "public");
+      const raw = await fs.readFile(path.join(configDir, "about-config.json"), "utf-8");
       return { success: true, config: JSON.parse(raw) };
     } catch (error) {
       console.error("[Admin] Error reading about config:", error);
@@ -552,7 +549,7 @@ export const adminRouter = router({
     }
   }),
 
-  /** 更新 About 页面配置（同时写入源目录和 dist） */
+  /** 更新 About 页面配置 */
   updateAboutConfig: protectedProcedure
     .input(
       z.object({
@@ -575,14 +572,10 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       try {
         const json = JSON.stringify(input, null, 2) + "\n";
-        const srcPath = path.resolve(process.cwd(), "client/public/about-config.json");
-        const distPath = path.resolve(process.cwd(), "dist/public/about-config.json");
-        // 写入源目录（供未来 build）
-        await fs.writeFile(srcPath, json, "utf-8");
-        // 写入 dist（供当前生产环境立即生效）
-        try {
-          await fs.writeFile(distPath, json, "utf-8");
-        } catch { /* dist 不存在时忽略 */ }
+        const configDir = process.env.NODE_ENV === "development"
+          ? path.join(ROOT_DIR, "client/public")
+          : path.join(ROOT_DIR, "public");
+        await fs.writeFile(path.join(configDir, "about-config.json"), json, "utf-8");
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error updating about config:", error);

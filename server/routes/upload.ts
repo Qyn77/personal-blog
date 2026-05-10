@@ -9,14 +9,14 @@ import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
 import { verifyToken } from "../lib/auth";
-
-const PROJECT_ROOT = process.cwd();
-
-// 始终上传到项目根目录下的 books/archives（开发和生产模式一致）
-// 生产模式下静态文件服务会从 dist/ 读取，但上传内容保留在源目录
-const CONTENT_ROOT = PROJECT_ROOT;
+import { ROOT_DIR } from "../root";
 
 const ALLOWED_TYPES = ["books", "archives", "images"] as const;
+
+// images 上传目录：开发模式在 client/public/images，生产模式在 public/images
+const IMAGES_DIR = process.env.NODE_ENV === "development"
+  ? path.join(ROOT_DIR, "client/public/images")
+  : path.join(ROOT_DIR, "public/images");
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
@@ -25,10 +25,9 @@ const storage = multer.diskStorage({
       cb(new Error("Invalid upload type"), "");
       return;
     }
-    // images 类型保存到 client/public/images/（静态资源目录）
     const dir = type === "images"
-      ? path.join(PROJECT_ROOT, "client/public/images")
-      : path.join(CONTENT_ROOT, type);
+      ? IMAGES_DIR
+      : path.join(ROOT_DIR, type);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
@@ -110,7 +109,7 @@ uploadRouter.post(
       if (files.coverImage?.[0]) {
         // 封面图片保存到 images 子目录
         const imageFile = files.coverImage[0];
-        const imagesDir = path.join(CONTENT_ROOT, type, "images");
+        const imagesDir = path.join(ROOT_DIR, type, "images");
         if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
 
         const ext = path.extname(imageFile.originalname);
@@ -153,7 +152,7 @@ uploadRouter.post("/:type/image", upload.single("image"), (req, res) => {
       return;
     }
 
-    const imagesDir = path.join(CONTENT_ROOT, type, "images");
+    const imagesDir = path.join(ROOT_DIR, type, "images");
     if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
 
     const ext = path.extname(file.originalname) || ".png";
@@ -186,9 +185,9 @@ uploadRouter.delete("/:type/:filename", (req, res) => {
       return;
     }
 
-    const filePath = path.join(CONTENT_ROOT, type, filename);
+    const filePath = path.join(ROOT_DIR, type, filename);
     // 二次校验：解析后的路径必须在预期目录内
-    const expectedDir = path.join(CONTENT_ROOT, type);
+    const expectedDir = path.join(ROOT_DIR, type);
     if (!filePath.startsWith(expectedDir + path.sep) && filePath !== expectedDir) {
       res.status(400).json({ success: false, error: "Invalid filename" });
       return;

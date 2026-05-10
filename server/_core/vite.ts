@@ -42,8 +42,9 @@ export async function setupVite(app: Express, server: Server, projectRoot: strin
   });
 }
 
-export function serveStatic(app: Express, projectRoot: string) {
-  const distPath = path.resolve(projectRoot, "dist", "public");
+export function serveStatic(app: Express, rootDir: string) {
+  // rootDir 在生产模式下就是 dist/，所以静态资源在 dist/public/
+  const distPath = path.resolve(rootDir, "public");
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`

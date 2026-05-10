@@ -12,8 +12,7 @@ import { authRouter } from "../routes/auth";
 import { rssRouter } from "../routes/rss";
 import { sitemapRouter } from "../routes/sitemap";
 import { subscribeRouter } from "../routes/subscribe";
-
-const PROJECT_ROOT = process.cwd();
+import { ROOT_DIR } from "../root";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -41,11 +40,18 @@ async function startServer() {
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ limit: "2mb", extended: true }));
   
-  // 提供 books / archives 文件夹静态文件（始终从项目根目录读取，与上传路径一致）
-  app.use("/books", express.static(path.join(PROJECT_ROOT, "books")));
-  app.use("/archives", express.static(path.join(PROJECT_ROOT, "archives")));
-  // images 目录：始终从 client/public/images 读取（开发和生产模式均适用，确保上传后立即可用）
-  app.use("/images", express.static(path.join(PROJECT_ROOT, "client/public/images")));
+  // 忽略 Chrome DevTools 等 .well-known 探测请求
+  app.use("/.well-known", ((_req: unknown, res: unknown) => {
+    (res as any).status(204).end();
+  }) as any);
+
+  // 静态资源：books / archives / images
+  const imagesDir = process.env.NODE_ENV === "development"
+    ? path.join(ROOT_DIR, "client/public/images")
+    : path.join(ROOT_DIR, "public/images");
+  app.use("/books", express.static(path.join(ROOT_DIR, "books")));
+  app.use("/archives", express.static(path.join(ROOT_DIR, "archives")));
+  app.use("/images", express.static(imagesDir));
 
   // 认证 API
   app.use("/api/auth", authRouter);
@@ -68,9 +74,9 @@ async function startServer() {
   );
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server, PROJECT_ROOT);
+    await setupVite(app, server, ROOT_DIR);
   } else {
-    serveStatic(app, PROJECT_ROOT);
+    serveStatic(app, ROOT_DIR);
   }
 
   const preferredPort = parseInt(process.env.PORT || "3000");
