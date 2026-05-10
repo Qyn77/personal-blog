@@ -82,7 +82,7 @@ export async function sendVerifyEmail(
  * 发送新文章通知
  */
 export async function sendArticleNotify(
-  to: string[],
+  to: Array<{ email: string; unsubscribeToken: string }>,
   article: { title: string; excerpt: string; slug: string },
   baseUrl: string
 ): Promise<boolean> {
@@ -92,14 +92,12 @@ export async function sendArticleNotify(
 
   try {
     // 逐个发送，每封邮件包含个性化的取消订阅链接
-    const promises = to.map(email => {
-      // 生成取消订阅链接（使用 email 的 base64 编码作为简易 token）
-      const unsubToken = Buffer.from(email).toString("base64url");
-      const unsubUrl = `${baseUrl}/api/subscribe/unsubscribe?token=${unsubToken}`;
+    const promises = to.map(subscriber => {
+      const unsubUrl = `${baseUrl}/api/subscribe/unsubscribe?token=${subscriber.unsubscribeToken}`;
 
       return getTransporter().sendMail({
         from: `"${SITE_NAME}" <${SMTP_USER}>`,
-        to: email,
+        to: subscriber.email,
         subject: `${SITE_NAME} · 新文章：${article.title}`,
         html: `
           <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a;">

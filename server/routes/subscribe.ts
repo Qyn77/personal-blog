@@ -61,9 +61,7 @@ subscribeRouter.get("/subscribe/unsubscribe", async (req, res) => {
   }
 
   try {
-    // 取消订阅的 token 是 email 的 base64url 编码
-    const email = Buffer.from(token, "base64url").toString();
-    const subscriber = await db.getSubscriberByEmail(email);
+    const subscriber = await db.getSubscriberByUnsubscribeToken(token);
 
     if (!subscriber) {
       res.status(404).send(renderPage("操作失败", "未找到该订阅记录。"));

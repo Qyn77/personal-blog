@@ -73,10 +73,20 @@ function ensureTables(sqlJsDb: any) {
       status TEXT NOT NULL DEFAULT 'pending',
       verifyToken TEXT,
       tokenExpiresAt INTEGER,
+      unsubscribeToken TEXT,
       createdAt INTEGER NOT NULL,
       confirmedAt INTEGER
     );
   `);
+  // 兼容旧数据库：添加 unsubscribeToken 列
+  try {
+    const columns = sqlJsDb.exec("PRAGMA table_info(subscribers)");
+    const colNames = columns[0]?.values.map((row: any[]) => row[1]) || [];
+    if (!colNames.includes("unsubscribeToken")) {
+      sqlJsDb.run("ALTER TABLE subscribers ADD COLUMN unsubscribeToken TEXT");
+      console.log("[Database] Added unsubscribeToken column to subscribers table");
+    }
+  } catch { /* 表可能还不存在，忽略 */ }
 
   sqlJsDb.run(`
     CREATE TABLE IF NOT EXISTS settings (
@@ -563,6 +573,7 @@ export async function insertSubscriber(data: {
   status: string;
   verifyToken: string;
   tokenExpiresAt: number;
+  unsubscribeToken: string;
 }): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
@@ -575,6 +586,7 @@ export async function insertSubscriber(data: {
       status: data.status,
       verifyToken: data.verifyToken,
       tokenExpiresAt: data.tokenExpiresAt,
+      unsubscribeToken: data.unsubscribeToken,
       createdAt: Date.now(),
     });
     saveDb();
@@ -595,6 +607,20 @@ export async function getSubscriberByEmail(email: string): Promise<Subscriber | 
     return result[0];
   } catch (error) {
     console.error("[Database] Failed to get subscriber:", error);
+    return undefined;
+  }
+}
+
+export async function getSubscriberByUnsubscribeToken(token: string): Promise<Subscriber | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    // @ts-ignore
+    const result = await db.select().from(subscribers).where(eq(subscribers.unsubscribeToken, token)).limit(1);
+    return result[0];
+  } catch (error) {
+    console.error("[Database] Failed to get subscriber by unsubscribe token:", error);
     return undefined;
   }
 }
@@ -620,6 +646,7 @@ export async function updateSubscriber(
     verifyToken: string | null;
     tokenExpiresAt: number | null;
     confirmedAt: number;
+    unsubscribeToken: string | null;
   }>
 ): Promise<boolean> {
   const db = await getDb();
@@ -631,6 +658,7 @@ export async function updateSubscriber(
     if (data.verifyToken !== undefined) updateData.verifyToken = data.verifyToken;
     if (data.tokenExpiresAt !== undefined) updateData.tokenExpiresAt = data.tokenExpiresAt;
     if (data.confirmedAt !== undefined) updateData.confirmedAt = data.confirmedAt;
+    if (data.unsubscribeToken !== undefined) updateData.unsubscribeToken = data.unsubscribeToken;
 
     // @ts-ignore
     await db.update(subscribers).set(updateData).where(eq(subscribers.id, id));

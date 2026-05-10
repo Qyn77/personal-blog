@@ -55,6 +55,7 @@ export const subscribers = sqliteTable("subscribers", {
   status: text("status").notNull().default("pending"), // "pending" | "confirmed" | "unsubscribed"
   verifyToken: text("verifyToken"),
   tokenExpiresAt: integer("tokenExpiresAt"), // Unix timestamp
+  unsubscribeToken: text("unsubscribeToken"),
   createdAt: integer("createdAt").notNull(),
   confirmedAt: integer("confirmedAt"),
 });

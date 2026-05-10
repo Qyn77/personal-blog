@@ -117,7 +117,7 @@ export const adminRouter = router({
                 const baseUrl = `${protocol}://${host}`;
 
                 await sendArticleNotify(
-                  subs.map(s => s.email),
+                  subs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" })),
                   { title: input.title, excerpt, slug },
                   baseUrl
                 );
@@ -197,7 +197,7 @@ export const adminRouter = router({
                 const baseUrl = `${protocol}://${host}`;
 
                 await sendArticleNotify(
-                  subs.map(s => s.email),
+                  subs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" })),
                   { title: article.title, excerpt: article.excerpt, slug: article.slug },
                   baseUrl
                 );
@@ -256,7 +256,7 @@ export const adminRouter = router({
                 const baseUrl = `${protocol}://${host}`;
 
                 await sendArticleNotify(
-                  subs.map(s => s.email),
+                  subs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" })),
                   { title: article.title, excerpt: article.excerpt, slug: article.slug },
                   baseUrl
                 );
@@ -516,7 +516,7 @@ export const adminRouter = router({
         const protocol = ctx.req.protocol || "http";
         const baseUrl = `${protocol}://${host}`;
 
-        const emails = confirmedSubs.map(s => s.email);
+        const emails = confirmedSubs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" }));
         await sendArticleNotify(
           emails,
           { title: article.title, excerpt: article.excerpt, slug: article.slug },
@@ -548,7 +548,24 @@ export const adminRouter = router({
 
   /** 更新 About 页面配置 */
   updateAboutConfig: protectedProcedure
-    .input(z.any())
+    .input(
+      z.object({
+        hero: z.object({
+          image: z.string(),
+          title: z.string(),
+          paragraphs: z.array(z.string()),
+          quote: z.string(),
+        }),
+        interests: z.array(z.object({
+          label: z.string(),
+          description: z.string(),
+        })),
+        favorites: z.array(z.object({
+          category: z.string(),
+          items: z.array(z.string()),
+        })),
+      })
+    )
     .mutation(async ({ input }) => {
       try {
         const configPath = path.resolve(process.cwd(), "client/public/about-config.json");

@@ -4,10 +4,25 @@
  */
 
 import { publicProcedure, router } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import * as db from "../db";
 import { sendVerifyEmail } from "../lib/email";
+
+// 简单的 IP 级速率限制（每 IP 每 10 分钟最多 3 次订阅请求）
+const subscribeRateMap = new Map<string, { count: number; resetAt: number }>();
+function checkSubscribeRate(ip: string): boolean {
+  const now = Date.now();
+  const record = subscribeRateMap.get(ip);
+  if (!record || now > record.resetAt) {
+    subscribeRateMap.set(ip, { count: 1, resetAt: now + 10 * 60 * 1000 });
+    return true;
+  }
+  if (record.count >= 3) return false;
+  record.count++;
+  return true;
+}
 
 export const blogRouter = router({
   /**
@@ -124,6 +139,12 @@ export const blogRouter = router({
     .input(z.object({ email: z.string().email("请输入有效的邮箱地址") }))
     .mutation(async ({ input, ctx }) => {
       try {
+        // 速率限制：每 IP 每 10 分钟最多 3 次
+        const ip = ctx.req.ip || ctx.req.socket.remoteAddress || "unknown";
+        if (!checkSubscribeRate(ip)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "请求过于频繁，请稍后再试" });
+        }
+
         const email = input.email.toLowerCase().trim();
 
         // 检查是否已订阅
@@ -135,11 +156,13 @@ export const blogRouter = router({
           if (existing.status === "unsubscribed") {
             // 重新订阅：生成新 token
             const token = nanoid(32);
+            const unsubToken = nanoid(32);
             const expiresAt = Date.now() + 60 * 60 * 1000; // 1 小时
             await db.updateSubscriber(existing.id, {
               status: "pending",
               verifyToken: token,
               tokenExpiresAt: expiresAt,
+              unsubscribeToken: unsubToken,
             });
 
             const host = ctx.req.get("host") || "localhost:3000";
@@ -160,6 +183,7 @@ export const blogRouter = router({
         // 新订阅
         const id = nanoid();
         const token = nanoid(32);
+        const unsubToken = nanoid(32);
         const expiresAt = Date.now() + 60 * 60 * 1000; // 1 小时
 
         if (existing) {
@@ -167,6 +191,7 @@ export const blogRouter = router({
           await db.updateSubscriber(existing.id, {
             verifyToken: token,
             tokenExpiresAt: expiresAt,
+            unsubscribeToken: unsubToken,
           });
         } else {
           await db.insertSubscriber({
@@ -175,6 +200,7 @@ export const blogRouter = router({
             status: "pending",
             verifyToken: token,
             tokenExpiresAt: expiresAt,
+            unsubscribeToken: unsubToken,
           });
         }
 

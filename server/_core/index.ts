@@ -44,6 +44,8 @@ async function startServer() {
   // 提供 books / archives 文件夹静态文件（始终从项目根目录读取，与上传路径一致）
   app.use("/books", express.static(path.join(PROJECT_ROOT, "books")));
   app.use("/archives", express.static(path.join(PROJECT_ROOT, "archives")));
+  // images 目录：始终从 client/public/images 读取（开发和生产模式均适用，确保上传后立即可用）
+  app.use("/images", express.static(path.join(PROJECT_ROOT, "client/public/images")));
 
   // 认证 API
   app.use("/api/auth", authRouter);

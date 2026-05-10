@@ -16,6 +16,11 @@ export function setPageMeta(options: {
   // Title
   document.title = title ? `${title} · ${SITE_NAME}` : SITE_NAME;
 
+  // Canonical URL + og:url
+  const canonical = window.location.origin + window.location.pathname;
+  setLink("canonical", canonical);
+  setMeta("og:url", canonical);
+
   // Description
   if (description) {
     setMeta("description", description);
@@ -50,4 +55,14 @@ function setMeta(name: string, content: string) {
     document.head.appendChild(el);
   }
   el.setAttribute("content", content);
+}
+
+function setLink(rel: string, href: string) {
+  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", rel);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
 }
