@@ -17,7 +17,8 @@
     "test": "vitest run",
     "db:init": "tsx server/scripts/initDb.ts",
     "hash-password": "tsx -e \"import bcrypt from 'bcryptjs';const p=process.argv[1];p?console.log(bcrypt.hashSync(p,10)):console.log('用法: pnpm hash-password 你的密码')\"",
-    "gen-secret": "tsx -e \"import crypto from 'crypto';console.log(crypto.randomBytes(32).toString('hex'))\""
+    "gen-secret": "tsx -e \"import crypto from 'crypto';console.log(crypto.randomBytes(32).toString('hex'))\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -89,6 +90,9 @@
     "wouter": "^3.3.5",
     "zod": "^4.1.12"
   },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
+  },
   "devDependencies": {
     "@builder.io/vite-plugin-jsx-loc": "^0.1.1",
     "@tailwindcss/typography": "^0.5.15",
@@ -106,6 +110,8 @@
     "autoprefixer": "^10.4.20",
     "cross-env": "^10.1.0",
     "esbuild": "^0.25.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.4",
     "postcss": "^8.4.47",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.14",
