@@ -88,7 +88,7 @@ export async function sendArticleNotify(
 ): Promise<boolean> {
   if (!isConfigured() || to.length === 0) return false;
 
-  const articleUrl = `${baseUrl}/blog/${article.slug}`;
+  const articleUrl = `${baseUrl}/article/${article.slug}`;
 
   try {
     // 逐个发送，每封邮件包含个性化的取消订阅链接

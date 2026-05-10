@@ -65,7 +65,7 @@ export const adminRouter = router({
         status: z.enum(["draft", "published"]).optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         const id = nanoid();
         let slug = input.slug || slugify(input.title);
@@ -80,6 +80,7 @@ export const adminRouter = router({
         const excerpt = input.excerpt || generateExcerpt(processedContent);
         const readTime = calculateReadTime(processedContent);
 
+        const status = input.status || "published";
         const success = await db.insertArticle({
           id,
           slug,
@@ -93,12 +94,39 @@ export const adminRouter = router({
           category: input.category,
           featured: input.featured,
           coverImage: input.coverImage,
-          status: input.status,
+          status,
         });
 
         if (!success) {
           return { success: false, error: "Failed to insert article" };
         }
+
+        // 创建时直接发布，自动推送通知
+        if (status === "published") {
+          const autoNotify = await db.getSetting("auto_notify");
+          if (autoNotify === "true") {
+            (async () => {
+              try {
+                const subs = await db.getConfirmedSubscribers();
+                if (subs.length === 0) return;
+
+                const host = ctx.req.get("host") || "localhost:3000";
+                const protocol = ctx.req.protocol || "http";
+                const baseUrl = `${protocol}://${host}`;
+
+                await sendArticleNotify(
+                  subs.map(s => s.email),
+                  { title: input.title, excerpt, slug },
+                  baseUrl
+                );
+                console.log(`[Admin] Auto-notified ${subs.length} subscribers for new article: ${input.title}`);
+              } catch (err) {
+                console.error("[Admin] Auto-notify failed:", err);
+              }
+            })();
+          }
+        }
+
         return { success: true, id, slug };
       } catch (error) {
         console.error("[Admin] Error creating article:", error);
@@ -203,7 +231,7 @@ export const adminRouter = router({
   /** 切换文章草稿/发布状态 */
   toggleArticleStatus: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         const article = await db.getArticleById(input.id);
         if (!article) return { success: false, error: "Article not found" };
@@ -211,6 +239,33 @@ export const adminRouter = router({
         const newStatus = article.status === "published" ? "draft" : "published";
         const success = await db.updateArticle(input.id, { status: newStatus });
         if (!success) return { success: false, error: "Failed to update status" };
+
+        // 切换到发布状态时，自动推送通知
+        if (newStatus === "published") {
+          const autoNotify = await db.getSetting("auto_notify");
+          if (autoNotify === "true") {
+            (async () => {
+              try {
+                const subs = await db.getConfirmedSubscribers();
+                if (subs.length === 0) return;
+
+                const host = ctx.req.get("host") || "localhost:3000";
+                const protocol = ctx.req.protocol || "http";
+                const baseUrl = `${protocol}://${host}`;
+
+                await sendArticleNotify(
+                  subs.map(s => s.email),
+                  { title: article.title, excerpt: article.excerpt, slug: article.slug },
+                  baseUrl
+                );
+                console.log(`[Admin] Auto-notified ${subs.length} subscribers for article: ${article.title}`);
+              } catch (err) {
+                console.error("[Admin] Auto-notify failed:", err);
+              }
+            })();
+          }
+        }
+
         return { success: true, status: newStatus };
       } catch (error) {
         console.error("[Admin] Error toggling article status:", error);
