@@ -18,6 +18,7 @@ import AdminArchives from "./pages/admin/AdminArchives";
 import AdminArchiveEdit from "./pages/admin/AdminArchiveEdit";
 import AdminSubscribers from "./pages/admin/AdminSubscribers";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminAbout from "./pages/admin/AdminAbout";
 
 function wrapAdmin(child: React.ReactNode) {
   return <AdminLayout>{child}</AdminLayout>;
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/admin/archives/:id">{wrapAdmin(<AdminArchiveEdit />)}</Route>
       <Route path="/admin/subscribers">{wrapAdmin(<AdminSubscribers />)}</Route>
       <Route path="/admin/settings">{wrapAdmin(<AdminSettings />)}</Route>
+      <Route path="/admin/about">{wrapAdmin(<AdminAbout />)}</Route>
 
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

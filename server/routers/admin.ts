@@ -6,6 +6,8 @@
 import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+import fs from "fs/promises";
+import path from "path";
 import * as db from "../db";
 import {
   parseFrontmatter,
@@ -525,6 +527,36 @@ export const adminRouter = router({
       } catch (error) {
         console.error("[Admin] Error notifying article:", error);
         return { success: false, error: "推送失败" };
+      }
+    }),
+
+  // ========================================================================
+  // About 页面配置
+  // ========================================================================
+
+  /** 获取 About 页面配置 */
+  getAboutConfig: protectedProcedure.query(async () => {
+    try {
+      const configPath = path.resolve(process.cwd(), "client/public/about-config.json");
+      const raw = await fs.readFile(configPath, "utf-8");
+      return { success: true, config: JSON.parse(raw) };
+    } catch (error) {
+      console.error("[Admin] Error reading about config:", error);
+      return { success: false, error: "读取配置失败" };
+    }
+  }),
+
+  /** 更新 About 页面配置 */
+  updateAboutConfig: protectedProcedure
+    .input(z.any())
+    .mutation(async ({ input }) => {
+      try {
+        const configPath = path.resolve(process.cwd(), "client/public/about-config.json");
+        await fs.writeFile(configPath, JSON.stringify(input, null, 2) + "\n", "utf-8");
+        return { success: true };
+      } catch (error) {
+        console.error("[Admin] Error updating about config:", error);
+        return { success: false, error: "保存配置失败" };
       }
     }),
 });

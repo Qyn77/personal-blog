@@ -16,7 +16,7 @@ const PROJECT_ROOT = process.cwd();
 // 生产模式下静态文件服务会从 dist/ 读取，但上传内容保留在源目录
 const CONTENT_ROOT = PROJECT_ROOT;
 
-const ALLOWED_TYPES = ["books", "archives"] as const;
+const ALLOWED_TYPES = ["books", "archives", "images"] as const;
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
@@ -25,7 +25,10 @@ const storage = multer.diskStorage({
       cb(new Error("Invalid upload type"), "");
       return;
     }
-    const dir = path.join(CONTENT_ROOT, type);
+    // images 类型保存到 client/public/images/（静态资源目录）
+    const dir = type === "images"
+      ? path.join(PROJECT_ROOT, "client/public/images")
+      : path.join(CONTENT_ROOT, type);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
@@ -141,6 +144,12 @@ uploadRouter.post("/:type/image", upload.single("image"), (req, res) => {
     const file = req.file;
     if (!file) {
       res.status(400).json({ success: false, error: "No image provided" });
+      return;
+    }
+
+    // images 类型：multer 已保存到 client/public/images/，直接返回路径
+    if (type === "images") {
+      res.json({ success: true, imagePath: `/images/${file.filename}` });
       return;
     }
 
