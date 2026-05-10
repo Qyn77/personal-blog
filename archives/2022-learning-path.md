@@ -22,22 +22,22 @@ tags: [学习, 成长, 经验]
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <title>我的第一个网页</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Hello, World!</h1>
-  <p>这是我的第一个网页。</p>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>我的第一个网页</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hello, World!</h1>
+    <p>这是我的第一个网页。</p>
+  </body>
 </html>
 ```
 
@@ -54,11 +54,11 @@ tags: [学习, 成长, 经验]
 // 异步编程示例
 async function fetchData() {
   try {
-    const response = await fetch('https://api.example.com/data');
+    const response = await fetch("https://api.example.com/data");
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 }
 ```
@@ -86,26 +86,26 @@ async function fetchData() {
 
 ```javascript
 // 简单的 HTTP 服务器
-const http = require('http');
+const http = require("http");
 
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello, World!');
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Hello, World!");
 });
 
 server.listen(3000, () => {
-  console.log('Server running on port 3000');
+  console.log("Server running on port 3000");
 });
 ```
 
 ### Express 框架
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
-app.get('/', (req, res) => {
-  res.send('Hello, Express!');
+app.get("/", (req, res) => {
+  res.send("Hello, Express!");
 });
 
 app.listen(3000);
@@ -125,7 +125,7 @@ CREATE TABLE users (
 );
 
 -- 插入数据
-INSERT INTO users (username, email) 
+INSERT INTO users (username, email)
 VALUES ('alice', 'alice@example.com');
 
 -- 查询数据
@@ -153,12 +153,12 @@ SELECT * FROM users WHERE username = 'alice';
 
 ### 学习资源
 
-| 类型 | 资源 | 推荐指数 |
-|------|------|---------|
-| 视频 | YouTube | ⭐⭐⭐⭐⭐ |
-| 文档 | MDN | ⭐⭐⭐⭐⭐ |
-| 书籍 | 《JavaScript 权威指南》 | ⭐⭐⭐⭐ |
-| 练习 | LeetCode | ⭐⭐⭐⭐ |
+| 类型 | 资源                    | 推荐指数   |
+| ---- | ----------------------- | ---------- |
+| 视频 | YouTube                 | ⭐⭐⭐⭐⭐ |
+| 文档 | MDN                     | ⭐⭐⭐⭐⭐ |
+| 书籍 | 《JavaScript 权威指南》 | ⭐⭐⭐⭐   |
+| 练习 | LeetCode                | ⭐⭐⭐⭐   |
 
 ## 遇到的困难
 
@@ -177,7 +177,7 @@ SELECT * FROM users WHERE username = 'alice';
 
 ```javascript
 // 使用 console.log 调试
-console.log('变量值:', variable);
+console.log("变量值:", variable);
 
 // 使用 debugger
 function complexFunction() {
@@ -187,8 +187,8 @@ function complexFunction() {
 
 // 使用 console.table
 const users = [
-  { name: 'Alice', age: 25 },
-  { name: 'Bob', age: 30 },
+  { name: "Alice", age: 25 },
+  { name: "Bob", age: 30 },
 ];
 console.table(users);
 ```

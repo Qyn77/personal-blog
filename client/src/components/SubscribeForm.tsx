@@ -8,7 +8,8 @@ export default function SubscribeForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+  const emailRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
   const isValidEmail = email.trim() === "" || emailRegex.test(email.trim());
 
   const subscribe = trpc.blog.subscribe.useMutation({
@@ -49,7 +50,10 @@ export default function SubscribeForm() {
         <input
           type="email"
           value={email}
-          onChange={e => { setEmail(e.target.value); if (touched) setTouched(false); }}
+          onChange={e => {
+            setEmail(e.target.value);
+            if (touched) setTouched(false);
+          }}
           onBlur={() => setTouched(true)}
           placeholder="your@email.com"
           className={`flex-1 px-3 py-2 text-sm bg-transparent border rounded placeholder-[#C4C4C0] dark:placeholder-[#555] text-[#1A1A1A] dark:text-[#F5F5F5] focus:outline-none transition-colors ${

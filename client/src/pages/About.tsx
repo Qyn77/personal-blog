@@ -38,36 +38,44 @@ export default function About() {
 
   // 页面 meta
   useEffect(() => {
-    setPageMeta({ title: "关于", description: "关于博主的故事、兴趣和喜欢的事物。" });
+    setPageMeta({
+      title: "关于",
+      description: "关于博主的故事、兴趣和喜欢的事物。",
+    });
   }, []);
 
   // 加载配置文件
   useEffect(() => {
-    fetch('/about-config.json')
+    fetch("/about-config.json")
       .then(res => res.json())
       .then(data => setConfig(data))
       .catch(err => {
-        console.error('Failed to load about config:', err);
+        console.error("Failed to load about config:", err);
         setConfigError(true);
       });
   }, []);
 
   // 加载最新文章
-  const { data: articlesData, isLoading: articlesLoading } = trpc.blog.listArticles.useQuery();
+  const { data: articlesData, isLoading: articlesLoading } =
+    trpc.blog.listArticles.useQuery();
 
   useEffect(() => {
     if (articlesData && articlesData.success) {
       const processedArticles = articlesData.articles.map((a: any) => ({
         ...a,
         tags: parseTags(a.tags),
-        featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
+        featured:
+          typeof a.featured === "number" ? a.featured === 1 : a.featured,
       }));
-      
+
       // 获取最新 3 篇文章
       const recent = processedArticles
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
         .slice(0, 3);
-      
+
       setRecentArticles(recent);
     }
   }, [articlesData]);
@@ -130,7 +138,10 @@ export default function About() {
               </p>
               <h1
                 className="text-foreground text-4xl md:text-5xl font-bold mb-6"
-                style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.02em" }}
+                style={{
+                  fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                  letterSpacing: "-0.02em",
+                }}
               >
                 {config.hero.title}
               </h1>
@@ -166,16 +177,23 @@ export default function About() {
           <div className="mb-20 fade-in-up fade-in-up-delay-1">
             <h2
               className="text-foreground text-2xl font-semibold mb-10"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
             >
               关注的事
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {config.interests.map((interest, i) => (
-                <div key={interest.label} className={`fade-in-up fade-in-up-delay-${i + 1}`}>
+                <div
+                  key={interest.label}
+                  className={`fade-in-up fade-in-up-delay-${i + 1}`}
+                >
                   <h3
                     className="text-foreground text-lg font-semibold mb-2"
-                    style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+                    style={{
+                      fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                    }}
                   >
                     {interest.label}
                   </h3>
@@ -197,7 +215,9 @@ export default function About() {
           <div className="mb-20 fade-in-up">
             <h2
               className="text-foreground text-2xl font-semibold mb-10"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
             >
               喜欢的事物
             </h2>
@@ -234,7 +254,9 @@ export default function About() {
             <div className="flex items-baseline justify-between mb-8">
               <h2
                 className="text-foreground text-2xl font-semibold"
-                style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+                style={{
+                  fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                }}
               >
                 最近写了
               </h2>
@@ -250,7 +272,11 @@ export default function About() {
             {recentArticles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {recentArticles.map(article => (
-                  <ArticleCard key={article.id} article={article} variant="compact" />
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    variant="compact"
+                  />
                 ))}
               </div>
             ) : (

@@ -56,7 +56,7 @@ async function getUserById(id: string): Promise<User | null> {
     const user = await db.users.findUnique({ where: { id } });
     return user;
   } catch (error) {
-    console.error('Failed to get user:', error);
+    console.error("Failed to get user:", error);
     return null;
   }
 }

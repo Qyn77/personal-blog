@@ -21,7 +21,9 @@ export default function Blog() {
   const params = new URLSearchParams(search);
 
   // 筛选状态（从 URL 初始化）
-  const [activeCategory, setActiveCategory] = useState(params.get("category") || "all");
+  const [activeCategory, setActiveCategory] = useState(
+    params.get("category") || "all"
+  );
   const [activeTag, setActiveTag] = useState(params.get("tag") || "");
   const [searchQuery, setSearchQuery] = useState(params.get("q") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(params.get("q") || "");
@@ -31,7 +33,10 @@ export default function Blog() {
 
   // 页面 meta
   useEffect(() => {
-    setPageMeta({ title: "文章", description: "关于阅读、写作、生活与思考的碎片。" });
+    setPageMeta({
+      title: "文章",
+      description: "关于阅读、写作、生活与思考的碎片。",
+    });
   }, []);
 
   // 同步 URL 参数
@@ -47,14 +52,21 @@ export default function Blog() {
   const updateUrl = useCallback((updates: Record<string, string>) => {
     const p = new URLSearchParams(window.location.search);
     Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== "all" && value !== "1" && key !== "page" || (key === "page" && value !== "1")) {
+      if (
+        (value && value !== "all" && value !== "1" && key !== "page") ||
+        (key === "page" && value !== "1")
+      ) {
         p.set(key, value);
       } else {
         p.delete(key);
       }
     });
     const qs = p.toString();
-    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+    window.history.replaceState(
+      null,
+      "",
+      qs ? `?${qs}` : window.location.pathname
+    );
   }, []);
 
   // 搜索防抖
@@ -96,7 +108,8 @@ export default function Blog() {
   const tags = filterData?.tags ?? [];
 
   // 获取文章列表（服务端分页+筛选）
-  const hasFilters = !!debouncedSearch || activeCategory !== "all" || !!activeTag || page > 1;
+  const hasFilters =
+    !!debouncedSearch || activeCategory !== "all" || !!activeTag || page > 1;
   const { data: articlesData, isLoading } = trpc.blog.listArticles.useQuery(
     hasFilters
       ? {
@@ -244,28 +257,49 @@ export default function Blog() {
               {/* Active filters indicator */}
               {(activeCategory !== "all" || activeTag || debouncedSearch) && (
                 <div className="mb-6 flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-muted-foreground" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                  <span
+                    className="text-xs text-muted-foreground"
+                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                  >
                     筛选:
                   </span>
                   {activeCategory !== "all" && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent rounded">
                       {activeCategory}
-                      <button onClick={() => handleCategoryChange("all")} className="hover:text-destructive">&times;</button>
+                      <button
+                        onClick={() => handleCategoryChange("all")}
+                        className="hover:text-destructive"
+                      >
+                        &times;
+                      </button>
                     </span>
                   )}
                   {activeTag && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent rounded">
                       #{activeTag}
-                      <button onClick={() => handleTagChange(activeTag)} className="hover:text-destructive">&times;</button>
+                      <button
+                        onClick={() => handleTagChange(activeTag)}
+                        className="hover:text-destructive"
+                      >
+                        &times;
+                      </button>
                     </span>
                   )}
                   {debouncedSearch && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent rounded">
                       &quot;{debouncedSearch}&quot;
-                      <button onClick={() => handleSearchChange("")} className="hover:text-destructive">&times;</button>
+                      <button
+                        onClick={() => handleSearchChange("")}
+                        className="hover:text-destructive"
+                      >
+                        &times;
+                      </button>
                     </span>
                   )}
-                  <span className="text-xs text-muted-foreground ml-1" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                  <span
+                    className="text-xs text-muted-foreground ml-1"
+                    style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                  >
                     {total} 篇结果
                   </span>
                 </div>

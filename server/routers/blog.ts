@@ -30,19 +30,27 @@ export const blogRouter = router({
    */
   listArticles: publicProcedure
     .input(
-      z.object({
-        page: z.number().min(1).optional(),
-        pageSize: z.number().min(1).max(50).optional(),
-        search: z.string().optional(),
-        category: z.string().optional(),
-        tag: z.string().optional(),
-      }).optional()
+      z
+        .object({
+          page: z.number().min(1).optional(),
+          pageSize: z.number().min(1).max(50).optional(),
+          search: z.string().optional(),
+          category: z.string().optional(),
+          tag: z.string().optional(),
+        })
+        .optional()
     )
     .query(async ({ input }) => {
       try {
         const options = input || {};
         // 如果没有分页参数，返回全部已发布文章（兼容旧调用）
-        if (!options.page && !options.pageSize && !options.search && !options.category && !options.tag) {
+        if (
+          !options.page &&
+          !options.pageSize &&
+          !options.search &&
+          !options.category &&
+          !options.tag
+        ) {
           const articles = await db.getAllArticles({ status: "published" });
           return {
             success: true,
@@ -142,7 +150,10 @@ export const blogRouter = router({
         // 速率限制：每 IP 每 10 分钟最多 3 次
         const ip = ctx.req.ip || ctx.req.socket.remoteAddress || "unknown";
         if (!checkSubscribeRate(ip)) {
-          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "请求过于频繁，请稍后再试" });
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "请求过于频繁，请稍后再试",
+          });
         }
 
         const email = input.email.toLowerCase().trim();
@@ -170,13 +181,17 @@ export const blogRouter = router({
             const baseUrl = `${protocol}://${host}`;
 
             const sent = await sendVerifyEmail(email, token, baseUrl);
-            if (!sent) return { success: false, error: "邮件发送失败，请稍后重试" };
+            if (!sent)
+              return { success: false, error: "邮件发送失败，请稍后重试" };
 
             return { success: true, message: "验证邮件已发送，请查收" };
           }
           // pending 状态：检查 token 是否还在有效期内
           if (existing.tokenExpiresAt && existing.tokenExpiresAt > Date.now()) {
-            return { success: true, message: "验证邮件已发送，请查收（如未收到请稍后再试）" };
+            return {
+              success: true,
+              message: "验证邮件已发送，请查收（如未收到请稍后再试）",
+            };
           }
         }
 
@@ -217,5 +232,4 @@ export const blogRouter = router({
         return { success: false, error: "订阅失败，请稍后重试" };
       }
     }),
-
 });

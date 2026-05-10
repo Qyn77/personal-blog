@@ -92,7 +92,10 @@
 /* 主题切换过渡动画 */
 html.theme-transition,
 html.theme-transition * {
-  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease !important;
+  transition:
+    background-color 300ms ease,
+    color 300ms ease,
+    border-color 300ms ease !important;
 }
 
 /* 深色模式 */
@@ -133,13 +136,18 @@ html.theme-transition * {
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Noto Serif SC', 'Lora', Georgia, serif;
+    font-family: "Noto Serif SC", "Lora", Georgia, serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", "Noto Serif SC", Georgia, serif;
     letter-spacing: -0.02em;
   }
   button:not(:disabled),
@@ -208,7 +216,7 @@ html.theme-transition * {
     text-decoration: none;
   }
   .underline-animate::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -1px;
     left: 0;
@@ -226,7 +234,7 @@ html.theme-transition * {
 
   /* 等宽字体样式 */
   .mono {
-    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-family: "IBM Plex Mono", "Courier New", monospace;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
   }
@@ -247,17 +255,29 @@ html.theme-transition * {
     animation: fadeInUp 0.4s ease-out forwards;
   }
 
-  .fade-in-up-delay-1 { animation-delay: 0.1s; opacity: 0; }
-  .fade-in-up-delay-2 { animation-delay: 0.2s; opacity: 0; }
-  .fade-in-up-delay-3 { animation-delay: 0.3s; opacity: 0; }
-  .fade-in-up-delay-4 { animation-delay: 0.4s; opacity: 0; }
+  .fade-in-up-delay-1 {
+    animation-delay: 0.1s;
+    opacity: 0;
+  }
+  .fade-in-up-delay-2 {
+    animation-delay: 0.2s;
+    opacity: 0;
+  }
+  .fade-in-up-delay-3 {
+    animation-delay: 0.3s;
+    opacity: 0;
+  }
+  .fade-in-up-delay-4 {
+    animation-delay: 0.4s;
+    opacity: 0;
+  }
 
   /* 标签样式 */
   .tag-pill {
     display: inline-block;
     padding: 0.125rem 0.625rem;
     border: 1px solid oklch(0.15 0.005 60 / 0.25);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: "IBM Plex Mono", monospace;
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     color: oklch(0.45 0.006 60);
@@ -280,14 +300,16 @@ html.theme-transition * {
 
   /* 文章正文排版 */
   .prose-ink {
-    font-family: 'Noto Serif SC', 'Lora', Georgia, serif;
+    font-family: "Noto Serif SC", "Lora", Georgia, serif;
     font-size: 1.0625rem;
     line-height: 1.85;
     color: oklch(0.2 0.005 60);
   }
-  .prose-ink p { margin-bottom: 1.5em; }
+  .prose-ink p {
+    margin-bottom: 1.5em;
+  }
   .prose-ink h2 {
-    font-family: 'Playfair Display', 'Noto Serif SC', serif;
+    font-family: "Playfair Display", "Noto Serif SC", serif;
     font-size: 1.5rem;
     font-weight: 600;
     margin-top: 2.5em;
@@ -295,7 +317,7 @@ html.theme-transition * {
     color: oklch(0.12 0.005 60);
   }
   .prose-ink h3 {
-    font-family: 'Playfair Display', 'Noto Serif SC', serif;
+    font-family: "Playfair Display", "Noto Serif SC", serif;
     font-size: 1.2rem;
     font-weight: 600;
     margin-top: 2em;
@@ -310,7 +332,7 @@ html.theme-transition * {
     margin: 1.5em 0;
   }
   .prose-ink code {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: "IBM Plex Mono", monospace;
     font-size: 0.875em;
     background: oklch(0.93 0.003 80);
     padding: 0.1em 0.4em;
@@ -374,7 +396,7 @@ html.theme-transition * {
   }
 
   .markdown-content code {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: "IBM Plex Mono", monospace;
     font-size: 0.9em;
   }
 

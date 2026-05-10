@@ -36,7 +36,11 @@ function resolveBookImage(src: string) {
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export default function Article() {
@@ -81,7 +85,12 @@ export default function Article() {
 
   // 计算相关文章
   useEffect(() => {
-    if (article && allArticlesData && allArticlesData.success && Array.isArray(allArticlesData.articles)) {
+    if (
+      article &&
+      allArticlesData &&
+      allArticlesData.success &&
+      Array.isArray(allArticlesData.articles)
+    ) {
       const related = (allArticlesData.articles as any[])
         .map(a => ({
           ...a,
@@ -90,7 +99,9 @@ export default function Article() {
         .filter(
           (a: any) =>
             a.id !== article.id &&
-            (a.category === article.category || (Array.isArray(a.tags) && a.tags.some((t: string) => article.tags.includes(t))))
+            (a.category === article.category ||
+              (Array.isArray(a.tags) &&
+                a.tags.some((t: string) => article.tags.includes(t))))
         )
         .slice(0, 3);
       setRelatedArticles(related);
@@ -100,7 +111,8 @@ export default function Article() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
       setReadProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
       setHeroOffset(Math.min(scrollTop * 0.45, 180));
     };
@@ -162,7 +174,9 @@ export default function Article() {
                   src={resolveBookImage(article.coverImage)}
                   alt={`${article.title} 封面`}
                   className="h-full w-full object-cover"
-                  style={{ transform: `translate3d(0, ${heroOffset}px, 0) scale(1.14)` }}
+                  style={{
+                    transform: `translate3d(0, ${heroOffset}px, 0) scale(1.14)`,
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/55" />
                 <div className="absolute inset-0 bg-black/8 mix-blend-multiply" />
@@ -206,7 +220,7 @@ export default function Article() {
                   <>
                     <span>·</span>
                     <div className="flex gap-2">
-                      {article.tags.map((tag) => (
+                      {article.tags.map(tag => (
                         <span
                           key={tag}
                           style={{ fontFamily: "'IBM Plex Mono', monospace" }}
@@ -234,12 +248,14 @@ export default function Article() {
             <div className="mb-16 fade-in-up fade-in-up-delay-2">
               <h2
                 className="text-foreground text-2xl font-semibold mb-6"
-                style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+                style={{
+                  fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                }}
               >
                 相关文章
               </h2>
               <div className="space-y-4">
-                {relatedArticles.map((relatedArticle) => (
+                {relatedArticles.map(relatedArticle => (
                   <ArticleCard
                     key={relatedArticle.id}
                     article={relatedArticle}

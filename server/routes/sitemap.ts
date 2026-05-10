@@ -18,10 +18,30 @@ sitemapRouter.get("/sitemap.xml", async (_req, res) => {
     const baseUrl = `${protocol}://${host}`;
 
     const staticPages = [
-      { url: "/", changefreq: "daily", priority: "1.0", lastmod: undefined as string | undefined },
-      { url: "/blog", changefreq: "daily", priority: "0.9", lastmod: undefined as string | undefined },
-      { url: "/archive", changefreq: "weekly", priority: "0.7", lastmod: undefined as string | undefined },
-      { url: "/about", changefreq: "monthly", priority: "0.5", lastmod: undefined as string | undefined },
+      {
+        url: "/",
+        changefreq: "daily",
+        priority: "1.0",
+        lastmod: undefined as string | undefined,
+      },
+      {
+        url: "/blog",
+        changefreq: "daily",
+        priority: "0.9",
+        lastmod: undefined as string | undefined,
+      },
+      {
+        url: "/archive",
+        changefreq: "weekly",
+        priority: "0.7",
+        lastmod: undefined as string | undefined,
+      },
+      {
+        url: "/about",
+        changefreq: "monthly",
+        priority: "0.5",
+        lastmod: undefined as string | undefined,
+      },
     ];
 
     const articleUrls = articles.map(a => ({

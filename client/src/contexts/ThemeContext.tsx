@@ -21,7 +21,9 @@ interface ThemeProviderProps {
  */
 function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 export function ThemeProvider({
@@ -44,10 +46,10 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = document.documentElement;
-    
+
     // 添加过渡动画类
     root.classList.add("theme-transition");
-    
+
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
@@ -57,12 +59,12 @@ export function ThemeProvider({
     if (switchable) {
       localStorage.setItem("theme", theme);
     }
-    
+
     // 动画完成后移除过渡类
     const timer = setTimeout(() => {
       root.classList.remove("theme-transition");
     }, 300);
-    
+
     return () => clearTimeout(timer);
   }, [theme, switchable]);
 
@@ -71,7 +73,7 @@ export function ThemeProvider({
     if (!switchable) return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       // 只有在用户没有手动设置主题时，才跟随系统主题变化
       const stored = localStorage.getItem("theme");
@@ -82,7 +84,7 @@ export function ThemeProvider({
 
     // 使用 addEventListener 兼容旧版本浏览器
     mediaQuery.addEventListener("change", handleChange);
-    
+
     return () => {
       mediaQuery.removeEventListener("change", handleChange);
     };

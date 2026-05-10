@@ -61,11 +61,11 @@ tags: [技术栈, 工具, 开发]
 ```typescript
 // 常用的后端框架
 const stack = {
-  framework: 'Express',
-  orm: 'Drizzle ORM',
-  validation: 'Zod',
-  api: 'tRPC',
-  auth: 'JWT',
+  framework: "Express",
+  orm: "Drizzle ORM",
+  validation: "Zod",
+  api: "tRPC",
+  auth: "JWT",
 };
 ```
 
@@ -122,12 +122,12 @@ alias gc='git commit'
 
 ### 其他工具
 
-| 工具 | 用途 |
-|------|------|
-| Postman | API 测试 |
+| 工具      | 用途       |
+| --------- | ---------- |
+| Postman   | API 测试   |
 | TablePlus | 数据库管理 |
-| Figma | UI 设计 |
-| Notion | 笔记和文档 |
+| Figma     | UI 设计    |
+| Notion    | 笔记和文档 |
 
 ## 学习资源
 
@@ -167,14 +167,14 @@ alias gc='git commit'
 // ESLint 配置
 module.exports = {
   extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'prettier',
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "prettier",
   ],
   rules: {
-    'no-console': 'warn',
-    'prefer-const': 'error',
+    "no-console": "warn",
+    "prefer-const": "error",
   },
 };
 ```

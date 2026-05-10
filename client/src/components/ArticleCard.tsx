@@ -20,7 +20,10 @@ function formatDate(dateStr: string) {
   });
 }
 
-export default function ArticleCard({ article, variant = "default" }: ArticleCardProps) {
+export default function ArticleCard({
+  article,
+  variant = "default",
+}: ArticleCardProps) {
   const coverAlt = `${article.title} 封面`;
 
   if (variant === "compact") {
@@ -89,7 +92,9 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
               </div>
               <h2
                 className="text-[#1A1A1A] dark:text-[#F5F5F5] text-2xl font-semibold mb-2 leading-tight group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors"
-                style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+                style={{
+                  fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                }}
               >
                 {article.title}
               </h2>
@@ -153,7 +158,9 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
             </div>
             <h2
               className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mb-2 group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
             >
               {article.title}
             </h2>

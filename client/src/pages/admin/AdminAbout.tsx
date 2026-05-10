@@ -103,20 +103,33 @@ export default function AdminAbout() {
     updateHero("paragraphs", [...config.hero.paragraphs, ""]);
   };
   const removeParagraph = (index: number) => {
-    updateHero("paragraphs", config.hero.paragraphs.filter((_, i) => i !== index));
+    updateHero(
+      "paragraphs",
+      config.hero.paragraphs.filter((_, i) => i !== index)
+    );
   };
 
   // 兴趣操作
-  const updateInterest = (index: number, field: keyof Interest, value: string) => {
+  const updateInterest = (
+    index: number,
+    field: keyof Interest,
+    value: string
+  ) => {
     const interests = [...config.interests];
     interests[index] = { ...interests[index], [field]: value };
     setConfig(prev => ({ ...prev, interests }));
   };
   const addInterest = () => {
-    setConfig(prev => ({ ...prev, interests: [...prev.interests, { label: "", description: "" }] }));
+    setConfig(prev => ({
+      ...prev,
+      interests: [...prev.interests, { label: "", description: "" }],
+    }));
   };
   const removeInterest = (index: number) => {
-    setConfig(prev => ({ ...prev, interests: prev.interests.filter((_, i) => i !== index) }));
+    setConfig(prev => ({
+      ...prev,
+      interests: prev.interests.filter((_, i) => i !== index),
+    }));
   };
 
   // 收藏操作
@@ -125,7 +138,11 @@ export default function AdminAbout() {
     favorites[index] = { ...favorites[index], category: value };
     setConfig(prev => ({ ...prev, favorites }));
   };
-  const updateFavoriteItem = (favIndex: number, itemIndex: number, value: string) => {
+  const updateFavoriteItem = (
+    favIndex: number,
+    itemIndex: number,
+    value: string
+  ) => {
     const favorites = [...config.favorites];
     const items = [...favorites[favIndex].items];
     items[itemIndex] = value;
@@ -134,19 +151,31 @@ export default function AdminAbout() {
   };
   const addFavoriteItem = (favIndex: number) => {
     const favorites = [...config.favorites];
-    favorites[favIndex] = { ...favorites[favIndex], items: [...favorites[favIndex].items, ""] };
+    favorites[favIndex] = {
+      ...favorites[favIndex],
+      items: [...favorites[favIndex].items, ""],
+    };
     setConfig(prev => ({ ...prev, favorites }));
   };
   const removeFavoriteItem = (favIndex: number, itemIndex: number) => {
     const favorites = [...config.favorites];
-    favorites[favIndex] = { ...favorites[favIndex], items: favorites[favIndex].items.filter((_, i) => i !== itemIndex) };
+    favorites[favIndex] = {
+      ...favorites[favIndex],
+      items: favorites[favIndex].items.filter((_, i) => i !== itemIndex),
+    };
     setConfig(prev => ({ ...prev, favorites }));
   };
   const addFavorite = () => {
-    setConfig(prev => ({ ...prev, favorites: [...prev.favorites, { category: "", items: [] }] }));
+    setConfig(prev => ({
+      ...prev,
+      favorites: [...prev.favorites, { category: "", items: [] }],
+    }));
   };
   const removeFavorite = (index: number) => {
-    setConfig(prev => ({ ...prev, favorites: prev.favorites.filter((_, i) => i !== index) }));
+    setConfig(prev => ({
+      ...prev,
+      favorites: prev.favorites.filter((_, i) => i !== index),
+    }));
   };
 
   if (isLoading) {
@@ -167,7 +196,11 @@ export default function AdminAbout() {
         >
           关于页面
         </h1>
-        <Button onClick={handleSave} disabled={updateMutation.isPending} size="sm">
+        <Button
+          onClick={handleSave}
+          disabled={updateMutation.isPending}
+          size="sm"
+        >
           {updateMutation.isPending ? (
             <>
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -292,7 +325,9 @@ export default function AdminAbout() {
                 />
                 <Input
                   value={item.description}
-                  onChange={e => updateInterest(i, "description", e.target.value)}
+                  onChange={e =>
+                    updateInterest(i, "description", e.target.value)
+                  }
                   placeholder="描述"
                   className="flex-1"
                 />
@@ -326,7 +361,9 @@ export default function AdminAbout() {
                 <div className="flex gap-2 items-center mb-3">
                   <Input
                     value={fav.category}
-                    onChange={e => updateFavoriteCategory(favIdx, e.target.value)}
+                    onChange={e =>
+                      updateFavoriteCategory(favIdx, e.target.value)
+                    }
                     placeholder="分类名称"
                     className="flex-1"
                   />
@@ -344,7 +381,9 @@ export default function AdminAbout() {
                     <div key={itemIdx} className="flex gap-2">
                       <Input
                         value={item}
-                        onChange={e => updateFavoriteItem(favIdx, itemIdx, e.target.value)}
+                        onChange={e =>
+                          updateFavoriteItem(favIdx, itemIdx, e.target.value)
+                        }
                         placeholder="项目"
                         className="flex-1"
                       />
@@ -358,7 +397,11 @@ export default function AdminAbout() {
                       </Button>
                     </div>
                   ))}
-                  <Button variant="ghost" size="sm" onClick={() => addFavoriteItem(favIdx)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => addFavoriteItem(favIdx)}
+                  >
                     <Plus className="h-4 w-4 mr-1" />
                     添加项目
                   </Button>

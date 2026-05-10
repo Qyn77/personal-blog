@@ -69,11 +69,21 @@ export default function AdminArchives() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-sm font-medium px-4 py-3">标题</th>
-                <th className="text-left text-sm font-medium px-4 py-3">分类</th>
-                <th className="text-left text-sm font-medium px-4 py-3">日期</th>
-                <th className="text-left text-sm font-medium px-4 py-3">标签</th>
-                <th className="text-right text-sm font-medium px-4 py-3">操作</th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  标题
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  分类
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  日期
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  标签
+                </th>
+                <th className="text-right text-sm font-medium px-4 py-3">
+                  操作
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -82,7 +92,9 @@ export default function AdminArchives() {
                   key={archive.id}
                   className="border-b border-border last:border-b-0 hover:bg-accent/30 transition-colors"
                 >
-                  <td className="px-4 py-3 font-medium text-sm">{archive.title}</td>
+                  <td className="px-4 py-3 font-medium text-sm">
+                    {archive.title}
+                  </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {archive.category}
                   </td>
@@ -115,7 +127,8 @@ export default function AdminArchives() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>确认删除</AlertDialogTitle>
                             <AlertDialogDescription>
-                              确定要删除归档「{archive.title}」吗？此操作不可撤销。
+                              确定要删除归档「{archive.title}
+                              」吗？此操作不可撤销。
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

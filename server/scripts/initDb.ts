@@ -66,7 +66,7 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
       id: (metadata.id as string) || path.basename(filePath, ".md"),
       slug: (metadata.slug as string) || path.basename(filePath, ".md"),
       title: (metadata.title as string) || "Untitled",
-      subtitle: (metadata.subtitle as string),
+      subtitle: metadata.subtitle as string,
       excerpt,
       content: processedBody,
       date: (metadata.date as string) || new Date().toISOString().split("T")[0],
@@ -101,7 +101,7 @@ function loadArchiveFromFile(filePath: string): ArchiveItem | null {
       id: (metadata.id as string) || path.basename(filePath, ".md"),
       slug: (metadata.slug as string) || path.basename(filePath, ".md"),
       title: (metadata.title as string) || "Untitled",
-      subtitle: (metadata.subtitle as string),
+      subtitle: metadata.subtitle as string,
       excerpt,
       content: body,
       date: (metadata.date as string) || new Date().toISOString().split("T")[0],
@@ -142,7 +142,9 @@ function loadAllArticles(): BlogArticle[] {
       }
     }
 
-    articleList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    articleList.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
     console.log(`Loaded ${articleList.length} articles from ${BOOKS_DIR}`);
   } catch (error) {
@@ -177,7 +179,9 @@ function loadAllArchives(): ArchiveItem[] {
       }
     }
 
-    archiveList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    archiveList.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
     console.log(`Loaded ${archiveList.length} archives from ${ARCHIVES_DIR}`);
   } catch (error) {
@@ -251,7 +255,9 @@ async function initDatabase() {
 
     // 插入文章到数据库
     if (loadedArticles.length > 0) {
-      console.log(`Inserting ${loadedArticles.length} articles into database...`);
+      console.log(
+        `Inserting ${loadedArticles.length} articles into database...`
+      );
       for (const article of loadedArticles) {
         await db.insert(articles as any).values({
           id: article.id,
@@ -274,7 +280,9 @@ async function initDatabase() {
 
     // 插入归档到数据库
     if (loadedArchives.length > 0) {
-      console.log(`Inserting ${loadedArchives.length} archives into database...`);
+      console.log(
+        `Inserting ${loadedArchives.length} archives into database...`
+      );
       for (const archive of loadedArchives) {
         await db.insert(archives as any).values({
           id: archive.id,

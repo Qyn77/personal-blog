@@ -47,7 +47,9 @@ export default function Navbar() {
             <span className="flex items-center gap-3 group">
               <span
                 className="text-[#1A1A1A] dark:text-[#F5F5F5] font-bold text-xl tracking-tight transition-colors"
-                style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+                style={{
+                  fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                }}
               >
                 墨迹
               </span>
@@ -63,8 +65,10 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             <ul className="flex items-center gap-8">
-              {NAV_LINKS.map((link) => {
-                const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href));
+              {NAV_LINKS.map(link => {
+                const isActive =
+                  location === link.href ||
+                  (link.href !== "/" && location.startsWith(link.href));
                 return (
                   <li key={link.href}>
                     <Link href={link.href}>
@@ -129,8 +133,10 @@ export default function Navbar() {
         {menuOpen && (
           <div className="md:hidden border-t border-[#1A1A1A]/10 dark:border-[#F5F5F5]/10 py-4">
             <ul className="flex flex-col gap-4">
-              {NAV_LINKS.map((link) => {
-                const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href));
+              {NAV_LINKS.map(link => {
+                const isActive =
+                  location === link.href ||
+                  (link.href !== "/" && location.startsWith(link.href));
                 return (
                   <li key={link.href}>
                     <Link href={link.href}>

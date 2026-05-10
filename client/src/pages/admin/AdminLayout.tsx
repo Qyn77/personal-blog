@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, FileText, Archive, Mail, Settings, User, ArrowLeft, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Archive,
+  Mail,
+  Settings,
+  User,
+  ArrowLeft,
+  LogOut,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { verify, logout } from "@/lib/auth";
 import LoginPage from "./LoginPage";

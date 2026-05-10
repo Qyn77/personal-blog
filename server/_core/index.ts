@@ -39,16 +39,17 @@ async function startServer() {
   // Body parser — 2MB 足够博客文章内容（文件上传由 multer 单独处理）
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ limit: "2mb", extended: true }));
-  
+
   // 忽略 Chrome DevTools 等 .well-known 探测请求
   app.use("/.well-known", ((_req: unknown, res: unknown) => {
     (res as any).status(204).end();
   }) as any);
 
   // 静态资源：books / archives / images
-  const imagesDir = process.env.NODE_ENV === "development"
-    ? path.join(ROOT_DIR, "client/public/images")
-    : path.join(ROOT_DIR, "public/images");
+  const imagesDir =
+    process.env.NODE_ENV === "development"
+      ? path.join(ROOT_DIR, "client/public/images")
+      : path.join(ROOT_DIR, "public/images");
   app.use("/books", express.static(path.join(ROOT_DIR, "books")));
   app.use("/archives", express.static(path.join(ROOT_DIR, "archives")));
   app.use("/images", express.static(imagesDir));

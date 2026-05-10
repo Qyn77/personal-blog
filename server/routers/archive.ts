@@ -65,11 +65,11 @@ export const archiveRouter = router({
   getByYear: publicProcedure.query(async () => {
     try {
       const allArchives = await db.getAllArchives();
-      
+
       // 按年份分组
       const byYear: Record<string, any[]> = {};
       allArchives.forEach(archive => {
-        const year = archive.date.split('-')[0];
+        const year = archive.date.split("-")[0];
         if (!byYear[year]) {
           byYear[year] = [];
         }

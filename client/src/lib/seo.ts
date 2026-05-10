@@ -58,7 +58,9 @@ function setMeta(name: string, content: string) {
 }
 
 function setLink(rel: string, href: string) {
-  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+  let el = document.querySelector(
+    `link[rel="${rel}"]`
+  ) as HTMLLinkElement | null;
   if (!el) {
     el = document.createElement("link");
     el.setAttribute("rel", rel);

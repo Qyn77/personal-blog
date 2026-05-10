@@ -15,7 +15,11 @@ import { setPageMeta } from "@/lib/seo";
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export default function ArchiveDetail() {
@@ -55,7 +59,8 @@ export default function ArchiveDetail() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
       setReadProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });

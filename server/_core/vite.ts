@@ -6,7 +6,11 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
-export async function setupVite(app: Express, server: Server, projectRoot: string) {
+export async function setupVite(
+  app: Express,
+  server: Server,
+  projectRoot: string
+) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },

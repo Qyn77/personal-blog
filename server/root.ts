@@ -10,7 +10,9 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // 如果当前目录下存在 public/index.html，说明是在 dist/ 中运行（生产模式）
-const isProduction = fs.existsSync(path.join(__dirname, "public", "index.html"));
+const isProduction = fs.existsSync(
+  path.join(__dirname, "public", "index.html")
+);
 
 // 自动设置 NODE_ENV（未显式设置时）
 if (!process.env.NODE_ENV) {

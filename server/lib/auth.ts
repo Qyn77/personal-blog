@@ -11,11 +11,15 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || "";
 
 if (!JWT_SECRET) {
-  console.error("[Auth] FATAL: JWT_SECRET is not set in environment variables. Please set it in .env");
+  console.error(
+    "[Auth] FATAL: JWT_SECRET is not set in environment variables. Please set it in .env"
+  );
   process.exit(1);
 }
 if (!ADMIN_PASSWORD_HASH) {
-  console.error("[Auth] FATAL: ADMIN_PASSWORD_HASH is not set in environment variables. Please set it in .env");
+  console.error(
+    "[Auth] FATAL: ADMIN_PASSWORD_HASH is not set in environment variables. Please set it in .env"
+  );
   process.exit(1);
 }
 

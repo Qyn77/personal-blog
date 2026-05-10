@@ -24,9 +24,10 @@ function moveFile(src: string, dest: string) {
 }
 
 // images 上传目录：开发模式在 client/public/images，生产模式在 public/images
-const IMAGES_DIR = process.env.NODE_ENV === "development"
-  ? path.join(ROOT_DIR, "client/public/images")
-  : path.join(ROOT_DIR, "public/images");
+const IMAGES_DIR =
+  process.env.NODE_ENV === "development"
+    ? path.join(ROOT_DIR, "client/public/images")
+    : path.join(ROOT_DIR, "public/images");
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
@@ -35,16 +36,16 @@ const storage = multer.diskStorage({
       cb(new Error("Invalid upload type"), "");
       return;
     }
-    const dir = type === "images"
-      ? IMAGES_DIR
-      : path.join(ROOT_DIR, type);
+    const dir = type === "images" ? IMAGES_DIR : path.join(ROOT_DIR, type);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
   filename: (_req, file, cb) => {
     if (file.fieldname === "markdown") {
       // 清理文件名，防止路径遍历
-      const safeName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._\u4e00-\u9fff-]/g, "_");
+      const safeName = path
+        .basename(file.originalname)
+        .replace(/[^a-zA-Z0-9._\u4e00-\u9fff-]/g, "_");
       cb(null, safeName);
     } else {
       const ext = path.extname(file.originalname);
@@ -108,7 +109,11 @@ uploadRouter.post(
       }
 
       const files = req.files as Record<string, Express.Multer.File[]>;
-      const result: { success: boolean; markdownPath?: string; coverImagePath?: string } = {
+      const result: {
+        success: boolean;
+        markdownPath?: string;
+        coverImagePath?: string;
+      } = {
         success: true,
       };
 
@@ -120,7 +125,8 @@ uploadRouter.post(
         // 封面图片保存到 images 子目录
         const imageFile = files.coverImage[0];
         const imagesDir = path.join(ROOT_DIR, type, "images");
-        if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+        if (!fs.existsSync(imagesDir))
+          fs.mkdirSync(imagesDir, { recursive: true });
 
         const ext = path.extname(imageFile.originalname);
         const newName = `${nanoid()}${ext}`;
@@ -190,7 +196,11 @@ uploadRouter.delete("/:type/:filename", (req, res) => {
     }
 
     // 防止路径遍历：文件名不能包含 / \ 或 ..
-    if (filename.includes("/") || filename.includes("\\") || filename.includes("..")) {
+    if (
+      filename.includes("/") ||
+      filename.includes("\\") ||
+      filename.includes("..")
+    ) {
       res.status(400).json({ success: false, error: "Invalid filename" });
       return;
     }
@@ -198,7 +208,10 @@ uploadRouter.delete("/:type/:filename", (req, res) => {
     const filePath = path.join(ROOT_DIR, type, filename);
     // 二次校验：解析后的路径必须在预期目录内
     const expectedDir = path.join(ROOT_DIR, type);
-    if (!filePath.startsWith(expectedDir + path.sep) && filePath !== expectedDir) {
+    if (
+      !filePath.startsWith(expectedDir + path.sep) &&
+      filePath !== expectedDir
+    ) {
       res.status(400).json({ success: false, error: "Invalid filename" });
       return;
     }

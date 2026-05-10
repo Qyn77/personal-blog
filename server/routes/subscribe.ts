@@ -32,7 +32,14 @@ subscribeRouter.get("/subscribe/verify", async (req, res) => {
 
     // 检查 token 是否过期
     if (subscriber.tokenExpiresAt && Date.now() > subscriber.tokenExpiresAt) {
-      res.status(410).send(renderPage("链接已过期", "验证链接已超过 1 小时，请重新订阅获取新的验证邮件。"));
+      res
+        .status(410)
+        .send(
+          renderPage(
+            "链接已过期",
+            "验证链接已超过 1 小时，请重新订阅获取新的验证邮件。"
+          )
+        );
       return;
     }
 
@@ -75,7 +82,9 @@ subscribeRouter.get("/subscribe/unsubscribe", async (req, res) => {
 
     await db.updateSubscriber(subscriber.id, { status: "unsubscribed" });
 
-    res.send(renderPage("已取消订阅", "你已成功取消订阅，后续将不再收到推送邮件。"));
+    res.send(
+      renderPage("已取消订阅", "你已成功取消订阅，后续将不再收到推送邮件。")
+    );
   } catch (error) {
     console.error("[Subscribe] Unsubscribe error:", error);
     res.status(500).send(renderPage("操作失败", "服务器错误，请稍后重试。"));

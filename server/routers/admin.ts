@@ -31,7 +31,12 @@ export const adminRouter = router({
       return { success: true, articles, total: articles.length };
     } catch (error) {
       console.error("[Admin] Error listing articles:", error);
-      return { success: false, articles: [], total: 0, error: "Failed to load articles" };
+      return {
+        success: false,
+        articles: [],
+        total: 0,
+        error: "Failed to load articles",
+      };
     }
   }),
 
@@ -47,7 +52,11 @@ export const adminRouter = router({
         return { success: true, article };
       } catch (error) {
         console.error("[Admin] Error getting article:", error);
-        return { success: false, article: null, error: "Failed to get article" };
+        return {
+          success: false,
+          article: null,
+          error: "Failed to get article",
+        };
       }
     }),
 
@@ -59,7 +68,9 @@ export const adminRouter = router({
         subtitle: z.string().max(200).optional(),
         excerpt: z.string().max(500).optional(),
         content: z.string().min(1, "内容不能为空"),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式应为 YYYY-MM-DD"),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式应为 YYYY-MM-DD"),
         tags: z.array(z.string().max(30)).max(20),
         category: z.string().min(1).max(50),
         featured: z.boolean().default(false),
@@ -118,11 +129,16 @@ export const adminRouter = router({
                 const baseUrl = `${protocol}://${host}`;
 
                 await sendArticleNotify(
-                  subs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" })),
+                  subs.map(s => ({
+                    email: s.email,
+                    unsubscribeToken: s.unsubscribeToken || "",
+                  })),
                   { title: input.title, excerpt, slug },
                   baseUrl
                 );
-                console.log(`[Admin] Auto-notified ${subs.length} subscribers for new article: ${input.title}`);
+                console.log(
+                  `[Admin] Auto-notified ${subs.length} subscribers for new article: ${input.title}`
+                );
               } catch (err) {
                 console.error("[Admin] Auto-notify failed:", err);
               }
@@ -146,7 +162,10 @@ export const adminRouter = router({
         subtitle: z.string().max(200).optional(),
         excerpt: z.string().max(500).optional(),
         content: z.string().min(1).optional(),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
         tags: z.array(z.string().max(30)).max(20).optional(),
         category: z.string().min(1).max(50).optional(),
         featured: z.boolean().optional(),
@@ -174,11 +193,17 @@ export const adminRouter = router({
           const readTime = calculateReadTime(data.content);
           const excerpt = data.excerpt || generateExcerpt(data.content);
 
-          const success = await db.updateArticle(id, { ...data, readTime, excerpt });
-          if (!success) return { success: false, error: "Failed to update article" };
+          const success = await db.updateArticle(id, {
+            ...data,
+            readTime,
+            excerpt,
+          });
+          if (!success)
+            return { success: false, error: "Failed to update article" };
         } else {
           const success = await db.updateArticle(id, data);
-          if (!success) return { success: false, error: "Failed to update article" };
+          if (!success)
+            return { success: false, error: "Failed to update article" };
         }
 
         // 自动推送：文章从草稿变为发布时
@@ -198,11 +223,20 @@ export const adminRouter = router({
                 const baseUrl = `${protocol}://${host}`;
 
                 await sendArticleNotify(
-                  subs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" })),
-                  { title: article.title, excerpt: article.excerpt, slug: article.slug },
+                  subs.map(s => ({
+                    email: s.email,
+                    unsubscribeToken: s.unsubscribeToken || "",
+                  })),
+                  {
+                    title: article.title,
+                    excerpt: article.excerpt,
+                    slug: article.slug,
+                  },
                   baseUrl
                 );
-                console.log(`[Admin] Auto-notified ${subs.length} subscribers for article: ${article.title}`);
+                console.log(
+                  `[Admin] Auto-notified ${subs.length} subscribers for article: ${article.title}`
+                );
               } catch (err) {
                 console.error("[Admin] Auto-notify failed:", err);
               }
@@ -223,7 +257,8 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       try {
         const success = await db.deleteArticle(input.id);
-        if (!success) return { success: false, error: "Failed to delete article" };
+        if (!success)
+          return { success: false, error: "Failed to delete article" };
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error deleting article:", error);
@@ -239,9 +274,11 @@ export const adminRouter = router({
         const article = await db.getArticleById(input.id);
         if (!article) return { success: false, error: "Article not found" };
 
-        const newStatus = article.status === "published" ? "draft" : "published";
+        const newStatus =
+          article.status === "published" ? "draft" : "published";
         const success = await db.updateArticle(input.id, { status: newStatus });
-        if (!success) return { success: false, error: "Failed to update status" };
+        if (!success)
+          return { success: false, error: "Failed to update status" };
 
         // 切换到发布状态时，自动推送通知
         if (newStatus === "published") {
@@ -257,11 +294,20 @@ export const adminRouter = router({
                 const baseUrl = `${protocol}://${host}`;
 
                 await sendArticleNotify(
-                  subs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" })),
-                  { title: article.title, excerpt: article.excerpt, slug: article.slug },
+                  subs.map(s => ({
+                    email: s.email,
+                    unsubscribeToken: s.unsubscribeToken || "",
+                  })),
+                  {
+                    title: article.title,
+                    excerpt: article.excerpt,
+                    slug: article.slug,
+                  },
                   baseUrl
                 );
-                console.log(`[Admin] Auto-notified ${subs.length} subscribers for article: ${article.title}`);
+                console.log(
+                  `[Admin] Auto-notified ${subs.length} subscribers for article: ${article.title}`
+                );
               } catch (err) {
                 console.error("[Admin] Auto-notify failed:", err);
               }
@@ -282,7 +328,10 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       const { metadata, body } = parseFrontmatter(input.content);
       const processedBody = processMarkdownImages(body);
-      const excerpt = generateExcerpt(processedBody, metadata.excerpt as string);
+      const excerpt = generateExcerpt(
+        processedBody,
+        metadata.excerpt as string
+      );
       const readTime = calculateReadTime(body);
 
       return {
@@ -290,13 +339,16 @@ export const adminRouter = router({
         subtitle: (metadata.subtitle as string) || undefined,
         excerpt,
         content: processedBody,
-        date: (metadata.date as string) || new Date().toISOString().split("T")[0],
+        date:
+          (metadata.date as string) || new Date().toISOString().split("T")[0],
         readTime,
         tags: Array.isArray(metadata.tags) ? (metadata.tags as string[]) : [],
         category: (metadata.category as string) || "uncategorized",
         featured: metadata.featured === true,
         coverImage: (metadata.coverImage as string) || undefined,
-        slug: (metadata.slug as string) || slugify((metadata.title as string) || "untitled"),
+        slug:
+          (metadata.slug as string) ||
+          slugify((metadata.title as string) || "untitled"),
       };
     }),
 
@@ -311,7 +363,12 @@ export const adminRouter = router({
       return { success: true, archives, total: archives.length };
     } catch (error) {
       console.error("[Admin] Error listing archives:", error);
-      return { success: false, archives: [], total: 0, error: "Failed to load archives" };
+      return {
+        success: false,
+        archives: [],
+        total: 0,
+        error: "Failed to load archives",
+      };
     }
   }),
 
@@ -327,7 +384,11 @@ export const adminRouter = router({
         return { success: true, archive };
       } catch (error) {
         console.error("[Admin] Error getting archive:", error);
-        return { success: false, archive: null, error: "Failed to get archive" };
+        return {
+          success: false,
+          archive: null,
+          error: "Failed to get archive",
+        };
       }
     }),
 
@@ -339,7 +400,9 @@ export const adminRouter = router({
         subtitle: z.string().max(200).optional(),
         excerpt: z.string().max(500).optional(),
         content: z.string().min(1, "内容不能为空"),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式应为 YYYY-MM-DD"),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式应为 YYYY-MM-DD"),
         tags: z.array(z.string().max(30)).max(20),
         category: z.string().min(1).max(50),
         slug: z.string().max(100).optional(),
@@ -371,7 +434,8 @@ export const adminRouter = router({
           category: input.category,
         });
 
-        if (!success) return { success: false, error: "Failed to insert archive" };
+        if (!success)
+          return { success: false, error: "Failed to insert archive" };
         return { success: true, id, slug };
       } catch (error) {
         console.error("[Admin] Error creating archive:", error);
@@ -388,7 +452,10 @@ export const adminRouter = router({
         subtitle: z.string().max(200).optional(),
         excerpt: z.string().max(500).optional(),
         content: z.string().min(1).optional(),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
         tags: z.array(z.string().max(30)).max(20).optional(),
         category: z.string().min(1).max(50).optional(),
         slug: z.string().max(100).optional(),
@@ -401,11 +468,17 @@ export const adminRouter = router({
         if (data.content) {
           const readTime = calculateReadTime(data.content);
           const excerpt = data.excerpt || generateExcerpt(data.content);
-          const success = await db.updateArchive(id, { ...data, readTime, excerpt });
-          if (!success) return { success: false, error: "Failed to update archive" };
+          const success = await db.updateArchive(id, {
+            ...data,
+            readTime,
+            excerpt,
+          });
+          if (!success)
+            return { success: false, error: "Failed to update archive" };
         } else {
           const success = await db.updateArchive(id, data);
-          if (!success) return { success: false, error: "Failed to update archive" };
+          if (!success)
+            return { success: false, error: "Failed to update archive" };
         }
 
         return { success: true };
@@ -421,7 +494,8 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       try {
         const success = await db.deleteArchive(input.id);
-        if (!success) return { success: false, error: "Failed to delete archive" };
+        if (!success)
+          return { success: false, error: "Failed to delete archive" };
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error deleting archive:", error);
@@ -440,7 +514,11 @@ export const adminRouter = router({
       return { success: true, subscribers };
     } catch (error) {
       console.error("[Admin] Error listing subscribers:", error);
-      return { success: false, subscribers: [], error: "Failed to load subscribers" };
+      return {
+        success: false,
+        subscribers: [],
+        error: "Failed to load subscribers",
+      };
     }
   }),
 
@@ -450,7 +528,8 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       try {
         const success = await db.deleteSubscriber(input.id);
-        if (!success) return { success: false, error: "Failed to delete subscriber" };
+        if (!success)
+          return { success: false, error: "Failed to delete subscriber" };
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error deleting subscriber:", error);
@@ -492,7 +571,8 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       try {
         const sent = await sendTestEmail(input.email);
-        if (!sent) return { success: false, error: "邮件发送失败，请检查 SMTP 配置" };
+        if (!sent)
+          return { success: false, error: "邮件发送失败，请检查 SMTP 配置" };
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error sending test email:", error);
@@ -517,10 +597,17 @@ export const adminRouter = router({
         const protocol = ctx.req.protocol || "http";
         const baseUrl = `${protocol}://${host}`;
 
-        const emails = confirmedSubs.map(s => ({ email: s.email, unsubscribeToken: s.unsubscribeToken || "" }));
+        const emails = confirmedSubs.map(s => ({
+          email: s.email,
+          unsubscribeToken: s.unsubscribeToken || "",
+        }));
         await sendArticleNotify(
           emails,
-          { title: article.title, excerpt: article.excerpt, slug: article.slug },
+          {
+            title: article.title,
+            excerpt: article.excerpt,
+            slug: article.slug,
+          },
           baseUrl
         );
 
@@ -538,10 +625,14 @@ export const adminRouter = router({
   /** 获取 About 页面配置 */
   getAboutConfig: protectedProcedure.query(async () => {
     try {
-      const configDir = process.env.NODE_ENV === "development"
-        ? path.join(ROOT_DIR, "client/public")
-        : path.join(ROOT_DIR, "public");
-      const raw = await fs.readFile(path.join(configDir, "about-config.json"), "utf-8");
+      const configDir =
+        process.env.NODE_ENV === "development"
+          ? path.join(ROOT_DIR, "client/public")
+          : path.join(ROOT_DIR, "public");
+      const raw = await fs.readFile(
+        path.join(configDir, "about-config.json"),
+        "utf-8"
+      );
       return { success: true, config: JSON.parse(raw) };
     } catch (error) {
       console.error("[Admin] Error reading about config:", error);
@@ -559,23 +650,32 @@ export const adminRouter = router({
           paragraphs: z.array(z.string()),
           quote: z.string(),
         }),
-        interests: z.array(z.object({
-          label: z.string(),
-          description: z.string(),
-        })),
-        favorites: z.array(z.object({
-          category: z.string(),
-          items: z.array(z.string()),
-        })),
+        interests: z.array(
+          z.object({
+            label: z.string(),
+            description: z.string(),
+          })
+        ),
+        favorites: z.array(
+          z.object({
+            category: z.string(),
+            items: z.array(z.string()),
+          })
+        ),
       })
     )
     .mutation(async ({ input }) => {
       try {
         const json = JSON.stringify(input, null, 2) + "\n";
-        const configDir = process.env.NODE_ENV === "development"
-          ? path.join(ROOT_DIR, "client/public")
-          : path.join(ROOT_DIR, "public");
-        await fs.writeFile(path.join(configDir, "about-config.json"), json, "utf-8");
+        const configDir =
+          process.env.NODE_ENV === "development"
+            ? path.join(ROOT_DIR, "client/public")
+            : path.join(ROOT_DIR, "public");
+        await fs.writeFile(
+          path.join(configDir, "about-config.json"),
+          json,
+          "utf-8"
+        );
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error updating about config:", error);

@@ -17,7 +17,10 @@ export function removeToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export async function login(username: string, password: string): Promise<{ success: boolean; error?: string }> {
+export async function login(
+  username: string,
+  password: string
+): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch("/api/auth/login", {
       method: "POST",

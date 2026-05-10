@@ -33,9 +33,11 @@ export default function AdminArticles() {
   });
 
   const toggleStatusMutation = trpc.admin.toggleArticleStatus.useMutation({
-    onSuccess: (result) => {
+    onSuccess: result => {
       if (result.success) {
-        toast.success(result.status === "published" ? "文章已发布" : "文章已转为草稿");
+        toast.success(
+          result.status === "published" ? "文章已发布" : "文章已转为草稿"
+        );
         utils.admin.listArticles.invalidate();
         utils.blog.listArticles.invalidate();
       }
@@ -80,12 +82,24 @@ export default function AdminArticles() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left text-sm font-medium px-4 py-3">标题</th>
-                <th className="text-left text-sm font-medium px-4 py-3">状态</th>
-                <th className="text-left text-sm font-medium px-4 py-3">分类</th>
-                <th className="text-left text-sm font-medium px-4 py-3">日期</th>
-                <th className="text-left text-sm font-medium px-4 py-3">标签</th>
-                <th className="text-right text-sm font-medium px-4 py-3">操作</th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  标题
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  状态
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  分类
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  日期
+                </th>
+                <th className="text-left text-sm font-medium px-4 py-3">
+                  标签
+                </th>
+                <th className="text-right text-sm font-medium px-4 py-3">
+                  操作
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -104,12 +118,22 @@ export default function AdminArticles() {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => toggleStatusMutation.mutate({ id: article.id })}
+                      onClick={() =>
+                        toggleStatusMutation.mutate({ id: article.id })
+                      }
                       className="cursor-pointer"
-                      title={article.status === "published" ? "点击转为草稿" : "点击发布"}
+                      title={
+                        article.status === "published"
+                          ? "点击转为草稿"
+                          : "点击发布"
+                      }
                     >
                       <Badge
-                        variant={article.status === "published" ? "default" : "secondary"}
+                        variant={
+                          article.status === "published"
+                            ? "default"
+                            : "secondary"
+                        }
                         className={`text-xs ${article.status === "published" ? "bg-green-600 hover:bg-green-700" : "bg-muted-foreground/20 hover:bg-muted-foreground/30"}`}
                       >
                         {article.status === "published" ? "已发布" : "草稿"}
@@ -148,7 +172,8 @@ export default function AdminArticles() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>确认删除</AlertDialogTitle>
                             <AlertDialogDescription>
-                              确定要删除文章「{article.title}」吗？此操作不可撤销。
+                              确定要删除文章「{article.title}
+                              」吗？此操作不可撤销。
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

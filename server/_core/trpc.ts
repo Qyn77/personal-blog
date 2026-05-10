@@ -20,7 +20,10 @@ const authMiddleware = t.middleware(({ ctx, next }) => {
   const token = authHeader.slice(7);
   const payload = verifyToken(token);
   if (!payload) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "登录已过期，请重新登录" });
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "登录已过期，请重新登录",
+    });
   }
 
   return next();

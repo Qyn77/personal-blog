@@ -18,21 +18,26 @@ const HERO_BG = "/images/hero-bg.webp";
 export default function Home() {
   const [articles, setArticles] = useState<any[]>([]);
   const [archives, setArchives] = useState<any[]>([]);
-  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
+  const [categories, setCategories] = useState<
+    { name: string; count: number }[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // 加载文章数据
-  const { data: articlesData, isLoading: articlesLoading } = trpc.blog.listArticles.useQuery();
+  const { data: articlesData, isLoading: articlesLoading } =
+    trpc.blog.listArticles.useQuery();
 
   // 加载归档数据
-  const { data: archivesData, isLoading: archivesLoading } = trpc.archive.listArchives.useQuery();
+  const { data: archivesData, isLoading: archivesLoading } =
+    trpc.archive.listArchives.useQuery();
 
   useEffect(() => {
     if (articlesData && articlesData.success) {
       const processedArticles = articlesData.articles.map((a: any) => ({
         ...a,
         tags: parseTags(a.tags),
-        featured: typeof a.featured === 'number' ? a.featured === 1 : a.featured,
+        featured:
+          typeof a.featured === "number" ? a.featured === 1 : a.featured,
       }));
       setArticles(processedArticles);
 
@@ -81,9 +86,10 @@ export default function Home() {
 
   // 计算开始写作年份
   const allDates = [...articles.map(a => a.date), ...archives.map(a => a.date)];
-  const startYear = allDates.length > 0 
-    ? Math.min(...allDates.map(d => new Date(d).getFullYear()))
-    : new Date().getFullYear();
+  const startYear =
+    allDates.length > 0
+      ? Math.min(...allDates.map(d => new Date(d).getFullYear()))
+      : new Date().getFullYear();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -112,7 +118,10 @@ export default function Home() {
             </p>
             <h1
               className="text-foreground text-5xl md:text-7xl font-bold leading-[1.1] mb-6 fade-in-up fade-in-up-delay-2"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.03em" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+                letterSpacing: "-0.03em",
+              }}
             >
               墨迹
             </h1>
@@ -221,7 +230,9 @@ export default function Home() {
           <div className="flex items-baseline justify-between mb-12">
             <h2
               className="text-foreground text-2xl font-semibold"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
             >
               精选文章
             </h2>
@@ -237,7 +248,10 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {featured.map((article, i) => (
-              <div key={article.id} className={`fade-in-up fade-in-up-delay-${i + 1}`}>
+              <div
+                key={article.id}
+                className={`fade-in-up fade-in-up-delay-${i + 1}`}
+              >
                 <ArticleCard article={article} variant="featured" />
               </div>
             ))}
@@ -257,7 +271,9 @@ export default function Home() {
           <div className="lg:col-span-2">
             <h2
               className="text-foreground text-2xl font-semibold mb-8"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
             >
               最新文章
             </h2>
@@ -268,8 +284,12 @@ export default function Home() {
             ) : recent.length > 0 ? (
               <>
                 <div>
-                  {recent.map((article) => (
-                    <ArticleCard key={article.id} article={article} variant="default" />
+                  {recent.map(article => (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      variant="default"
+                    />
                   ))}
                 </div>
                 <div className="mt-8">
@@ -348,11 +368,14 @@ export default function Home() {
                             className="text-muted-foreground text-xs mt-1"
                             style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                           >
-                            {new Date(archive.date).toLocaleDateString('zh-CN', { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}
+                            {new Date(archive.date).toLocaleDateString(
+                              "zh-CN",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )}
                           </p>
                         </div>
                       </Link>

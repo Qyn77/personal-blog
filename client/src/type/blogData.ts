@@ -13,4 +13,3 @@ export interface Article {
   featured?: boolean;
   coverImage?: string;
 }
-

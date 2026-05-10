@@ -33,7 +33,9 @@ export default function AdminDashboard() {
 
       {/* 快捷操作 */}
       <div className="mb-8">
-        <h2 className="text-sm font-medium text-muted-foreground mb-3">快捷操作</h2>
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">
+          快捷操作
+        </h2>
         <div className="flex gap-3">
           <Link href="/admin/articles/new">
             <Button>
@@ -57,7 +59,9 @@ export default function AdminDashboard() {
             <div className="border border-border rounded-lg p-6 hover:bg-accent/50 transition-colors cursor-pointer">
               <div className="flex items-center gap-3 mb-3">
                 <stat.icon className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{stat.label}</span>
+                <span className="text-sm text-muted-foreground">
+                  {stat.label}
+                </span>
               </div>
               <p className="text-3xl font-bold">{stat.count}</p>
             </div>

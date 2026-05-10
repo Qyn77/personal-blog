@@ -15,7 +15,9 @@ export default function Footer() {
           <div className="shrink-0">
             <p
               className="text-[#1A1A1A] dark:text-[#F5F5F5] font-semibold text-lg mb-1"
-              style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
             >
               墨迹
             </p>

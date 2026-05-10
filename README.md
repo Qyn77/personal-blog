@@ -4,13 +4,13 @@
 
 ## 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| 前端 | React 19 + TypeScript + Tailwind CSS 4 + wouter |
-| 后端 | Express 4 + tRPC 11 + Node.js |
-| 数据库 | Drizzle ORM + SQLite (sql.js) |
-| 构建 | Vite 7 + esbuild |
-| UI | shadcn/ui + Radix UI |
+| 层级   | 技术                                            |
+| ------ | ----------------------------------------------- |
+| 前端   | React 19 + TypeScript + Tailwind CSS 4 + wouter |
+| 后端   | Express 4 + tRPC 11 + Node.js                   |
+| 数据库 | Drizzle ORM + SQLite (sql.js)                   |
+| 构建   | Vite 7 + esbuild                                |
+| UI     | shadcn/ui + Radix UI                            |
 
 ## 快速开始
 
@@ -107,7 +107,6 @@ tags: [标签1, 标签2]
 featured: true
 coverImage: ./images/cover.png
 ---
-
 正文内容...
 ```
 

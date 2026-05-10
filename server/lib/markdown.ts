@@ -67,9 +67,7 @@ export function resolveBooksAsset(src: string): string {
     return trimmed;
   }
 
-  const normalized = trimmed
-    .replace(/^\.\//, "")
-    .replace(/^\/+/, "");
+  const normalized = trimmed.replace(/^\.\//, "").replace(/^\/+/, "");
 
   return `/books/${normalized}`;
 }
@@ -86,7 +84,10 @@ export function processMarkdownImages(content: string): string {
 /**
  * 从正文生成摘要
  */
-export function generateExcerpt(body: string, metadataExcerpt?: string): string {
+export function generateExcerpt(
+  body: string,
+  metadataExcerpt?: string
+): string {
   if (typeof metadataExcerpt === "string" && metadataExcerpt) {
     return metadataExcerpt;
   }
@@ -103,11 +104,13 @@ export function generateExcerpt(body: string, metadataExcerpt?: string): string 
  * 将标题转为 URL 安全的 slug
  */
 export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[\u4e00-\u9fff]+/g, match => match) // 保留中文
-    .replace(/[^\w\u4e00-\u9fff-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .substring(0, 80) || "untitled";
+  return (
+    text
+      .toLowerCase()
+      .replace(/[\u4e00-\u9fff]+/g, match => match) // 保留中文
+      .replace(/[^\w\u4e00-\u9fff-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .substring(0, 80) || "untitled"
+  );
 }

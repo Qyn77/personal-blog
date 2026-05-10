@@ -27,7 +27,8 @@ export default function Archive() {
   }, []);
 
   // 调用 tRPC API 获取归档数据
-  const { data: archiveData, isLoading: isQueryLoading } = trpc.archive.getByYear.useQuery();
+  const { data: archiveData, isLoading: isQueryLoading } =
+    trpc.archive.getByYear.useQuery();
 
   useEffect(() => {
     if (!isQueryLoading) {
@@ -39,7 +40,10 @@ export default function Archive() {
   }, [archiveData, isQueryLoading]);
 
   const years = Object.keys(archive);
-  const totalArchives = Object.values(archive).reduce((sum, arr) => sum + arr.length, 0);
+  const totalArchives = Object.values(archive).reduce(
+    (sum, arr) => sum + arr.length,
+    0
+  );
 
   if (isLoading) {
     return (
@@ -65,7 +69,10 @@ export default function Archive() {
           </p>
           <h1
             className="text-foreground text-4xl md:text-5xl font-bold mb-4"
-            style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif", letterSpacing: "-0.02em" }}
+            style={{
+              fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              letterSpacing: "-0.02em",
+            }}
           >
             归档
           </h1>
@@ -101,7 +108,7 @@ export default function Archive() {
 
                 {/* Archives */}
                 <ul className="space-y-0">
-                  {archive[year].map((item) => {
+                  {archive[year].map(item => {
                     const tags = parseTags(item.tags);
                     return (
                       <li key={item.id}>
@@ -109,7 +116,9 @@ export default function Archive() {
                           <div className="group flex items-baseline gap-6 py-4 border-b border-border hover:bg-card -mx-4 px-4 transition-colors duration-150 cursor-pointer">
                             <span
                               className="text-muted-foreground text-xs shrink-0 w-20"
-                              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                              style={{
+                                fontFamily: "'IBM Plex Mono', monospace",
+                              }}
                             >
                               {formatShortDate(item.date)}
                             </span>
@@ -123,7 +132,9 @@ export default function Archive() {
                               {item.subtitle && (
                                 <p
                                   className="text-muted-foreground text-xs mt-0.5 truncate"
-                                  style={{ fontFamily: "'Noto Serif SC', serif" }}
+                                  style={{
+                                    fontFamily: "'Noto Serif SC', serif",
+                                  }}
                                 >
                                   {item.subtitle}
                                 </p>
@@ -134,14 +145,18 @@ export default function Archive() {
                                 <span
                                   key={tag}
                                   className="text-muted-foreground text-xs hidden sm:block"
-                                  style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                                  style={{
+                                    fontFamily: "'IBM Plex Mono', monospace",
+                                  }}
                                 >
                                   #{tag}
                                 </span>
                               ))}
                               <span
                                 className="text-border text-xs"
-                                style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                                style={{
+                                  fontFamily: "'IBM Plex Mono', monospace",
+                                }}
                               >
                                 {item.readTime}m
                               </span>
