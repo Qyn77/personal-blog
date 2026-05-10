@@ -13,7 +13,7 @@ import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
 
-const HERO_BG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663603513063/Jv7YCCM3BuDSibFnxHr9Qi/hero-bg-PxUBraARxan7JRGzDyxUyN.webp";
+const HERO_BG = "/images/hero-bg.webp";
 
 export default function Home() {
   const [articles, setArticles] = useState<any[]>([]);
