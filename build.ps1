@@ -32,7 +32,7 @@ Write-Host "[1/4] 构建前端..."
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "[2/4] 打包服务端..."
-& $esbuildCmd "server/_core/index.ts", "--platform=node", "--packages=external", "--bundle", "--format=esm", "--outdir=dist"
+& $esbuildCmd server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "[3/4] 拷贝内容资源..."

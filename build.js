@@ -33,11 +33,21 @@ const getBinPath = binName => {
   return binPath;
 };
 
-// 执行命令，参数为数组，不经过 shell
+// 执行命令，参数为数组
+// 使用 pnpm exec 来处理 pnpm 虚拟存储中的可执行文件
 function run(command, args) {
   console.log(`\n▸ ${command} ${args.join(" ")}`);
   try {
-    execFileSync(command, args, { stdio: "inherit", cwd: ROOT });
+    // 使用 pnpm exec 来执行命令，处理虚拟存储问题
+    const fullArgs = ["exec", command, ...args];
+    
+    // Windows 上 pnpm 是 PowerShell 脚本，需要通过 powershell 执行
+    if (isWin) {
+      // 使用 cmd /c 来执行 pnpm 命令，这样能正确处理 PowerShell 脚本
+      execFileSync("cmd.exe", ["/c", "pnpm", ...fullArgs], { stdio: "inherit", cwd: ROOT });
+    } else {
+      execFileSync("pnpm", fullArgs, { stdio: "inherit", cwd: ROOT });
+    }
   } catch (err) {
     console.error(`执行失败: ${command} ${args.join(" ")}`);
     process.exit(1);
@@ -64,16 +74,17 @@ function copyFile(src, dest) {
   console.log(`  ✓ ${path.relative(ROOT, src)} → ${path.relative(ROOT, dest)}`);
 }
 
-// 检查必要的可执行文件是否存在
+// 检查依赖是否已安装
 function checkBin(binName) {
-  const binPath = getBinPath(binName);
-  if (!fs.existsSync(binPath)) {
+  // 使用 pnpm exec 时不需要检查 .bin 目录
+  // 只需检查 node_modules 是否存在即可
+  if (!fs.existsSync(path.join(ROOT, "node_modules"))) {
     console.error(
-      `错误：未找到 ${binName}，请先运行 npm install / yarn / pnpm install / bun install`
+      `错误：未找到 node_modules，请先运行 npm install / yarn / pnpm install / bun install`
     );
     process.exit(1);
   }
-  return binPath;
+  return binName;
 }
 
 // ─── Step 1: 前端构建 ─────────────────────────────────────────
