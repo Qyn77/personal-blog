@@ -311,10 +311,10 @@ export default function MarkdownRenderer({
               const label = LANG_LABELS[lang] || lang;
 
               return (
-                <div className="code-block-wrapper my-6">
+                <div className="code-block-wrapper my-4">
                   {label && <div className="code-lang-label">{label}</div>}
                   <pre
-                    className="bg-[#0d1117] rounded-lg overflow-x-auto border border-white/5 shadow-sm"
+                    className="bg-[#0d1117] overflow-x-auto"
                     style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                   >
                     <code className={className} {...props}>
