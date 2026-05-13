@@ -311,7 +311,7 @@ export default function MarkdownRenderer({
               const label = LANG_LABELS[lang] || lang;
 
               return (
-                <div className="code-block-wrapper my-4">
+                <div className="code-block-wrapper my-3">
                   {label && <div className="code-lang-label">{label}</div>}
                   <pre
                     className="bg-[#0d1117] overflow-x-auto"
@@ -445,6 +445,7 @@ export default function MarkdownRenderer({
                   src={imageSrc}
                   alt={alt}
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                   className="w-full h-auto rounded-lg shadow-md border border-border/50 hover:shadow-lg transition-shadow"
                 />
                 {alt && (

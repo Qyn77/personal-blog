@@ -387,6 +387,44 @@ html.theme-transition * {
   .markdown-content pre {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.55) rgba(148, 163, 184, 0.12);
+  }
+
+  .markdown-content pre::-webkit-scrollbar {
+    height: 0.75rem;
+  }
+
+  .markdown-content pre::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.12);
+    border-radius: 9999px;
+  }
+
+  .markdown-content pre::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .markdown-content pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.75);
+  }
+
+  .dark .markdown-content pre {
+    scrollbar-color: rgba(148, 163, 184, 0.35) rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .markdown-content pre::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .markdown-content pre::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+  }
+
+  .dark .markdown-content pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.55);
   }
 
   .markdown-content pre code {
