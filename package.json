@@ -16,6 +16,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "db:init": "tsx server/scripts/initDb.ts",
+    "sync": "tsx server/scripts/syncContent.ts",
+    "sync:dist": "tsx server/scripts/syncContent.ts --dist",
     "hash-password": "tsx -e \"import bcrypt from 'bcryptjs';const p=process.argv[1];p?console.log(bcrypt.hashSync(p,10)):console.log('用法: pnpm hash-password 你的密码')\"",
     "gen-secret": "tsx -e \"import crypto from 'crypto';console.log(crypto.randomBytes(32).toString('hex'))\"",
     "prepare": "husky"
