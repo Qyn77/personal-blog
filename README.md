@@ -75,6 +75,10 @@ cd /path/to/blog/dist
 pnpm install --prod        # 安装生产依赖（或 npm install --omit=dev）
 cp .env.example .env       # 编辑填入真实配置
 node index.js              # 启动服务
+
+# 3. 后续新增博客文章
+# 将 .md 文件放入 dist/books/ 或 dist/archives/，然后：
+pnpm sync:dist             # 增量导入新文章到数据库
 ```
 
 服务会自动检测运行环境（通过检查 `public/index.html` 是否存在），无需手动设置 `NODE_ENV`。
@@ -212,7 +216,8 @@ personal-blog/
 │   │   ├── auth.ts                # JWT 签发/验证、密码哈希
 │   │   └── email.ts               # SMTP 邮件发送（验证、通知、测试）
 │   ├── scripts/
-│   │   ├── initDb.ts              # 数据库初始化（从 Markdown 导入）
+│   │   ├── initDb.ts              # 数据库初始化（从 Markdown 全量重建）
+│   │   ├── syncContent.ts         # 增量同步 Markdown 到数据库
 │   │   └── copyContent.ts         # 内容资源拷贝工具
 │   ├── db.ts                      # 数据库 CRUD（SQLite 内存 + 磁盘持久化）
 │   ├── schema.ts                  # Drizzle 表结构定义
@@ -234,19 +239,22 @@ personal-blog/
 
 ## npm scripts 一览
 
-| 命令                 | 说明                                  |
-| -------------------- | ------------------------------------- |
-| `pnpm dev`           | 启动开发服务器（Linux/macOS，热更新） |
-| `pnpm dev:win`       | 启动开发服务器（Windows）             |
-| `pnpm build`         | 一键构建（调用 build.js）             |
-| `pnpm start`         | 启动生产服务（从 dist/）              |
-| `pnpm check`         | TypeScript 类型检查                   |
-| `pnpm format`        | Prettier 格式化所有文件               |
-| `pnpm format:check`  | 检查格式是否一致                      |
-| `pnpm test`          | 运行测试（Vitest）                    |
-| `pnpm db:init`       | 从 Markdown 文件初始化数据库          |
-| `pnpm hash-password` | 生成密码哈希（写入 .env 用）          |
-| `pnpm gen-secret`    | 生成 JWT 密钥（写入 .env 用）         |
+| 命令                 | 说明                                         |
+| -------------------- | -------------------------------------------- |
+| `pnpm dev`           | 启动开发服务器（Linux/macOS，热更新）        |
+| `pnpm dev:win`       | 启动开发服务器（Windows）                    |
+| `pnpm build`         | 一键构建（调用 build.js）                    |
+| `pnpm start`         | 启动生产服务（从项目根目录读取 dist/）       |
+| `pnpm start:dist`    | 启动生产服务（在 dist/ 目录内直接运行）      |
+| `pnpm check`         | TypeScript 类型检查                          |
+| `pnpm format`        | Prettier 格式化所有文件                      |
+| `pnpm format:check`  | 检查格式是否一致                             |
+| `pnpm test`          | 运行测试（Vitest）                           |
+| `pnpm db:init`       | 从 Markdown 文件重建数据库（全量覆盖）       |
+| `pnpm sync`          | 增量同步 books/archives 到数据库（开发环境） |
+| `pnpm sync:dist`     | 增量同步 dist 中的新文件到数据库（部署后）   |
+| `pnpm hash-password` | 生成密码哈希（写入 .env 用）                 |
+| `pnpm gen-secret`    | 生成 JWT 密钥（写入 .env 用）                |
 
 ## 管理后台
 
@@ -329,7 +337,7 @@ excerpt: 自定义摘要 # 可选，不填则自动截取
 ### 数据库初始化
 
 ```bash
-pnpm db:init    # 从 books/ 和 archives/ 中的 .md 文件导入数据库
+pnpm db:init    # 从 books/ 和 archives/ 全量重建数据库（覆盖旧数据）
 ```
 
 初始化脚本会：
@@ -340,6 +348,16 @@ pnpm db:init    # 从 books/ 和 archives/ 中的 .md 文件导入数据库
 - 处理图片路径（相对路径 → 绝对 URL 路径）
 
 数据库支持运行时自动迁移（新增字段会自动补全）。
+
+### 增量同步
+
+打包后往 `dist/books/` 或 `dist/archives/` 丢入新的 `.md` 文件，无需重新构建即可导入数据库：
+
+```bash
+pnpm sync:dist    # 扫描 dist 中的新文件，增量写入 dist/blog.db
+```
+
+脚本通过 slug 判断是否已存在，只导入新条目，跳过已有数据。开发环境下使用 `pnpm sync` 同步源码目录。
 
 ## 邮件订阅
 
@@ -431,7 +449,7 @@ pnpm check         # TypeScript 类型检查
 - 管理后台默认账号 `admin`，默认密码 `admin123`，**部署前务必修改**
 - `books/` 和 `archives/` 中的图片使用相对路径（如 `./images/xxx.png`），系统自动转换
 - 构建时自动将内容资源复制到 `dist/`，生产环境上传的文件也会保存到 `dist/` 对应目录
-- 首次部署需运行 `pnpm db:init` 初始化数据库，后续文章通过管理后台管理
+- 首次部署需运行 `pnpm db:init` 初始化数据库，后续可通过管理后台或 `pnpm sync:dist` 增量添加文章
 - `robots.txt` 中的域名需要手动替换为实际域名
 
 ## 许可证
