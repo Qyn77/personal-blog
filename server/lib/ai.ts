@@ -1,16 +1,10 @@
 /**
  * AI 服务模块
  * 支持多种 AI 服务商，提供统一的接口
+ * 支持动态配置（从数据库读取）
  */
 
 import { z } from "zod";
-
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
-const DEEPSEEK_BASE_URL =
-  process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
-const ENABLE_AI_FEATURES =
-  process.env.ENABLE_AI_FEATURES === "true" || !!DEEPSEEK_API_KEY;
 
 export interface AIMessage {
   role: "system" | "user" | "assistant";
@@ -40,16 +34,64 @@ export interface PolishContentResult {
   polishedLength: number;
 }
 
+export interface AIConfig {
+  provider: "deepseek" | "openai" | "claude" | "custom";
+  apiKey: string;
+  apiBaseUrl: string;
+  model: string;
+  enabled: boolean;
+}
+
+export interface AIProviderInfo {
+  id: string;
+  name: string;
+  defaultBaseUrl: string;
+  defaultModel: string;
+  description: string;
+}
+
+export const AI_PROVIDERS: AIProviderInfo[] = [
+  {
+    id: "deepseek",
+    name: "DeepSeek",
+    defaultBaseUrl: "https://api.deepseek.com",
+    defaultModel: "deepseek-chat",
+    description: "深度求索，支持中英文对话和代码生成",
+  },
+  {
+    id: "openai",
+    name: "OpenAI",
+    defaultBaseUrl: "https://api.openai.com",
+    defaultModel: "gpt-3.5-turbo",
+    description: "GPT 系列模型，功能强大",
+  },
+  {
+    id: "claude",
+    name: "Claude",
+    defaultBaseUrl: "https://api.anthropic.com",
+    defaultModel: "claude-3-sonnet-20240229",
+    description: "Anthropic Claude，长上下文支持",
+  },
+  {
+    id: "custom",
+    name: "自定义",
+    defaultBaseUrl: "https://api.example.com",
+    defaultModel: "",
+    description: "自定义 API 地址和模型",
+  },
+];
+
 export abstract class AIProvider {
   abstract chat(messages: AIMessage[]): Promise<AIResponse>;
   abstract name: string;
+  abstract model: string;
 }
 
 class DeepSeekProvider extends AIProvider {
   name = "deepseek";
+  model: string;
   private apiKey: string;
   private baseUrl: string;
-  private model: string;
 
   constructor(apiKey: string, baseUrl: string, model: string) {
     super();
@@ -89,27 +131,145 @@ class DeepSeekProvider extends AIProvider {
   }
 }
 
+class OpenAIProvider extends AIProvider {
+  name = "openai";
+  model: string;
+  private apiKey: string;
+  private baseUrl: string;
+
+  constructor(apiKey: string, baseUrl: string, model: string) {
+    super();
+    this.apiKey = apiKey;
+    this.baseUrl = baseUrl;
+    this.model = model;
+  }
+
+  async chat(messages: AIMessage[]): Promise<AIResponse> {
+    const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.model,
+        messages: messages.map(m => ({
+          role: m.role,
+          content: m.content,
+        })),
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    return {
+      content: data.choices[0]?.message?.content || "",
+      usage: data.usage,
+    };
+  }
+}
+
+class ClaudeProvider extends AIProvider {
+  name = "claude";
+  model: string;
+  private apiKey: string;
+  private baseUrl: string;
+
+  constructor(apiKey: string, baseUrl: string, model: string) {
+    super();
+    this.apiKey = apiKey;
+    this.baseUrl = baseUrl;
+    this.model = model;
+  }
+
+  async chat(messages: AIMessage[]): Promise<AIResponse> {
+    const response = await fetch(`${this.baseUrl}/v1/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": this.apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: this.model,
+        max_tokens: 2000,
+        temperature: 0.7,
+        messages: [
+          {
+            role: "user",
+            content: messages
+              .map(m => `${m.role === "system" ? "System: " : ""}${m.content}`)
+              .join("\n\n"),
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Claude API error: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    return {
+      content: data.content?.[0]?.text || "",
+    };
+  }
+}
+
 let aiProvider: AIProvider | null = null;
+let currentConfig: AIConfig | null = null;
+
+function createProvider(config: AIConfig): AIProvider {
+  switch (config.provider) {
+    case "openai":
+      return new OpenAIProvider(config.apiKey, config.apiBaseUrl, config.model);
+    case "claude":
+      return new ClaudeProvider(config.apiKey, config.apiBaseUrl, config.model);
+    case "custom":
+    case "deepseek":
+    default:
+      return new DeepSeekProvider(
+        config.apiKey,
+        config.apiBaseUrl,
+        config.model
+      );
+  }
+}
+
+export function setAIConfig(config: AIConfig): void {
+  currentConfig = config;
+  aiProvider = null;
+  console.log(
+    `[AI] Config updated: ${config.provider} (model: ${config.model})`
+  );
+}
+
+export function getAIConfig(): AIConfig | null {
+  return currentConfig;
+}
 
 function getAIProvider(): AIProvider | null {
-  if (!ENABLE_AI_FEATURES) {
+  if (!currentConfig || !currentConfig.enabled) {
     return null;
   }
 
-  if (!DEEPSEEK_API_KEY) {
-    console.warn(
-      "[AI] DEEPSEEK_API_KEY is not set. AI features will be disabled."
-    );
+  if (!currentConfig.apiKey) {
+    console.warn("[AI] API Key is not set.");
     return null;
   }
 
   if (!aiProvider) {
-    aiProvider = new DeepSeekProvider(
-      DEEPSEEK_API_KEY,
-      DEEPSEEK_BASE_URL,
-      DEEPSEEK_MODEL
+    aiProvider = createProvider(currentConfig);
+    console.log(
+      `[AI] Initialized with ${aiProvider.name} (model: ${aiProvider.model})`
     );
-    console.log(`[AI] Initialized with DeepSeek (model: ${DEEPSEEK_MODEL})`);
   }
 
   return aiProvider;
@@ -230,5 +390,5 @@ export async function polishContent(
 }
 
 export function isAIEnabled(): boolean {
-  return ENABLE_AI_FEATURES && !!DEEPSEEK_API_KEY;
+  return !!currentConfig?.enabled && !!currentConfig?.apiKey;
 }

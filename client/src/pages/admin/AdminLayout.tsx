@@ -10,6 +10,7 @@ import {
   User,
   ArrowLeft,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { verify, logout } from "@/lib/auth";
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/admin/articles", icon: FileText, label: "文章管理" },
   { href: "/admin/archives", icon: Archive, label: "归档管理" },
   { href: "/admin/subscribers", icon: Mail, label: "订阅管理" },
+  { href: "/admin/ai", icon: Sparkles, label: "AI 配置" },
   { href: "/admin/settings", icon: Settings, label: "系统设置" },
   { href: "/admin/about", icon: User, label: "关于页面" },
 ];

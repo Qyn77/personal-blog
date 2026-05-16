@@ -1,17 +1,58 @@
 /**
  * AI tRPC 路由
- * 提供 AI 生成元数据和润色文章的功能
+ * 提供 AI 生成元数据、润色文章和配置管理功能
  */
 
 import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
-import { generateMetadata, polishContent, isAIEnabled } from "../lib/ai";
+import {
+  generateMetadata,
+  polishContent,
+  isAIEnabled,
+  setAIConfig,
+  getAIConfig,
+  AI_PROVIDERS,
+  type AIConfig,
+} from "../lib/ai";
 
 export const aiRouter = router({
   /** 检查 AI 功能是否启用 */
   checkEnabled: protectedProcedure.query(() => {
     return { enabled: isAIEnabled() };
   }),
+
+  /** 获取所有支持的服务商列表 */
+  getProviders: protectedProcedure.query(() => {
+    return AI_PROVIDERS;
+  }),
+
+  /** 获取当前配置 */
+  getConfig: protectedProcedure.query(() => {
+    return { config: getAIConfig() };
+  }),
+
+  /** 保存配置 */
+  saveConfig: protectedProcedure
+    .input(
+      z.object({
+        provider: z.enum(["deepseek", "openai", "claude", "custom"]),
+        apiKey: z.string(),
+        apiBaseUrl: z.string().url(),
+        model: z.string(),
+        enabled: z.boolean(),
+      })
+    )
+    .mutation(({ input }) => {
+      const config: AIConfig = {
+        provider: input.provider,
+        apiKey: input.apiKey,
+        apiBaseUrl: input.apiBaseUrl,
+        model: input.model,
+        enabled: input.enabled,
+      };
+      setAIConfig(config);
+      return { success: true, message: "配置已保存" };
+    }),
 
   /** 根据文章内容生成元数据 */
   generateMetadata: protectedProcedure
@@ -25,7 +66,7 @@ export const aiRouter = router({
     )
     .mutation(async ({ input }) => {
       if (!isAIEnabled()) {
-        return { success: false, error: "AI 功能未启用，请检查环境配置" };
+        return { success: false, error: "AI 功能未启用，请检查配置" };
       }
 
       try {
@@ -52,7 +93,7 @@ export const aiRouter = router({
     )
     .mutation(async ({ input }) => {
       if (!isAIEnabled()) {
-        return { success: false, error: "AI 功能未启用，请检查环境配置" };
+        return { success: false, error: "AI 功能未启用，请检查配置" };
       }
 
       try {

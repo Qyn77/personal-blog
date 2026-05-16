@@ -22,6 +22,7 @@ const AdminArchiveEdit = lazy(() => import("./pages/admin/AdminArchiveEdit"));
 const AdminSubscribers = lazy(() => import("./pages/admin/AdminSubscribers"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminAbout = lazy(() => import("./pages/admin/AdminAbout"));
+const AdminAIConfig = lazy(() => import("./pages/admin/AdminAIConfig"));
 
 function AdminLoading() {
   return (
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/admin/archives/new">{wrapAdmin(AdminArchiveEdit)}</Route>
       <Route path="/admin/archives/:id">{wrapAdmin(AdminArchiveEdit)}</Route>
       <Route path="/admin/subscribers">{wrapAdmin(AdminSubscribers)}</Route>
+      <Route path="/admin/ai">{wrapAdmin(AdminAIConfig)}</Route>
       <Route path="/admin/settings">{wrapAdmin(AdminSettings)}</Route>
       <Route path="/admin/about">{wrapAdmin(AdminAbout)}</Route>
 
