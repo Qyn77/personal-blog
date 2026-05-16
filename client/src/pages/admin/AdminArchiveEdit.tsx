@@ -8,7 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Upload, Loader2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Upload,
+  Loader2,
+  X,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Wand2,
+  RefreshCw,
+} from "lucide-react";
 import { parseTags } from "@/lib/utils";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -84,6 +94,72 @@ export default function AdminArchiveEdit() {
   });
 
   const parseMutation = trpc.admin.parseMarkdown.useMutation();
+
+  const checkAIEnabled = trpc.ai.checkEnabled.useQuery();
+  const generateMetadataMutation = trpc.ai.generateMetadata.useMutation();
+  const polishContentMutation = trpc.ai.polishContent.useMutation();
+
+  const [showAIPanel, setShowAIPanel] = useState(false);
+
+  const handleGenerateMetadata = async () => {
+    if (!content.trim()) {
+      toast.error("请先输入归档内容");
+      return;
+    }
+
+    if (!checkAIEnabled.data?.enabled) {
+      toast.error("AI 功能未启用，请检查环境配置");
+      return;
+    }
+
+    try {
+      const result = await generateMetadataMutation.mutateAsync({
+        content: content,
+      });
+
+      if (result.success && result.data) {
+        setTitle(result.data.title);
+        if (result.data.subtitle) setSubtitle(result.data.subtitle);
+        setExcerpt(result.data.excerpt);
+        setTags(result.data.tags);
+        setCategory(result.data.category);
+        toast.success("元数据生成成功");
+      } else {
+        toast.error(result.error || "生成失败");
+      }
+    } catch {
+      toast.error("AI 生成失败，请重试");
+    }
+  };
+
+  const handlePolishContent = async () => {
+    if (!content.trim()) {
+      toast.error("请先输入归档内容");
+      return;
+    }
+
+    if (!checkAIEnabled.data?.enabled) {
+      toast.error("AI 功能未启用，请检查环境配置");
+      return;
+    }
+
+    try {
+      const result = await polishContentMutation.mutateAsync({
+        content: content,
+      });
+
+      if (result.success && result.data) {
+        setContent(result.data.content);
+        toast.success(
+          `润色完成（原 ${result.data.originalLength} 字 → 现 ${result.data.polishedLength} 字）`
+        );
+      } else {
+        toast.error(result.error || "润色失败");
+      }
+    } catch {
+      toast.error("AI 润色失败，请重试");
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -391,6 +467,96 @@ export default function AdminArchiveEdit() {
             </p>
           )}
         </div>
+
+        {/* AI 辅助面板 */}
+        {checkAIEnabled.data?.enabled && (
+          <div className="border rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowAIPanel(!showAIPanel)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-muted/50 hover:bg-muted transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-500" />
+                <span className="text-sm font-medium">AI 辅助</span>
+                <Badge variant="secondary" className="text-xs">
+                  DeepSeek
+                </Badge>
+              </div>
+              {showAIPanel ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+
+            {showAIPanel && (
+              <div className="p-4 space-y-4 border-t">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <Wand2 className="h-4 w-4" />
+                      生成元数据
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      根据归档内容自动生成标题、副标题、摘要、标签和分类
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateMetadata}
+                      disabled={
+                        generateMetadataMutation.isPending || !content.trim()
+                      }
+                    >
+                      {generateMetadataMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-1" />
+                          生成元数据
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4" />
+                      润色内容
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      优化存档表达，改善句子结构，提升可读性
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePolishContent}
+                      disabled={
+                        polishContentMutation.isPending || !content.trim()
+                      }
+                    >
+                      {polishContentMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          润色中...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          润色内容
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <Button onClick={handleSubmit} disabled={isSaving}>

@@ -5,7 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Plus, Trash2, Upload } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  Upload,
+  Sparkles,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface Interest {
@@ -53,6 +60,37 @@ export default function AdminAbout() {
     },
     onError: () => toast.error("保存失败"),
   });
+
+  const checkAIEnabled = trpc.ai.checkEnabled.useQuery();
+  const polishContentMutation = trpc.ai.polishContent.useMutation();
+
+  const handlePolishText = async (
+    text: string,
+    onResult: (polished: string) => void
+  ) => {
+    if (!text.trim()) {
+      toast.error("请先输入要润色的内容");
+      return;
+    }
+    if (!checkAIEnabled.data?.enabled) {
+      toast.error("AI 功能未启用，请检查环境配置");
+      return;
+    }
+
+    try {
+      const result = await polishContentMutation.mutateAsync({ content: text });
+      if (result.success && result.data) {
+        onResult(result.data.content);
+        toast.success(
+          `润色完成（原 ${result.data.originalLength} 字 → 现 ${result.data.polishedLength} 字）`
+        );
+      } else {
+        toast.error(result.error || "润色失败");
+      }
+    } catch {
+      toast.error("AI 润色失败，请重试");
+    }
+  };
 
   const handleSave = () => {
     updateMutation.mutate(config);
@@ -219,12 +257,35 @@ export default function AdminAbout() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="hero-title">标题</Label>
-              <Input
-                id="hero-title"
-                value={config.hero.title}
-                onChange={e => updateHero("title", e.target.value)}
-                className="mt-1"
-              />
+              <div className="flex gap-2 mt-1">
+                <Input
+                  id="hero-title"
+                  value={config.hero.title}
+                  onChange={e => updateHero("title", e.target.value)}
+                  className="flex-1"
+                />
+                {checkAIEnabled.data?.enabled && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handlePolishText(config.hero.title, result =>
+                        updateHero("title", result)
+                      )
+                    }
+                    disabled={
+                      polishContentMutation.isPending ||
+                      !config.hero.title.trim()
+                    }
+                  >
+                    {polishContentMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 text-amber-500" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="hero-image">头像图片</Label>
@@ -275,6 +336,22 @@ export default function AdminAbout() {
                       rows={2}
                       className="flex-1"
                     />
+                    {checkAIEnabled.data?.enabled && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          handlePolishText(p, result =>
+                            updateParagraph(i, result)
+                          )
+                        }
+                        disabled={polishContentMutation.isPending || !p.trim()}
+                        className="shrink-0 text-amber-500 hover:text-amber-600"
+                        title="AI 润色"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
