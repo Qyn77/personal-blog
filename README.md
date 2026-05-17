@@ -30,37 +30,26 @@
 pnpm install
 cp .env.example .env       # 编辑配置（见下方环境变量说明）
 pnpm db:init               # 从 books/ 和 archives/ 导入 Markdown 到数据库
-pnpm dev                   # 启动开发服务器（Linux/macOS）
-# pnpm dev:win             # Windows 用户用这个
+pnpm dev                   # 启动开发服务器
 ```
 
 访问 `http://localhost:3000`，管理后台 `http://localhost:3000/admin`。
 
 ## 构建与部署
 
-### 构建脚本
-
-项目提供 4 种构建脚本，任选其一：
-
-| 脚本            | 适用平台           | 说明                                           |
-| --------------- | ------------------ | ---------------------------------------------- |
-| `node build.js` | **跨平台（推荐）** | Node.js 脚本，自动检测系统选择正确的二进制路径 |
-| `build.sh`      | Linux / macOS      | Bash 脚本                                      |
-| `build.bat`     | Windows CMD        | 批处理脚本                                     |
-| `build.ps1`     | Windows PowerShell | PowerShell 脚本                                |
-
-或直接使用 npm script：
+### 构建
 
 ```bash
 pnpm build    # 等同于 node build.js
 ```
 
-所有脚本执行相同的 4 步流程：
+构建流程（5 步）：
 
 1. `vite build` — 构建前端到 `dist/public/`
 2. `esbuild` — 打包服务端到 `dist/index.js`（ESM 格式，外部依赖不打包）
-3. 拷贝 `books/`、`archives/`、`about-config.json` 到 `dist/`
-4. 拷贝 `package.json`、`.env.example` 到 `dist/`
+3. `esbuild` — 打包 `initDb.ts` 和 `syncContent.ts` 到 `dist/scripts/`
+4. 拷贝 `books/`、`archives/`、`about-config.json` 到 `dist/`
+5. 生成生产专用 `dist/package.json`（仅含运行时依赖和生产脚本）
 
 构建完成后 `dist/` 目录完全自包含，可直接部署。
 
@@ -78,7 +67,9 @@ node index.js              # 启动服务
 
 # 3. 后续新增博客文章
 # 将 .md 文件放入 dist/books/ 或 dist/archives/，然后：
-pnpm sync:dist             # 增量导入新文章到数据库
+pnpm sync                  # 增量导入新文章到数据库
+# 重建数据库（全量覆盖）：
+pnpm db:init
 ```
 
 服务会自动检测运行环境（通过检查 `public/index.html` 是否存在），无需手动设置 `NODE_ENV`。
@@ -160,7 +151,7 @@ personal-blog/
 │   ├── src/
 │   │   ├── pages/                 # 页面组件
 │   │   │   ├── Home.tsx           # 首页（Hero + 精选文章 + 最新文章 + 侧边栏）
-│   │   │   ├── Blog.tsx           # 博客列表（分页、分类筛选、标签筛选、搜索）
+│   │   │   ├── Blog.tsx           # 博客列表（无限滚动、分类筛选、标签筛选、搜索）
 │   │   │   ├── Article.tsx        # 文章详情（阅读进度条、视差封面、相关文章）
 │   │   │   ├── Archive.tsx        # 归档时间线（按年分组）
 │   │   │   ├── ArchiveDetail.tsx  # 归档详情
@@ -228,10 +219,7 @@ personal-blog/
 ├── archives/                      # 归档 Markdown 文件
 │   ├── images/                    # 归档引用的图片
 │   └── *.md
-├── build.js                       # 跨平台构建脚本（推荐）
-├── build.sh                       # Linux/macOS 构建脚本
-├── build.bat                      # Windows CMD 构建脚本
-├── build.ps1                      # Windows PowerShell 构建脚本
+├── build.js                       # 跨平台构建脚本
 ├── .husky/pre-commit              # Git pre-commit hook（自动格式化）
 ├── .env.example                   # 环境变量模板
 └── package.json
@@ -239,22 +227,23 @@ personal-blog/
 
 ## npm scripts 一览
 
-| 命令                 | 说明                                         |
-| -------------------- | -------------------------------------------- |
-| `pnpm dev`           | 启动开发服务器（Linux/macOS，热更新）        |
-| `pnpm dev:win`       | 启动开发服务器（Windows）                    |
-| `pnpm build`         | 一键构建（调用 build.js）                    |
-| `pnpm start`         | 启动生产服务（从项目根目录读取 dist/）       |
-| `pnpm start:dist`    | 启动生产服务（在 dist/ 目录内直接运行）      |
-| `pnpm check`         | TypeScript 类型检查                          |
-| `pnpm format`        | Prettier 格式化所有文件                      |
-| `pnpm format:check`  | 检查格式是否一致                             |
-| `pnpm test`          | 运行测试（Vitest）                           |
-| `pnpm db:init`       | 从 Markdown 文件重建数据库（全量覆盖）       |
-| `pnpm sync`          | 增量同步 books/archives 到数据库（开发环境） |
-| `pnpm sync:dist`     | 增量同步 dist 中的新文件到数据库（部署后）   |
-| `pnpm hash-password` | 生成密码哈希（写入 .env 用）                 |
-| `pnpm gen-secret`    | 生成 JWT 密钥（写入 .env 用）                |
+| 命令                 | 说明                                               |
+| -------------------- | -------------------------------------------------- |
+| `pnpm dev`           | 启动开发服务器（热更新）                           |
+| `pnpm build`         | 一键构建（调用 build.js）                          |
+| `pnpm start`         | 启动生产服务（从项目根目录读取 dist/）             |
+| `pnpm start:dist`    | 启动生产服务（在 dist/ 目录内直接运行）            |
+| `pnpm check`         | TypeScript 类型检查                                |
+| `pnpm format`        | Prettier 格式化所有文件                            |
+| `pnpm format:check`  | 检查格式是否一致                                   |
+| `pnpm test`          | 运行测试（Vitest）                                 |
+| `pnpm db:init`       | 从 Markdown 文件重建数据库（全量覆盖）             |
+| `pnpm sync`          | 增量同步 books/archives 到数据库                   |
+| `pnpm sync:dist`     | 增量同步 dist 中的新文件到数据库（仅源码模式使用） |
+| `pnpm hash-password` | 生成密码哈希（写入 .env 用）                       |
+| `pnpm gen-secret`    | 生成 JWT 密钥（写入 .env 用）                      |
+
+> **dist/ 下可用的脚本**：`start`、`db:init`、`sync`、`hash-password`、`gen-secret`（通过 `node -e` 实现，无需 `tsx`）
 
 ## 管理后台
 
@@ -351,13 +340,20 @@ pnpm db:init    # 从 books/ 和 archives/ 全量重建数据库（覆盖旧数�
 
 ### 增量同步
 
-打包后往 `dist/books/` 或 `dist/archives/` 丢入新的 `.md` 文件，无需重新构建即可导入数据库：
+开发环境下，往 `books/` 或 `archives/` 丢入新的 `.md` 文件后：
 
 ```bash
-pnpm sync:dist    # 扫描 dist 中的新文件，增量写入 dist/blog.db
+pnpm sync    # 扫描新文件，增量写入 blog.db
 ```
 
-脚本通过 slug 判断是否已存在，只导入新条目，跳过已有数据。开发环境下使用 `pnpm sync` 同步源码目录。
+打包后往 `dist/books/` 或 `dist/archives/` 丢入新的 `.md` 文件后：
+
+```bash
+cd dist
+pnpm sync    # 扫描 dist 中的新文件，增量写入 dist/blog.db
+```
+
+脚本通过 slug 判断是否已存在，只导入新条目，跳过已有数据。
 
 ## 邮件订阅
 
@@ -418,13 +414,13 @@ Sitemap: https://your-blog.com/sitemap.xml
 
 ## 跨平台支持
 
-| 平台    | 开发命令       | 构建命令                                 | 生产启动        |
-| ------- | -------------- | ---------------------------------------- | --------------- |
-| Linux   | `pnpm dev`     | `pnpm build` / `./build.sh`              | `node index.js` |
-| macOS   | `pnpm dev`     | `pnpm build` / `./build.sh`              | `node index.js` |
-| Windows | `pnpm dev:win` | `pnpm build` / `build.bat` / `build.ps1` | `node index.js` |
+| 平台    | 开发命令   | 构建命令     | 生产启动        |
+| ------- | ---------- | ------------ | --------------- |
+| Linux   | `pnpm dev` | `pnpm build` | `node index.js` |
+| macOS   | `pnpm dev` | `pnpm build` | `node index.js` |
+| Windows | `pnpm dev` | `pnpm build` | `node index.js` |
 
-- `node build.js` 是推荐的跨平台构建方式，自动适配系统
+- `pnpm build`（即 `node build.js`）是跨平台构建方式，自动适配系统
 - `node index.js` 启动时自动检测环境，无需手动设置 `NODE_ENV`
 - 文件操作（数据库写入、文件上传）兼容 Windows 文件锁定问题
 
@@ -449,7 +445,7 @@ pnpm check         # TypeScript 类型检查
 - 管理后台默认账号 `admin`，默认密码 `admin123`，**部署前务必修改**
 - `books/` 和 `archives/` 中的图片使用相对路径（如 `./images/xxx.png`），系统自动转换
 - 构建时自动将内容资源复制到 `dist/`，生产环境上传的文件也会保存到 `dist/` 对应目录
-- 首次部署需运行 `pnpm db:init` 初始化数据库，后续可通过管理后台或 `pnpm sync:dist` 增量添加文章
+- 首次部署需运行 `pnpm db:init` 初始化数据库，后续可通过管理后台或 `pnpm sync` 增量添加文章
 - `robots.txt` 中的域名需要手动替换为实际域名
 
 ## 许可证
