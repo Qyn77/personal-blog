@@ -1,7 +1,6 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import { type Server } from "http";
-import { nanoid } from "nanoid";
 import path from "path";
 
 export async function setupVite(
@@ -9,8 +8,33 @@ export async function setupVite(
   server: Server,
   projectRoot: string
 ) {
-  const { createServer: createViteServer } = await import("vite");
-  const { default: viteConfig } = await import("../../vite.config");
+  // 所有开发依赖使用动态 import，确保 esbuild 打包后不会在顶层加载
+  const [
+    { createServer: createViteServer },
+    { default: react },
+    { default: tailwindcss },
+    { jsxLocPlugin },
+    { nanoid },
+  ] = await Promise.all([
+    import("vite"),
+    import("@vitejs/plugin-react"),
+    import("@tailwindcss/vite"),
+    import("@builder.io/vite-plugin-jsx-loc"),
+    import("nanoid"),
+  ]);
+
+  // 内联 vite 配置，避免 import("../../vite.config") 被 esbuild 内联
+  const viteConfig = {
+    plugins: [react(), tailwindcss(), jsxLocPlugin()],
+    resolve: {
+      alias: {
+        "@": path.resolve(projectRoot, "client", "src"),
+      },
+    },
+    envDir: projectRoot,
+    root: path.resolve(projectRoot, "client"),
+    publicDir: path.resolve(projectRoot, "client", "public"),
+  };
 
   const serverOptions = {
     middlewareMode: true,

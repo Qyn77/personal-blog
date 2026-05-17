@@ -7,6 +7,49 @@ settings:
 importers:
   .:
     dependencies:
+      "@trpc/server":
+        specifier: ^11.6.0
+        version: 11.16.0(typescript@5.9.3)
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.4.2
+      drizzle-orm:
+        specifier: ^0.44.5
+        version: 0.44.7(@types/sql.js@1.4.11)(better-sqlite3@12.9.0)(mysql2@3.22.3(@types/node@24.7.0))(sql.js@1.14.1)(sqlite3@6.0.1)
+      express:
+        specifier: ^4.21.2
+        version: 4.21.2
+      express-rate-limit:
+        specifier: ^8.5.1
+        version: 8.5.1(express@4.21.2)
+      jsonwebtoken:
+        specifier: ^9.0.3
+        version: 9.0.3
+      multer:
+        specifier: ^2.1.1
+        version: 2.1.1
+      nanoid:
+        specifier: ^5.1.5
+        version: 5.1.6
+      nodemailer:
+        specifier: ^8.0.7
+        version: 8.0.7
+      sql.js:
+        specifier: ^1.14.1
+        version: 1.14.1
+      superjson:
+        specifier: ^1.13.3
+        version: 1.13.3
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+    devDependencies:
+      "@builder.io/vite-plugin-jsx-loc":
+        specifier: ^0.1.1
+        version: 0.1.1(vite@7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4))
       "@hookform/resolvers":
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.64.0(react@19.2.1))
@@ -88,6 +131,12 @@ importers:
       "@radix-ui/react-tooltip":
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.1(@types/react@19.2.1))(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      "@tailwindcss/typography":
+        specifier: ^0.5.15
+        version: 0.5.19(tailwindcss@4.1.14)
+      "@tailwindcss/vite":
+        specifier: ^4.1.3
+        version: 4.1.14(vite@7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4))
       "@tanstack/react-query":
         specifier: ^5.90.2
         version: 5.100.5(react@19.2.1)
@@ -97,12 +146,39 @@ importers:
       "@trpc/react-query":
         specifier: ^11.6.0
         version: 11.16.0(@tanstack/react-query@5.100.5(react@19.2.1))(@trpc/client@11.16.0(@trpc/server@11.16.0(typescript@5.9.3))(typescript@5.9.3))(@trpc/server@11.16.0(typescript@5.9.3))(react@19.2.1)(typescript@5.9.3)
-      "@trpc/server":
-        specifier: ^11.6.0
-        version: 11.16.0(typescript@5.9.3)
-      bcryptjs:
-        specifier: ^3.0.3
-        version: 3.0.3
+      "@types/bcryptjs":
+        specifier: ^3.0.0
+        version: 3.0.0
+      "@types/express":
+        specifier: 4.17.21
+        version: 4.17.21
+      "@types/jsonwebtoken":
+        specifier: ^9.0.10
+        version: 9.0.10
+      "@types/multer":
+        specifier: ^2.1.0
+        version: 2.1.0
+      "@types/node":
+        specifier: ^24.7.0
+        version: 24.7.0
+      "@types/nodemailer":
+        specifier: ^8.0.0
+        version: 8.0.0
+      "@types/react":
+        specifier: ^19.2.1
+        version: 19.2.1
+      "@types/react-dom":
+        specifier: ^19.2.1
+        version: 19.2.1(@types/react@19.2.1)
+      "@types/sql.js":
+        specifier: ^1.4.11
+        version: 1.4.11
+      "@vitejs/plugin-react":
+        specifier: ^5.0.4
+        version: 5.0.4(vite@7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4))
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.21(postcss@8.5.6)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -112,48 +188,42 @@ importers:
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.2.1(@types/react@19.2.1))(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      cross-env:
+        specifier: ^10.1.0
+        version: 10.1.0
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
-      dotenv:
-        specifier: ^17.2.2
-        version: 17.4.2
-      drizzle-orm:
-        specifier: ^0.44.5
-        version: 0.44.7(@types/sql.js@1.4.11)(better-sqlite3@12.9.0)(mysql2@3.22.3(@types/node@24.7.0))(sql.js@1.14.1)(sqlite3@6.0.1)
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.1)
-      express:
-        specifier: ^4.21.2
-        version: 4.21.2
-      express-rate-limit:
-        specifier: ^8.5.1
-        version: 8.5.1(express@4.21.2)
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.10
       framer-motion:
         specifier: ^12.23.22
         version: 12.23.22(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
-      jsonwebtoken:
-        specifier: ^9.0.3
-        version: 9.0.3
+      lint-staged:
+        specifier: ^17.0.4
+        version: 17.0.4
       lucide-react:
         specifier: ^0.453.0
         version: 0.453.0(react@19.2.1)
-      multer:
-        specifier: ^2.1.1
-        version: 2.1.1
-      nanoid:
-        specifier: ^5.1.5
-        version: 5.1.6
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
-      nodemailer:
-        specifier: ^8.0.7
-        version: 8.0.7
+      postcss:
+        specifier: ^8.4.47
+        version: 8.5.6
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       react:
         specifier: ^19.2.1
         version: 19.2.1
@@ -190,91 +260,15 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
-      sql.js:
-        specifier: ^1.14.1
-        version: 1.14.1
-      superjson:
-        specifier: ^1.13.3
-        version: 1.13.3
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
-      tailwindcss-animate:
-        specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@4.1.14)
-      vaul:
-        specifier: ^1.1.2
-        version: 1.1.2(@types/react-dom@19.2.1(@types/react@19.2.1))(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
-      wouter:
-        specifier: ^3.3.5
-        version: 3.7.1(react@19.2.1)
-      zod:
-        specifier: ^4.1.12
-        version: 4.1.12
-    devDependencies:
-      "@builder.io/vite-plugin-jsx-loc":
-        specifier: ^0.1.1
-        version: 0.1.1(vite@7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4))
-      "@tailwindcss/typography":
-        specifier: ^0.5.15
-        version: 0.5.19(tailwindcss@4.1.14)
-      "@tailwindcss/vite":
-        specifier: ^4.1.3
-        version: 4.1.14(vite@7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4))
-      "@types/bcryptjs":
-        specifier: ^3.0.0
-        version: 3.0.0
-      "@types/express":
-        specifier: 4.17.21
-        version: 4.17.21
-      "@types/jsonwebtoken":
-        specifier: ^9.0.10
-        version: 9.0.10
-      "@types/multer":
-        specifier: ^2.1.0
-        version: 2.1.0
-      "@types/node":
-        specifier: ^24.7.0
-        version: 24.7.0
-      "@types/nodemailer":
-        specifier: ^8.0.0
-        version: 8.0.0
-      "@types/react":
-        specifier: ^19.2.1
-        version: 19.2.1
-      "@types/react-dom":
-        specifier: ^19.2.1
-        version: 19.2.1(@types/react@19.2.1)
-      "@types/sql.js":
-        specifier: ^1.4.11
-        version: 1.4.11
-      "@vitejs/plugin-react":
-        specifier: ^5.0.4
-        version: 5.0.4(vite@7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4))
-      autoprefixer:
-        specifier: ^10.4.20
-        version: 10.4.21(postcss@8.5.6)
-      cross-env:
-        specifier: ^10.1.0
-        version: 10.1.0
-      esbuild:
-        specifier: ^0.25.0
-        version: 0.25.10
-      husky:
-        specifier: ^9.1.7
-        version: 9.1.7
-      lint-staged:
-        specifier: ^17.0.4
-        version: 17.0.4
-      postcss:
-        specifier: ^8.4.47
-        version: 8.5.6
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
       tailwindcss:
         specifier: ^4.1.14
         version: 4.1.14
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@4.1.14)
       tsx:
         specifier: ^4.19.1
         version: 4.20.6
@@ -284,15 +278,18 @@ importers:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      vaul:
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@19.2.1(@types/react@19.2.1))(@types/react@19.2.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       vite:
         specifier: ^7.1.7
         version: 7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)(yaml@2.8.4)
-      vite-plugin-manus-runtime:
-        specifier: ^0.0.57
-        version: 0.0.57
       vitest:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@24.7.0)(lightningcss@1.30.1)
+      wouter:
+        specifier: ^3.3.5
+        version: 3.7.1(react@19.2.1)
 
 packages:
   "@babel/code-frame@7.27.1":
@@ -980,12 +977,6 @@ packages:
     resolution:
       {
         integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==,
-      }
-
-  "@medv/finder@4.0.2":
-    resolution:
-      {
-        integrity: sha512-RraNY9SCcx4KZV0Dh6BEW6XEW2swkqYca74pkFFRw6hHItSHiy+O/xMnpbofjYbzXj0tSpBGthUF1hHTsr3vIQ==,
       }
 
   "@radix-ui/number@1.1.1":
@@ -4439,12 +4430,6 @@ packages:
         integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==,
       }
 
-  modern-screenshot@4.6.6:
-    resolution:
-      {
-        integrity: sha512-8tF0xEpe7yx37mK95UcIghSCWYeu628K2hLJl+ZNY2ANmRzYLlRLpquPHAQcL8keF6BoeEzTEw4GrgmUpGuZ8w==,
-      }
-
   motion-dom@12.23.21:
     resolution:
       {
@@ -5615,12 +5600,6 @@ packages:
     engines: { node: ^18.0.0 || >=20.0.0 }
     hasBin: true
 
-  vite-plugin-manus-runtime@0.0.57:
-    resolution:
-      {
-        integrity: sha512-AqJm43Mq/zA3nFdwRxAzsyXYy+YPPHa0oUPlWSge0f+zUBxKoDQj3kUB/61I1yEUD0ap7YSkRxmk09FCaSErtw==,
-      }
-
   vite@5.4.20:
     resolution:
       {
@@ -6138,8 +6117,6 @@ snapshots:
     dependencies:
       "@jridgewell/resolve-uri": 3.1.2
       "@jridgewell/sourcemap-codec": 1.5.5
-
-  "@medv/finder@4.0.2": {}
 
   "@radix-ui/number@1.1.1": {}
 
@@ -8467,8 +8444,6 @@ snapshots:
   mkdirp-classic@0.5.3:
     optional: true
 
-  modern-screenshot@4.6.6: {}
-
   motion-dom@12.23.21:
     dependencies:
       motion-utils: 12.23.6
@@ -9289,16 +9264,6 @@ snapshots:
       - sugarss
       - supports-color
       - terser
-
-  vite-plugin-manus-runtime@0.0.57:
-    dependencies:
-      "@medv/finder": 4.0.2
-      clsx: 2.1.1
-      modern-screenshot: 4.6.6
-      nanoid: 5.1.6
-      react: 19.2.1
-      react-dom: 19.2.1(react@19.2.1)
-      tailwind-merge: 3.3.1
 
   vite@5.4.20(@types/node@24.7.0)(lightningcss@1.30.1):
     dependencies:

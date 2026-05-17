@@ -40,11 +40,14 @@ function run(command, args) {
   try {
     // 使用 pnpm exec 来执行命令，处理虚拟存储问题
     const fullArgs = ["exec", command, ...args];
-    
+
     // Windows 上 pnpm 是 PowerShell 脚本，需要通过 powershell 执行
     if (isWin) {
       // 使用 cmd /c 来执行 pnpm 命令，这样能正确处理 PowerShell 脚本
-      execFileSync("cmd.exe", ["/c", "pnpm", ...fullArgs], { stdio: "inherit", cwd: ROOT });
+      execFileSync("cmd.exe", ["/c", "pnpm", ...fullArgs], {
+        stdio: "inherit",
+        cwd: ROOT,
+      });
     } else {
       execFileSync("pnpm", fullArgs, { stdio: "inherit", cwd: ROOT });
     }
@@ -88,12 +91,12 @@ function checkBin(binName) {
 }
 
 // ─── Step 1: 前端构建 ─────────────────────────────────────────
-console.log("\n[1/4] 构建前端...");
+console.log("\n[1/5] 构建前端...");
 const viteBin = checkBin("vite");
 run(viteBin, ["build"]);
 
 // ─── Step 2: 后端打包 ─────────────────────────────────────────
-console.log("\n[2/4] 打包服务端...");
+console.log("\n[2/5] 打包服务端...");
 const esbuildBin = checkBin("esbuild");
 run(esbuildBin, [
   "server/_core/index.ts",
@@ -104,8 +107,31 @@ run(esbuildBin, [
   "--outdir=dist",
 ]);
 
-// ─── Step 3: 拷贝内容资源 ─────────────────────────────────────
-console.log("\n[3/4] 拷贝内容资源...");
+// ─── Step 3: 打包脚本 ─────────────────────────────────────────
+console.log("\n[3/5] 打包脚本...");
+const scriptsDir = path.join(DIST, "scripts");
+fs.mkdirSync(scriptsDir, { recursive: true });
+
+run(esbuildBin, [
+  "server/scripts/initDb.ts",
+  "--platform=node",
+  "--packages=external",
+  "--bundle",
+  "--format=esm",
+  "--outdir=dist/scripts",
+]);
+
+run(esbuildBin, [
+  "server/scripts/syncContent.ts",
+  "--platform=node",
+  "--packages=external",
+  "--bundle",
+  "--format=esm",
+  "--outdir=dist/scripts",
+]);
+
+// ─── Step 4: 拷贝内容资源 ─────────────────────────────────────
+console.log("\n[4/5] 拷贝内容资源...");
 copyDir(path.join(ROOT, "books"), path.join(DIST, "books"));
 copyDir(path.join(ROOT, "archives"), path.join(DIST, "archives"));
 
@@ -114,12 +140,37 @@ if (!fs.existsSync(aboutConfigDest)) {
   copyFile(path.join(ROOT, "client/public/about-config.json"), aboutConfigDest);
 }
 
-// ─── Step 4: 拷贝部署文件 ─────────────────────────────────────
-console.log("\n[4/4] 拷贝部署文件...");
-copyFile(path.join(ROOT, "package.json"), path.join(DIST, "package.json"));
-// 不拷贝 lock 文件，避免包管理器冲突
-// 如果需要可在此添加：copyFile(path.join(ROOT, 'pnpm-lock.yaml'), path.join(DIST, 'pnpm-lock.yaml'));
+// ─── Step 5: 生成生产 package.json ────────────────────────────
+console.log("\n[5/5] 生成生产 package.json...");
+const rootPkg = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "package.json"), "utf-8")
+);
 
+const prodPkg = {
+  name: rootPkg.name,
+  version: rootPkg.version,
+  type: rootPkg.type,
+  license: rootPkg.license,
+  engines: rootPkg.engines,
+  scripts: {
+    start: "node index.js",
+    "db:init": "node scripts/initDb.js",
+    sync: "node scripts/syncContent.js",
+    "hash-password":
+      "node -e \"import('bcryptjs').then(b=>{const p=process.argv[1];p?console.log(b.hashSync(p,10)):console.log('用法: pnpm hash-password 你的密码')})\"",
+    "gen-secret":
+      "node -e \"import('crypto').then(c=>console.log(c.randomBytes(32).toString('hex')))\"",
+  },
+  dependencies: rootPkg.dependencies || {},
+};
+
+fs.writeFileSync(
+  path.join(DIST, "package.json"),
+  JSON.stringify(prodPkg, null, 2) + "\n"
+);
+console.log("  ✓ dist/package.json（仅含生产依赖和脚本）");
+
+// 拷贝 .env.example
 const envExample = path.join(DIST, ".env.example");
 if (!fs.existsSync(path.join(DIST, ".env"))) {
   copyFile(path.join(ROOT, ".env.example"), envExample);

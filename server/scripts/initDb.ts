@@ -18,7 +18,11 @@ import {
 } from "../lib/markdown";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.join(__dirname, "..", "..");
+// 检测运行环境：server/scripts/ 下有 server 目录 → 源码模式，否则 → dist 模式
+const isSourceMode = fs.existsSync(path.join(__dirname, "..", "server"));
+const PROJECT_ROOT = isSourceMode
+  ? path.join(__dirname, "..", "..")
+  : path.join(__dirname, "..");
 const BOOKS_DIR = path.join(PROJECT_ROOT, "books");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "archives");
 const DB_PATH = path.join(PROJECT_ROOT, "blog.db");
