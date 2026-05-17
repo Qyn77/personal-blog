@@ -20,29 +20,29 @@ import {
 } from "../lib/markdown";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// 检测运行环境：server/scripts/ 下有 server 目录 → 源码模式，否则 → dist 模式
-const isSourceMode = fs.existsSync(path.join(__dirname, "..", "server"));
+// 检测运行环境：__dirname/../ 有 package.json → dist 模式，否则 → 源码模式
+const isDistMode = fs.existsSync(path.join(__dirname, "..", "package.json"));
 
 const targetDist =
   process.argv.includes("--dist") || process.env.SYNC_TARGET === "dist";
 
 // 源码模式下 __dirname/../.. 是项目根目录；dist 模式下 __dirname/.. 是 dist 根目录
-const PROJECT_ROOT = isSourceMode
-  ? path.join(__dirname, "..", "..")
-  : path.join(__dirname, "..");
+const PROJECT_ROOT = isDistMode
+  ? path.join(__dirname, "..")
+  : path.join(__dirname, "..", "..");
 
 // dist 模式下 PROJECT_ROOT 就是 dist/，直接读取
 // 源码模式 + --dist 需要拼接 dist/ 子目录
 const BOOKS_DIR =
-  isSourceMode && targetDist
+  !isDistMode && targetDist
     ? path.join(PROJECT_ROOT, "dist", "books")
     : path.join(PROJECT_ROOT, "books");
 const ARCHIVES_DIR =
-  isSourceMode && targetDist
+  !isDistMode && targetDist
     ? path.join(PROJECT_ROOT, "dist", "archives")
     : path.join(PROJECT_ROOT, "archives");
 const DB_PATH =
-  isSourceMode && targetDist
+  !isDistMode && targetDist
     ? path.join(PROJECT_ROOT, "dist", "blog.db")
     : path.join(PROJECT_ROOT, "blog.db");
 
