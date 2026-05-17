@@ -10,7 +10,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { parseTags } from "@/lib/utils";
 import { setPageMeta } from "@/lib/seo";
 
@@ -27,9 +27,21 @@ export default function Blog() {
   const [activeTag, setActiveTag] = useState(params.get("tag") || "");
   const [searchQuery, setSearchQuery] = useState(params.get("q") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(params.get("q") || "");
-  const [page, setPage] = useState(parseInt(params.get("page") || "1", 10));
 
+  // 无限滚动状态
+  const [allArticles, setAllArticles] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // 用 ref 追踪最新状态，避免 IntersectionObserver 闭包过时
+  const stateRef = useRef({
+    hasMore: true,
+    isLoading: false,
+    isLoadingMore: false,
+  });
 
   // 页面 meta
   useEffect(() => {
@@ -39,28 +51,33 @@ export default function Blog() {
     });
   }, []);
 
-  // 同步 URL 参数
+  // 同步 URL 参数（筛选条件变化时重置列表）
   useEffect(() => {
-    setActiveCategory(params.get("category") || "all");
-    setActiveTag(params.get("tag") || "");
-    setSearchQuery(params.get("q") || "");
-    setDebouncedSearch(params.get("q") || "");
-    setPage(parseInt(params.get("page") || "1", 10));
+    const newCategory = params.get("category") || "all";
+    const newTag = params.get("tag") || "";
+    const newQ = params.get("q") || "";
+    setActiveCategory(newCategory);
+    setActiveTag(newTag);
+    setSearchQuery(newQ);
+    setDebouncedSearch(newQ);
+    // 筛选条件变化，重置分页
+    setAllArticles([]);
+    setPage(1);
+    setHasMore(true);
   }, [search]);
 
   // 更新 URL 参数
   const updateUrl = useCallback((updates: Record<string, string>) => {
     const p = new URLSearchParams(window.location.search);
     Object.entries(updates).forEach(([key, value]) => {
-      if (
-        (value && value !== "all" && value !== "1" && key !== "page") ||
-        (key === "page" && value !== "1")
-      ) {
+      if (value && value !== "all" && key !== "page") {
         p.set(key, value);
       } else {
         p.delete(key);
       }
     });
+    // 筛选变化时清除 page 参数
+    p.delete("page");
     const qs = p.toString();
     window.history.replaceState(
       null,
@@ -75,31 +92,30 @@ export default function Blog() {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearch(value);
+      setAllArticles([]);
       setPage(1);
-      updateUrl({ q: value, page: "1" });
+      setHasMore(true);
+      updateUrl({ q: value });
     }, 300);
   };
 
   // 分类切换
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
+    setAllArticles([]);
     setPage(1);
-    updateUrl({ category: cat, page: "1" });
+    setHasMore(true);
+    updateUrl({ category: cat });
   };
 
   // 标签切换
   const handleTagChange = (tag: string) => {
     const newTag = activeTag === tag ? "" : tag;
     setActiveTag(newTag);
+    setAllArticles([]);
     setPage(1);
-    updateUrl({ tag: newTag, page: "1" });
-  };
-
-  // 翻页
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    updateUrl({ page: String(newPage) });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setHasMore(true);
+    updateUrl({ tag: newTag });
   };
 
   // 获取筛选选项
@@ -107,39 +123,70 @@ export default function Blog() {
   const categories = filterData?.categories ?? [];
   const tags = filterData?.tags ?? [];
 
-  // 获取文章列表（服务端分页+筛选）
-  const hasFilters =
-    !!debouncedSearch || activeCategory !== "all" || !!activeTag || page > 1;
-  const { data: articlesData, isLoading } = trpc.blog.listArticles.useQuery(
-    hasFilters
-      ? {
-          page,
-          pageSize: PAGE_SIZE,
-          search: debouncedSearch || undefined,
-          category: activeCategory !== "all" ? activeCategory : undefined,
-          tag: activeTag || undefined,
+  // 获取文章列表（每次请求一页）
+  const { data: articlesData, isLoading } = trpc.blog.listArticles.useQuery({
+    page,
+    pageSize: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+    category: activeCategory !== "all" ? activeCategory : undefined,
+    tag: activeTag || undefined,
+  });
+
+  // 同步最新状态到 ref，供 IntersectionObserver 回调读取
+  stateRef.current = { hasMore, isLoading, isLoadingMore };
+
+  // 将新数据追加到已有列表
+  useEffect(() => {
+    if (!articlesData?.articles) return;
+
+    const newArticles = articlesData.articles.map((a: any) => ({
+      ...a,
+      tags: parseTags(a.tags),
+      featured: typeof a.featured === "number" ? a.featured === 1 : a.featured,
+    }));
+
+    if (page === 1) {
+      setAllArticles(newArticles);
+    } else {
+      setAllArticles(prev => [...prev, ...newArticles]);
+    }
+
+    const total = articlesData.total ?? 0;
+    setHasMore(page * PAGE_SIZE < total);
+    setIsLoadingMore(false);
+  }, [articlesData, page]);
+
+  // callback ref：哨兵元素挂载到 DOM 时自动创建并挂载 observer
+  const sentinelCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    // 清理旧 observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          const { hasMore, isLoading, isLoadingMore } = stateRef.current;
+          if (hasMore && !isLoading && !isLoadingMore) {
+            setIsLoadingMore(true);
+            setPage(prev => prev + 1);
+          }
         }
-      : undefined
-  );
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    observerRef.current = observer;
+  }, []);
 
-  const articles = (articlesData?.articles ?? []).map((a: any) => ({
-    ...a,
-    tags: parseTags(a.tags),
-    featured: typeof a.featured === "number" ? a.featured === 1 : a.featured,
-  }));
-
-  const total = articlesData?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-  // 生成页码数组（最多显示 5 个页码）
-  const getPageNumbers = () => {
-    const pages: number[] = [];
-    let start = Math.max(1, page - 2);
-    let end = Math.min(totalPages, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
-  };
+  // 组件卸载时清理 observer
+  useEffect(() => {
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -300,56 +347,42 @@ export default function Blog() {
                     className="text-xs text-muted-foreground ml-1"
                     style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                   >
-                    {total} 篇结果
+                    {articlesData?.total ?? 0} 篇结果
                   </span>
                 </div>
               )}
 
               {/* Articles */}
-              {isLoading ? (
+              {isLoading && page === 1 ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
                 </div>
-              ) : articles.length > 0 ? (
+              ) : allArticles.length > 0 ? (
                 <>
                   <div className="space-y-6">
-                    {articles.map(article => (
+                    {allArticles.map(article => (
                       <ArticleCard key={article.id} article={article as any} />
                     ))}
                   </div>
 
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="mt-12 flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handlePageChange(page - 1)}
-                        disabled={page <= 1}
-                        className="p-2 rounded-md border border-border text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent transition-colors"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      {getPageNumbers().map(p => (
-                        <button
-                          key={p}
-                          onClick={() => handlePageChange(p)}
-                          className={`w-9 h-9 rounded-md text-sm transition-colors ${
-                            p === page
-                              ? "bg-foreground text-background"
-                              : "border border-border hover:bg-accent"
-                          }`}
-                          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-                        >
-                          {p}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => handlePageChange(page + 1)}
-                        disabled={page >= totalPages}
-                        className="p-2 rounded-md border border-border text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent transition-colors"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
+                  {/* 加载更多指示器 */}
+                  {isLoadingMore && (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-foreground/50" />
                     </div>
+                  )}
+
+                  {/* 哨兵元素：滚动到此处时触发加载 */}
+                  {hasMore && <div ref={sentinelCallbackRef} className="h-4" />}
+
+                  {/* 全部加载完毕 */}
+                  {!hasMore && (
+                    <p
+                      className="text-center text-muted-foreground text-sm py-8"
+                      style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                    >
+                      — 已展示全部 {allArticles.length} 篇文章 —
+                    </p>
                   )}
                 </>
               ) : (

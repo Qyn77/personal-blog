@@ -221,6 +221,7 @@ async function initDatabase() {
         category TEXT NOT NULL,
         featured INTEGER NOT NULL DEFAULT 0,
         coverImage TEXT,
+        status TEXT NOT NULL DEFAULT 'published',
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL
       );
@@ -272,6 +273,7 @@ async function initDatabase() {
           category: article.category,
           featured: article.featured ? 1 : 0,
           coverImage: article.coverImage,
+          status: "published",
           createdAt: now,
           updatedAt: now,
         });

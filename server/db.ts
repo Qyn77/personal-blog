@@ -186,7 +186,8 @@ export async function getAllArticles(
   if (!db) return [];
 
   try {
-    if (!options) {
+    // 如果没有任何筛选条件，直接使用 drizzle 查询所有文章
+    if (!options || Object.keys(options).length === 0) {
       // @ts-ignore
       return await db.select().from(articles);
     }
@@ -216,28 +217,49 @@ export async function getAllArticles(
     const where =
       conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    // 分页查询
-    const page = options.page || 1;
-    const pageSize = options.pageSize || 10;
-    const offset = (page - 1) * pageSize;
+    // 只有明确指定了分页参数时才应用分页
+    if (options.page || options.pageSize) {
+      const page = options.page || 1;
+      const pageSize = options.pageSize || 10;
+      const offset = (page - 1) * pageSize;
 
-    const dataResult = _sqlJsDb.exec(
-      `SELECT * FROM articles ${where} ORDER BY date DESC LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
-    );
+      const dataResult = _sqlJsDb.exec(
+        `SELECT * FROM articles ${where} ORDER BY date DESC LIMIT ? OFFSET ?`,
+        [...params, pageSize, offset]
+      );
 
-    if (!dataResult[0]) return [];
+      if (!dataResult[0]) return [];
 
-    const cols = dataResult[0].columns;
-    const rows = dataResult[0].values.map((row: any[]) => {
-      const obj: any = {};
-      cols.forEach((col: string, i: number) => {
-        obj[col] = row[i];
+      const cols = dataResult[0].columns;
+      const rows = dataResult[0].values.map((row: any[]) => {
+        const obj: any = {};
+        cols.forEach((col: string, i: number) => {
+          obj[col] = row[i];
+        });
+        return obj as Article;
       });
-      return obj as Article;
-    });
 
-    return rows;
+      return rows;
+    } else {
+      // 没有分页参数时返回全部文章
+      const dataResult = _sqlJsDb.exec(
+        `SELECT * FROM articles ${where} ORDER BY date DESC`,
+        params
+      );
+
+      if (!dataResult[0]) return [];
+
+      const cols = dataResult[0].columns;
+      const rows = dataResult[0].values.map((row: any[]) => {
+        const obj: any = {};
+        cols.forEach((col: string, i: number) => {
+          obj[col] = row[i];
+        });
+        return obj as Article;
+      });
+
+      return rows;
+    }
   } catch (error) {
     console.error("[Database] Failed to get articles:", error);
     return [];
