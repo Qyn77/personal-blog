@@ -2,6 +2,8 @@
 
 以**日式极简主义**（Ma 間）为设计理念的个人博客系统。React + Express + SQLite 全栈架构，零外部依赖（无 MySQL、无 Nginx 配置），开箱即用。
 
+**在线预览**：https://personal-blog-production-e491.up.railway.app/
+
 ## 功能特性
 
 - 极简设计，专注内容阅读体验，光暗主题切换
