@@ -70,3 +70,23 @@ export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+/**
+ * SQLite 访客记录表
+ * 用于记录网站访客信息
+ */
+export const visitors = sqliteTable("visitors", {
+  id: text("id").primaryKey(),
+  ip: text("ip").notNull(),
+  city: text("city"), // IP 归属城市
+  country: text("country"), // IP 归属国家
+  device: text("device"), // 设备类型
+  browser: text("browser"), // 浏览器
+  os: text("os"), // 操作系统
+  path: text("path").notNull(), // 访问路径
+  referer: text("referer"), // 来源页面
+  userAgent: text("userAgent"), // 原始 User-Agent
+  createdAt: integer("createdAt").notNull(), // Unix timestamp
+});
+
+export type Visitor = typeof visitors.$inferSelect;

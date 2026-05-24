@@ -12,6 +12,7 @@ import { authRouter } from "../routes/auth";
 import { rssRouter } from "../routes/rss";
 import { sitemapRouter } from "../routes/sitemap";
 import { subscribeRouter } from "../routes/subscribe";
+import { visitorRouter } from "../routes/visitor";
 import { ROOT_DIR } from "../root";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -64,6 +65,9 @@ async function startServer() {
   app.use(rssRouter);
   app.use(sitemapRouter);
   app.use("/api", subscribeRouter);
+
+  // 访客追踪
+  app.use("/api", visitorRouter);
 
   // tRPC API
   app.use(

@@ -5,6 +5,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import Home from "./pages/Home";
 import Blog from "./pages/Blog";
 import Article from "./pages/Article";
@@ -23,6 +24,7 @@ const AdminSubscribers = lazy(() => import("./pages/admin/AdminSubscribers"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminAbout = lazy(() => import("./pages/admin/AdminAbout"));
 const AdminAIConfig = lazy(() => import("./pages/admin/AdminAIConfig"));
+const AdminVisitors = lazy(() => import("./pages/admin/AdminVisitors"));
 
 function AdminLoading() {
   return (
@@ -43,6 +45,8 @@ function wrapAdmin(Comp: ComponentType) {
 }
 
 function Router() {
+  useVisitorTracker();
+
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -61,6 +65,7 @@ function Router() {
       <Route path="/admin/archives/new">{wrapAdmin(AdminArchiveEdit)}</Route>
       <Route path="/admin/archives/:id">{wrapAdmin(AdminArchiveEdit)}</Route>
       <Route path="/admin/subscribers">{wrapAdmin(AdminSubscribers)}</Route>
+      <Route path="/admin/visitors">{wrapAdmin(AdminVisitors)}</Route>
       <Route path="/admin/ai">{wrapAdmin(AdminAIConfig)}</Route>
       <Route path="/admin/settings">{wrapAdmin(AdminSettings)}</Route>
       <Route path="/admin/about">{wrapAdmin(AdminAbout)}</Route>
