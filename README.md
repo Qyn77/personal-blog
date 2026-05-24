@@ -7,6 +7,7 @@
 - 极简设计，专注内容阅读体验，光暗主题切换
 - 管理后台：文章/归档 CRUD、封面图片上传、剪贴板粘贴图片、About 页面配置
 - Markdown 渲染：代码高亮、数学公式（KaTeX）、GFM 表格/任务列表
+- 访客追踪：记录 IP、设备、浏览器、操作系统、访问路径，IP 地理位置查询
 - 邮件订阅：验证邮箱 → 新文章自动通知 → 一键退订
 - SEO 优化：动态 meta/OG/Twitter 标签、canonical URL、Sitemap、RSS Feed
 - 响应式设计：移动端适配、阅读进度条、视差封面图
@@ -164,6 +165,7 @@ personal-blog/
 │   │   │       ├── AdminArchives.tsx     # 归档管理列表
 │   │   │       ├── AdminArchiveEdit.tsx  # 归档编辑器
 │   │   │       ├── AdminSubscribers.tsx  # 订阅者管理
+│   │   │       ├── AdminVisitors.tsx     # 访客记录（统计卡片、分页表格）
 │   │   │       ├── AdminSettings.tsx     # 系统设置（自动通知开关、SMTP 测试）
 │   │   │       └── AdminAbout.tsx        # About 页面配置编辑
 │   │   ├── components/            # 通用组件
@@ -173,6 +175,8 @@ personal-blog/
 │   │   │   ├── MarkdownRenderer.tsx # Markdown 渲染（GFM + KaTeX + 代码高亮）
 │   │   │   ├── SubscribeForm.tsx  # 邮箱订阅表单
 │   │   │   └── ui/                # shadcn/ui 组件库（40+ 组件）
+│   │   ├── hooks/
+│   │   │   └── useVisitorTracker.ts  # 访客追踪 hook（路由变化时自动上报）
 │   │   ├── lib/                   # 工具函数
 │   │   │   ├── trpc.ts            # tRPC 客户端配置
 │   │   │   ├── auth.ts            # Token 管理
@@ -201,7 +205,8 @@ personal-blog/
 │   │   ├── upload.ts              # 文件上传路由（Markdown、图片、删除）
 │   │   ├── subscribe.ts           # 订阅验证/退订路由
 │   │   ├── rss.ts                 # RSS Feed 生成
-│   │   └── sitemap.ts             # Sitemap 生成
+│   │   ├── sitemap.ts             # Sitemap 生成
+│   │   └── visitor.ts             # 访客追踪 API（IP 地理位置、UA 解析）
 │   ├── lib/
 │   │   ├── markdown.ts            # Markdown 解析（frontmatter、阅读时间、摘要）
 │   │   ├── auth.ts                # JWT 签发/验证、密码哈希
@@ -259,6 +264,7 @@ personal-blog/
 | 归档管理       | `/admin/archives`     | 同文章管理                                                            |
 | 归档编辑器     | `/admin/archives/:id` | 同文章编辑器（无 featured 和 status 字段）                            |
 | 订阅者管理     | `/admin/subscribers`  | 查看订阅者列表（状态、日期）、删除订阅者                              |
+| 访客记录       | `/admin/visitors`     | 访客统计（今日/昨日/本周/本月/总计）、分页浏览、清理旧数据            |
 | 系统设置       | `/admin/settings`     | 自动通知开关、SMTP 测试邮件                                           |
 | About 页面配置 | `/admin/about`        | 编辑 Hero 区域、兴趣列表、推荐内容，支持上传头像图片                  |
 
@@ -321,6 +327,7 @@ excerpt: 自定义摘要 # 可选，不填则自动截取
 | `articles`    | 文章（标题、内容、分类、标签、状态等） |
 | `archives`    | 归档（同文章，无 featured 和 status）  |
 | `subscribers` | 订阅者（邮箱、状态、验证 token）       |
+| `visitors`    | 访客记录（IP、位置、设备、路径、时间） |
 | `settings`    | 系统设置（key-value 存储）             |
 
 ### 数据库初始化
