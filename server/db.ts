@@ -11,6 +11,8 @@ import {
   subscribers,
   Subscriber,
   settings,
+  visitors,
+  Visitor,
 } from "./schema";
 import { ROOT_DIR } from "./root";
 
@@ -109,6 +111,22 @@ function ensureTables(sqlJsDb: any) {
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
+    );
+  `);
+
+  sqlJsDb.run(`
+    CREATE TABLE IF NOT EXISTS visitors (
+      id TEXT PRIMARY KEY,
+      ip TEXT NOT NULL,
+      city TEXT,
+      country TEXT,
+      device TEXT,
+      browser TEXT,
+      os TEXT,
+      path TEXT NOT NULL,
+      referer TEXT,
+      userAgent TEXT,
+      createdAt INTEGER NOT NULL
     );
   `);
 }
@@ -811,6 +829,176 @@ export async function getConfirmedSubscribers(): Promise<Subscriber[]> {
   } catch (error) {
     console.error("[Database] Failed to get confirmed subscribers:", error);
     return [];
+  }
+}
+
+// ============================================================================
+// 访客记录
+// ============================================================================
+
+export async function insertVisitor(data: {
+  id: string;
+  ip: string;
+  city?: string;
+  country?: string;
+  device?: string;
+  browser?: string;
+  os?: string;
+  path: string;
+  referer?: string;
+  userAgent?: string;
+}): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    // @ts-ignore
+    await db.insert(visitors).values({
+      id: data.id,
+      ip: data.ip,
+      city: data.city || null,
+      country: data.country || null,
+      device: data.device || null,
+      browser: data.browser || null,
+      os: data.os || null,
+      path: data.path,
+      referer: data.referer || null,
+      userAgent: data.userAgent || null,
+      createdAt: Date.now(),
+    });
+    saveDb();
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to insert visitor:", error);
+    return false;
+  }
+}
+
+export interface VisitorQueryOptions {
+  page?: number;
+  pageSize?: number;
+  startDate?: number;
+  endDate?: number;
+}
+
+export async function getVisitorsWithPagination(
+  options: VisitorQueryOptions
+): Promise<PaginatedResult<Visitor>> {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0, page: 1, pageSize: 20 };
+
+  try {
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (options.startDate) {
+      conditions.push("createdAt >= ?");
+      params.push(options.startDate);
+    }
+    if (options.endDate) {
+      conditions.push("createdAt <= ?");
+      params.push(options.endDate);
+    }
+
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const countResult = _sqlJsDb.exec(
+      `SELECT COUNT(*) FROM visitors ${where}`,
+      params
+    );
+    const total = (countResult[0]?.values[0]?.[0] as number) || 0;
+
+    const page = options.page || 1;
+    const pageSize = options.pageSize || 20;
+    const offset = (page - 1) * pageSize;
+
+    const dataResult = _sqlJsDb.exec(
+      `SELECT * FROM visitors ${where} ORDER BY createdAt DESC LIMIT ? OFFSET ?`,
+      [...params, pageSize, offset]
+    );
+
+    if (!dataResult[0]) return { items: [], total, page, pageSize };
+
+    const cols = dataResult[0].columns;
+    const items = dataResult[0].values.map((row: any[]) => {
+      const obj: any = {};
+      cols.forEach((col: string, i: number) => {
+        obj[col] = row[i];
+      });
+      return obj as Visitor;
+    });
+
+    return { items, total, page, pageSize };
+  } catch (error) {
+    console.error("[Database] Failed to get visitors:", error);
+    return { items: [], total: 0, page: 1, pageSize: 20 };
+  }
+}
+
+export async function getVisitorStats(): Promise<{
+  today: number;
+  yesterday: number;
+  thisWeek: number;
+  thisMonth: number;
+  total: number;
+}> {
+  const db = await getDb();
+  if (!db)
+    return { today: 0, yesterday: 0, thisWeek: 0, thisMonth: 0, total: 0 };
+
+  try {
+    const now = new Date();
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    ).getTime();
+    const yesterdayStart = todayStart - 86400000;
+    const weekStart =
+      todayStart - (now.getDay() === 0 ? 6 : now.getDay() - 1) * 86400000;
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+    const countWhere = (where: string) => {
+      const result = _sqlJsDb.exec(`SELECT COUNT(*) FROM visitors ${where}`);
+      return (result[0]?.values[0]?.[0] as number) || 0;
+    };
+
+    return {
+      today: countWhere(`WHERE createdAt >= ${todayStart}`),
+      yesterday: countWhere(
+        `WHERE createdAt >= ${yesterdayStart} AND createdAt < ${todayStart}`
+      ),
+      thisWeek: countWhere(`WHERE createdAt >= ${weekStart}`),
+      thisMonth: countWhere(`WHERE createdAt >= ${monthStart}`),
+      total: countWhere(""),
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get visitor stats:", error);
+    return { today: 0, yesterday: 0, thisWeek: 0, thisMonth: 0, total: 0 };
+  }
+}
+
+export async function deleteOldVisitors(daysOld: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  try {
+    const cutoff = Date.now() - daysOld * 86400000;
+    const countResult = _sqlJsDb.exec(
+      `SELECT COUNT(*) FROM visitors WHERE createdAt < ?`,
+      [cutoff]
+    );
+    const count = (countResult[0]?.values[0]?.[0] as number) || 0;
+
+    if (count > 0) {
+      _sqlJsDb.run(`DELETE FROM visitors WHERE createdAt < ?`, [cutoff]);
+      saveDb();
+    }
+    return count;
+  } catch (error) {
+    console.error("[Database] Failed to delete old visitors:", error);
+    return 0;
   }
 }
 

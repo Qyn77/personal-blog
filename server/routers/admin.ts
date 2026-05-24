@@ -682,4 +682,66 @@ export const adminRouter = router({
         return { success: false, error: "保存配置失败" };
       }
     }),
+
+  // ========================================================================
+  // 访客管理
+  // ========================================================================
+
+  /** 获取访客统计数据 */
+  getVisitorStats: protectedProcedure.query(async () => {
+    try {
+      const stats = await db.getVisitorStats();
+      return { success: true, stats };
+    } catch (error) {
+      console.error("[Admin] Error getting visitor stats:", error);
+      return {
+        success: false,
+        stats: { today: 0, yesterday: 0, thisWeek: 0, thisMonth: 0, total: 0 },
+      };
+    }
+  }),
+
+  /** 分页获取访客列表 */
+  listVisitors: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(20),
+        startDate: z.number().optional(),
+        endDate: z.number().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const result = await db.getVisitorsWithPagination({
+          page: input.page,
+          pageSize: input.pageSize,
+          startDate: input.startDate,
+          endDate: input.endDate,
+        });
+        return { success: true, ...result };
+      } catch (error) {
+        console.error("[Admin] Error listing visitors:", error);
+        return {
+          success: false,
+          items: [],
+          total: 0,
+          page: 1,
+          pageSize: 20,
+        };
+      }
+    }),
+
+  /** 清理指定天数之前的访客记录 */
+  cleanOldVisitors: protectedProcedure
+    .input(z.object({ days: z.number().min(1).max(365).default(90) }))
+    .mutation(async ({ input }) => {
+      try {
+        const deleted = await db.deleteOldVisitors(input.days);
+        return { success: true, deleted };
+      } catch (error) {
+        console.error("[Admin] Error cleaning old visitors:", error);
+        return { success: false, deleted: 0 };
+      }
+    }),
 });
