@@ -61,7 +61,7 @@ export const aiRouter = router({
         content: z
           .string()
           .min(1, "内容不能为空")
-          .max(10000, "内容过长，请控制在10000字以内"),
+          .max(50000, "内容过长，请控制在50000字以内"),
       })
     )
     .mutation(async ({ input }) => {
