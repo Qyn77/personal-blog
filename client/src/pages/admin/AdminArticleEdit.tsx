@@ -24,6 +24,7 @@ import { parseTags } from "@/lib/utils";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { getToken } from "@/lib/auth";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 export default function AdminArticleEdit() {
   const [, navigate] = useLocation();
@@ -354,7 +355,7 @@ export default function AdminArticleEdit() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/admin/articles">
           <Button variant="ghost" size="sm">
@@ -577,19 +578,40 @@ export default function AdminArticleEdit() {
 
         <Separator />
 
-        {/* 正文 */}
+        {/* 正文 - 分栏编辑器 */}
         <div className="space-y-2">
-          <Label htmlFor="content">正文 (Markdown) *</Label>
-          <Textarea
-            ref={contentRef}
-            id="content"
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            onPaste={handlePaste}
-            placeholder="在此输入 Markdown 内容...（可直接粘贴图片）"
-            rows={20}
-            className="font-mono text-sm"
-          />
+          <Label>正文 (Markdown) *</Label>
+          <div className="flex gap-4" style={{ height: "70vh" }}>
+            {/* 左侧编辑区 */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-t-md border border-b-0">
+                编辑
+              </div>
+              <Textarea
+                ref={contentRef}
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                onPaste={handlePaste}
+                placeholder="在此输入 Markdown 内容...（可直接粘贴图片）"
+                className="font-mono text-sm flex-1 resize-none rounded-t-none"
+              />
+            </div>
+            {/* 右侧预览区 */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-t-md border border-b-0">
+                预览
+              </div>
+              <div className="flex-1 border rounded-b-md overflow-auto p-4 bg-background">
+                {content.trim() ? (
+                  <MarkdownRenderer content={content} />
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    在左侧输入 Markdown 内容后，这里将显示预览...
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
           {isPastingImage && (
             <p className="text-xs text-muted-foreground animate-pulse">
               正在上传图片...
