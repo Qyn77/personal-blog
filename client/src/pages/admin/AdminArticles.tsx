@@ -1,6 +1,8 @@
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
@@ -13,13 +15,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { parseTags } from "@/lib/utils";
 
 export default function AdminArticles() {
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.admin.listArticles.useQuery();
+  const [search, setSearch] = useState("");
 
   const deleteMutation = trpc.admin.deleteArticle.useMutation({
     onSuccess: () => {
@@ -53,6 +56,19 @@ export default function AdminArticles() {
     tags: parseTags(a.tags),
   }));
 
+  // 搜索过滤
+  const filtered = useMemo(() => {
+    if (!search.trim()) return parsed;
+    const q = search.toLowerCase();
+    return parsed.filter(
+      a =>
+        a.title.toLowerCase().includes(q) ||
+        a.category.toLowerCase().includes(q) ||
+        a.tags.some(t => t.toLowerCase().includes(q)) ||
+        (a.excerpt && a.excerpt.toLowerCase().includes(q))
+    );
+  }, [parsed, search]);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -70,13 +86,25 @@ export default function AdminArticles() {
         </Link>
       </div>
 
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="搜索文章标题、分类、标签..."
+          className="pl-9"
+        />
+      </div>
+
       {isLoading ? (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           加载中...
         </div>
-      ) : parsed.length === 0 ? (
-        <p className="text-muted-foreground">暂无文章</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-muted-foreground">
+          {search.trim() ? "没有匹配的文章" : "暂无文章"}
+        </p>
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full">
@@ -103,7 +131,7 @@ export default function AdminArticles() {
               </tr>
             </thead>
             <tbody>
-              {parsed.map(article => (
+              {filtered.map(article => (
                 <tr
                   key={article.id}
                   className="border-b border-border last:border-b-0 hover:bg-accent/30 transition-colors"
