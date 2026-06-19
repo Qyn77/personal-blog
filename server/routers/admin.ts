@@ -24,21 +24,43 @@ export const adminRouter = router({
   // 文章
   // ========================================================================
 
-  /** 获取所有文章（管理用） */
-  listArticles: protectedProcedure.query(async () => {
-    try {
-      const articles = await db.getAllArticles();
-      return { success: true, articles, total: articles.length };
-    } catch (error) {
-      console.error("[Admin] Error listing articles:", error);
-      return {
-        success: false,
-        articles: [],
-        total: 0,
-        error: "Failed to load articles",
-      };
-    }
-  }),
+  /** 分页获取文章（管理用） */
+  listArticles: protectedProcedure
+    .input(
+      z
+        .object({
+          page: z.number().min(1).default(1),
+          pageSize: z.number().min(1).max(100).default(10),
+          search: z.string().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ input }) => {
+      try {
+        const result = await db.getArticlesWithPagination({
+          page: input?.page ?? 1,
+          pageSize: input?.pageSize ?? 10,
+          search: input?.search,
+        });
+        return {
+          success: true,
+          articles: result.items,
+          total: result.total,
+          page: result.page,
+          pageSize: result.pageSize,
+        };
+      } catch (error) {
+        console.error("[Admin] Error listing articles:", error);
+        return {
+          success: false,
+          articles: [],
+          total: 0,
+          page: 1,
+          pageSize: 10,
+          error: "Failed to load articles",
+        };
+      }
+    }),
 
   /** 按 ID 获取单篇文章 */
   getArticle: protectedProcedure

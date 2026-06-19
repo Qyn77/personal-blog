@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs from "sql.js";
 import fs from "fs";
@@ -207,7 +207,7 @@ export async function getAllArticles(
     // 如果没有任何筛选条件，直接使用 drizzle 查询所有文章
     if (!options || Object.keys(options).length === 0) {
       // @ts-ignore
-      return await db.select().from(articles);
+      return await db.select().from(articles).orderBy(desc(articles.date));
     }
 
     // 使用原始 SQL 实现灵活的筛选和分页
