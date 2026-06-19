@@ -63,9 +63,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   // 已登录
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="h-screen bg-background text-foreground flex overflow-hidden">
       {/* 侧边栏 */}
-      <aside className="w-56 border-r border-border p-6 flex flex-col shrink-0">
+      <aside className="w-56 border-r border-border p-6 flex flex-col shrink-0 overflow-y-auto">
         <Link href="/">
           <span
             className="text-foreground font-bold text-lg cursor-pointer"
@@ -116,7 +116,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </aside>
 
       {/* 主内容区 */}
-      <main className="flex-1 p-8 overflow-auto">{children}</main>
+      <main className="flex-1 p-8 overflow-y-auto">{children}</main>
     </div>
   );
 }
