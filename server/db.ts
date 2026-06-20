@@ -207,7 +207,10 @@ export async function getAllArticles(
     // 如果没有任何筛选条件，直接使用 drizzle 查询所有文章
     if (!options || Object.keys(options).length === 0) {
       // @ts-ignore
-      return await db.select().from(articles).orderBy(desc(articles.date));
+      return await db
+        .select()
+        .from(articles)
+        .orderBy(desc(articles.date), desc(articles.createdAt));
     }
 
     // 使用原始 SQL 实现灵活的筛选和分页
@@ -242,7 +245,7 @@ export async function getAllArticles(
       const offset = (page - 1) * pageSize;
 
       const dataResult = _sqlJsDb.exec(
-        `SELECT * FROM articles ${where} ORDER BY date DESC LIMIT ? OFFSET ?`,
+        `SELECT * FROM articles ${where} ORDER BY date DESC, createdAt DESC LIMIT ? OFFSET ?`,
         [...params, pageSize, offset]
       );
 
@@ -261,7 +264,7 @@ export async function getAllArticles(
     } else {
       // 没有分页参数时返回全部文章
       const dataResult = _sqlJsDb.exec(
-        `SELECT * FROM articles ${where} ORDER BY date DESC`,
+        `SELECT * FROM articles ${where} ORDER BY date DESC, createdAt DESC`,
         params
       );
 
@@ -326,7 +329,7 @@ export async function getArticlesWithPagination(
     const offset = (page - 1) * pageSize;
 
     const dataResult = _sqlJsDb.exec(
-      `SELECT * FROM articles ${where} ORDER BY date DESC LIMIT ? OFFSET ?`,
+      `SELECT * FROM articles ${where} ORDER BY date DESC, createdAt DESC LIMIT ? OFFSET ?`,
       [...params, pageSize, offset]
     );
 
