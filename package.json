@@ -14,7 +14,6 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
     "db:init": "tsx server/scripts/initDb.ts",
     "sync": "tsx server/scripts/syncContent.ts",
     "sync:dist": "tsx server/scripts/syncContent.ts --dist",
@@ -42,6 +41,8 @@
   },
   "devDependencies": {
     "@builder.io/vite-plugin-jsx-loc": "^0.1.1",
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
