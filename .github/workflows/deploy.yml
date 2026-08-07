@@ -1,0 +1,56 @@
+name: Deploy Test
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Guard production branch
+        run: |
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          echo "触发分支: $BRANCH"
+          if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "online" ]; then
+            echo "非生产分支，跳过部署"
+            exit 78
+          fi
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write deploy log on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -e
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            mkdir -p "$DEPLOY_PATH"
+
+            LOG_FILE="$DEPLOY_PATH/deploy.log"
+            echo "========================================" >> "$LOG_FILE"
+            echo "✅ 部署测试成功" >> "$LOG_FILE"
+            echo "⏰ 时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
+            echo "🌿 分支: ${{ github.event.workflow_run.head_branch }}" >> "$LOG_FILE"
+            echo "🔗 CI Run: ${{ github.event.workflow_run.html_url }}" >> "$LOG_FILE"
+            echo "========================================" >> "$LOG_FILE"
+
+            cat "$LOG_FILE"
