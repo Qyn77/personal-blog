@@ -1,0 +1,65 @@
+name: CI
+
+# 什么时候触发
+on:
+  push:
+    branches:
+      - online
+  pull_request:
+    branches:
+      - online
+
+# 取消同一分支上正在运行的旧流水线，节省资源
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: 10
+
+# ─── 纯 CI：在 GitHub 云端完成 检查 → 测试 → 构建 ──────────────
+# 不触碰任何服务器，验证代码质量与可构建性。
+# 构建产物（dist/）作为 artifact 上传，供后续手动部署或 CD 使用。
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format Check
+        run: pnpm format:check
+
+      - name: Type Check
+        run: pnpm check
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      # 把自包含的 dist/ 目录上传为构建产物（保留 7 天）
+      # 这是 CI 与部署之间的边界：产物在此交付，部署由 CD 负责
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
