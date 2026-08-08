@@ -51,9 +51,15 @@ async function startServer() {
     process.env.NODE_ENV === "development"
       ? path.join(ROOT_DIR, "client/public/images")
       : path.join(ROOT_DIR, "public/images");
-  app.use("/books", express.static(path.join(ROOT_DIR, "books")));
-  app.use("/archives", express.static(path.join(ROOT_DIR, "archives")));
-  app.use("/images", express.static(imagesDir));
+  app.use(
+    "/books",
+    express.static(path.join(ROOT_DIR, "books"), { maxAge: "7d" })
+  );
+  app.use(
+    "/archives",
+    express.static(path.join(ROOT_DIR, "archives"), { maxAge: "7d" })
+  );
+  app.use("/images", express.static(imagesDir, { maxAge: "30d" }));
 
   // 认证 API
   app.use("/api/auth", authRouter);

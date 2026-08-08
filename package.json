@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch server/_core/index.ts",
     "build": "node build.js",
+    "perf:bundle": "node server/scripts/bundleBudget.mjs",
     "start": "node dist/index.js",
     "start:dist": "node index.js",
     "check": "tsc --noEmit",

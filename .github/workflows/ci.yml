@@ -64,6 +64,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Bundle Budget Check
+        run: pnpm perf:bundle
+
       # 把自包含的 dist/ 目录上传为构建产物（保留 7 天）
       # 这是 CI 与部署之间的边界：产物在此交付，部署由 CD 负责
       - name: Upload dist artifact

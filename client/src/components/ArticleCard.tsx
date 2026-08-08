@@ -60,6 +60,7 @@ export default function ArticleCard({
                   alt={coverAlt}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             ) : null}
@@ -139,6 +140,7 @@ export default function ArticleCard({
                     alt={coverAlt}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
               ) : (
@@ -216,6 +218,7 @@ export default function ArticleCard({
                 alt={coverAlt}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                 loading="lazy"
+                decoding="async"
               />
             </div>
           ) : null}

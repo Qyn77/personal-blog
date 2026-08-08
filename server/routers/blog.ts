@@ -9,9 +9,14 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import * as db from "../db";
 import { sendVerifyEmail } from "../lib/email";
+import { createResponseCache } from "../lib/responseCache";
 
 // 简单的 IP 级速率限制（每 IP 每 10 分钟最多 3 次订阅请求）
 const subscribeRateMap = new Map<string, { count: number; resetAt: number }>();
+
+const CACHE_TTL_MS = 30 * 1000;
+const responseCache = createResponseCache(CACHE_TTL_MS);
+
 function checkSubscribeRate(ip: string): boolean {
   const now = Date.now();
   const record = subscribeRateMap.get(ip);
@@ -25,6 +30,69 @@ function checkSubscribeRate(ip: string): boolean {
 }
 
 export const blogRouter = router({
+  listArticleSummaries: publicProcedure
+    .input(
+      z
+        .object({
+          pageSize: z.number().min(1).max(50).default(20),
+        })
+        .optional()
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        ctx.res.setHeader(
+          "Cache-Control",
+          "public, max-age=30, stale-while-revalidate=120"
+        );
+        const pageSize = input?.pageSize ?? 20;
+        const cacheKey = `listArticleSummaries:${pageSize}`;
+        const cached = responseCache.get<{
+          success: true;
+          articles: unknown[];
+          total: number;
+        }>(cacheKey);
+        if (cached) return cached;
+
+        const result = await db.getArticlesWithPagination({
+          status: "published",
+          page: 1,
+          pageSize,
+        });
+
+        const payload = {
+          success: true as const,
+          articles: result.items.map(article => ({
+            id: article.id,
+            slug: article.slug,
+            title: article.title,
+            subtitle: article.subtitle,
+            excerpt: article.excerpt,
+            date: article.date,
+            readTime: article.readTime,
+            tags: article.tags,
+            category: article.category,
+            featured: article.featured,
+            coverImage: article.coverImage,
+            status: article.status,
+            createdAt: article.createdAt,
+            updatedAt: article.updatedAt,
+          })),
+          total: result.total,
+        };
+
+        responseCache.set(cacheKey, payload);
+        return payload;
+      } catch (error) {
+        console.error("[Blog] Error loading article summaries:", error);
+        return {
+          success: false,
+          articles: [],
+          total: 0,
+          error: "Failed to load article summaries",
+        };
+      }
+    }),
+
   /**
    * 获取已发布文章（支持分页、搜索、筛选）
    */
@@ -40,9 +108,24 @@ export const blogRouter = router({
         })
         .optional()
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       try {
+        ctx.res.setHeader(
+          "Cache-Control",
+          "public, max-age=30, stale-while-revalidate=120"
+        );
         const options = input || {};
+        // public 列表接口短缓存，减轻高频读压力
+        const cacheKey = `listArticles:${JSON.stringify(options)}`;
+        const cached = responseCache.get<{
+          success: true;
+          articles: unknown[];
+          total: number;
+          page?: number;
+          pageSize?: number;
+        }>(cacheKey);
+        if (cached) return cached;
+
         // 如果没有分页参数，返回全部已发布文章（兼容旧调用）
         if (
           !options.page &&
@@ -52,11 +135,13 @@ export const blogRouter = router({
           !options.tag
         ) {
           const articles = await db.getAllArticles({ status: "published" });
-          return {
+          const payload = {
             success: true,
             articles,
             total: articles.length,
           };
+          responseCache.set(cacheKey, payload);
+          return payload;
         }
 
         // 分页模式
@@ -69,13 +154,15 @@ export const blogRouter = router({
           tag: options.tag,
         });
 
-        return {
+        const payload = {
           success: true,
           articles: result.items,
           total: result.total,
           page: result.page,
           pageSize: result.pageSize,
         };
+        responseCache.set(cacheKey, payload);
+        return payload;
       } catch (error) {
         console.error("[Blog] Error loading articles:", error);
         return {
@@ -90,8 +177,20 @@ export const blogRouter = router({
   /**
    * 获取所有分类和标签（用于筛选 UI）
    */
-  getFilterOptions: publicProcedure.query(async () => {
+  getFilterOptions: publicProcedure.query(async ({ ctx }) => {
     try {
+      ctx.res.setHeader(
+        "Cache-Control",
+        "public, max-age=30, stale-while-revalidate=120"
+      );
+      const cacheKey = "getFilterOptions";
+      const cached = responseCache.get<{
+        success: true;
+        categories: string[];
+        tags: string[];
+      }>(cacheKey);
+      if (cached) return cached;
+
       const articles = await db.getAllArticles({ status: "published" });
       const categories = Array.from(
         new Set(articles.map(a => a.category))
@@ -104,10 +203,12 @@ export const blogRouter = router({
         }
       });
       const tags = Array.from(new Set(allTags)).sort() as string[];
-      return { success: true, categories, tags };
+      const payload = { success: true as const, categories, tags };
+      responseCache.set(cacheKey, payload);
+      return payload;
     } catch (error) {
       console.error("[Blog] Error loading filter options:", error);
-      return { success: true, categories: [], tags: [] };
+      return { success: false, categories: [], tags: [] };
     }
   }),
 
