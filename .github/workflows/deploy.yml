@@ -1,4 +1,4 @@
-name: Deploy Test
+name: CD
 
 on:
   workflow_run:
@@ -13,7 +13,7 @@ jobs:
   deploy-test:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10 # ⬆️ 调大超时时间，因为涉及文件传输
 
     steps:
       - name: Guard production branch
@@ -33,6 +33,77 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload dist to server temp directory
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: "dist/*"
+          target: ${{ secrets.DEPLOY_PATH }}/__incoming_dist
+          strip_components: 0
+
+      - name: Sync files with exclusions and conditional dependency install
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -e
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            INCOMING_PATH="$DEPLOY_PATH/__incoming_dist/dist"
+
+            mkdir -p "$DEPLOY_PATH"
+
+            if [ ! -d "$INCOMING_PATH" ]; then
+              echo "❌ 未找到上传目录: $INCOMING_PATH"
+              exit 1
+            fi
+
+            if ! command -v rsync >/dev/null 2>&1; then
+              echo "❌ 服务器缺少 rsync，请先安装 rsync"
+              exit 1
+            fi
+
+            echo "🔄 开始同步（保留 .env / archives / books / blog.db / public/about-config.json）"
+            rsync -a \
+              --exclude '.env' \
+              --exclude '.env.example' \
+              --exclude '.package-json.sha256' \
+              --exclude 'archives/' \
+              --exclude 'books/' \
+              --exclude 'blog.db' \
+              --exclude 'public/about-config.json' \
+              "$INCOMING_PATH/" "$DEPLOY_PATH/"
+
+            NEW_PKG="$INCOMING_PATH/package.json"
+            HASH_FILE="$DEPLOY_PATH/.package-json.sha256"
+
+            if [ ! -f "$NEW_PKG" ]; then
+              echo "❌ 未找到 package.json: $NEW_PKG"
+              exit 1
+            fi
+
+            NEW_HASH=$(sha256sum "$NEW_PKG" | awk '{print $1}')
+            OLD_HASH=""
+            if [ -f "$HASH_FILE" ]; then
+              OLD_HASH=$(cat "$HASH_FILE")
+            fi
+
+            if [ "$NEW_HASH" != "$OLD_HASH" ]; then
+              echo "📦 package.json 有变更，重新安装生产依赖"
+              cd "$DEPLOY_PATH"
+              npm install --omit=dev
+              echo "$NEW_HASH" > "$HASH_FILE"
+            else
+              echo "✅ package.json 无变更，跳过依赖安装"
+            fi
+
+            rm -rf "$DEPLOY_PATH/__incoming_dist"
+
       - name: Write deploy log on server
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -43,13 +114,16 @@ jobs:
           script: |
             set -e
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
-            mkdir -p "$DEPLOY_PATH"
+
+            # 统计部署的文件数量
+            FILE_COUNT=$(find "$DEPLOY_PATH" -type f | wc -l)
 
             LOG_FILE="$DEPLOY_PATH/deploy.log"
             echo "========================================" >> "$LOG_FILE"
-            echo "✅ 部署测试成功" >> "$LOG_FILE"
+            echo "🚀 部署成功" >> "$LOG_FILE"
             echo "⏰ 时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
             echo "🌿 分支: ${{ github.event.workflow_run.head_branch }}" >> "$LOG_FILE"
+            echo "📦 文件数: $FILE_COUNT" >> "$LOG_FILE"
             echo "🔗 CI Run: ${{ github.event.workflow_run.html_url }}" >> "$LOG_FILE"
             echo "========================================" >> "$LOG_FILE"
 
