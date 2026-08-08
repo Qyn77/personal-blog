@@ -4,7 +4,7 @@
  * 左对齐，不对称布局，大量留白
  */
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,60 +16,46 @@ import { parseTags } from "@/lib/utils";
 const HERO_BG = "/images/hero-bg.webp";
 
 export default function Home() {
-  const [articles, setArticles] = useState<any[]>([]);
-  const [archives, setArchives] = useState<any[]>([]);
-  const [categories, setCategories] = useState<
-    { name: string; count: number }[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // 首页只拉取摘要字段，减少首屏传输体积
+  const { data: articleSummaryData, isLoading: articlesLoading } =
+    trpc.blog.listArticleSummaries.useQuery({
+      pageSize: 20,
+    });
+  const { data: archiveSummaryData, isLoading: archivesLoading } =
+    trpc.archive.listArchiveSummaries.useQuery({
+      limit: 12,
+    });
 
-  // 加载文章数据
-  const { data: articlesData, isLoading: articlesLoading } =
-    trpc.blog.listArticles.useQuery();
+  const articles = useMemo(() => {
+    if (!articleSummaryData?.success) return [];
+    return articleSummaryData.articles.map((a: any) => ({
+      ...a,
+      tags: parseTags(a.tags),
+      featured: typeof a.featured === "number" ? a.featured === 1 : a.featured,
+    }));
+  }, [articleSummaryData]);
 
-  // 加载归档数据
-  const { data: archivesData, isLoading: archivesLoading } =
-    trpc.archive.listArchives.useQuery();
+  const archives = useMemo(() => {
+    if (!archiveSummaryData?.success) return [];
+    return archiveSummaryData.archives.map((a: any) => ({
+      ...a,
+      tags: parseTags(a.tags),
+    }));
+  }, [archiveSummaryData]);
 
-  useEffect(() => {
-    if (articlesData && articlesData.success) {
-      const processedArticles = articlesData.articles.map((a: any) => ({
-        ...a,
-        tags: parseTags(a.tags),
-        featured:
-          typeof a.featured === "number" ? a.featured === 1 : a.featured,
-      }));
-      setArticles(processedArticles);
+  const categories = useMemo(() => {
+    const categoryMap = new Map<string, number>();
+    articles.forEach((article: any) => {
+      const count = categoryMap.get(article.category) || 0;
+      categoryMap.set(article.category, count + 1);
+    });
+    return Array.from(categoryMap.entries()).map(([name, count]) => ({
+      name,
+      count,
+    }));
+  }, [articles]);
 
-      // 统计分类
-      const categoryMap = new Map<string, number>();
-      processedArticles.forEach((article: any) => {
-        const count = categoryMap.get(article.category) || 0;
-        categoryMap.set(article.category, count + 1);
-      });
-      const cats = Array.from(categoryMap.entries()).map(([name, count]) => ({
-        name,
-        count,
-      }));
-      setCategories(cats);
-    }
-  }, [articlesData]);
-
-  useEffect(() => {
-    if (archivesData && archivesData.success) {
-      const processedArchives = archivesData.archives.map((a: any) => ({
-        ...a,
-        tags: parseTags(a.tags),
-      }));
-      setArchives(processedArchives);
-    }
-  }, [archivesData]);
-
-  useEffect(() => {
-    if (!articlesLoading && !archivesLoading) {
-      setIsLoading(false);
-    }
-  }, [articlesLoading, archivesLoading]);
+  const isLoading = articlesLoading || archivesLoading;
 
   // 获取精选文章（featured 为 true 的文章）
   const featured = articles.filter(a => a.featured).slice(0, 2);
@@ -103,6 +89,9 @@ export default function Home() {
             src={HERO_BG}
             alt=""
             className="w-full h-full object-cover opacity-40"
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/90" />
         </div>

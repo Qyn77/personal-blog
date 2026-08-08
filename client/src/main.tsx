@@ -7,6 +7,33 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 
+function setupAnalyticsScript() {
+  const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+  const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+
+  if (!endpoint || !websiteId) return;
+
+  const mountScript = () => {
+    if (document.querySelector('script[data-analytics="umami"]')) return;
+
+    const script = document.createElement("script");
+    script.defer = true;
+    script.dataset.analytics = "umami";
+    script.dataset.websiteId = websiteId;
+    script.src = `${endpoint.replace(/\/$/, "")}/umami`;
+    document.body.appendChild(script);
+  };
+
+  if ("requestIdleCallback" in window) {
+    (
+      window as Window & { requestIdleCallback: (cb: () => void) => void }
+    ).requestIdleCallback(mountScript);
+    return;
+  }
+
+  globalThis.setTimeout(mountScript, 1500);
+}
+
 // React Query 客户端，负责管理服务端数据的缓存
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,3 +66,5 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </trpc.Provider>
 );
+
+setupAnalyticsScript();

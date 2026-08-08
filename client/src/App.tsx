@@ -6,13 +6,15 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
-import Home from "./pages/Home";
-import Blog from "./pages/Blog";
-import Article from "./pages/Article";
-import Archive from "./pages/Archive";
-import ArchiveDetail from "./pages/ArchiveDetail";
-import About from "./pages/About";
 import AdminLayout from "./pages/admin/AdminLayout";
+
+// Public 路由懒加载，降低首屏 JS 体积
+const Home = lazy(() => import("./pages/Home"));
+const Blog = lazy(() => import("./pages/Blog"));
+const Article = lazy(() => import("./pages/Article"));
+const Archive = lazy(() => import("./pages/Archive"));
+const ArchiveDetail = lazy(() => import("./pages/ArchiveDetail"));
+const About = lazy(() => import("./pages/About"));
 
 // Admin 路由懒加载
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -34,6 +36,14 @@ function AdminLoading() {
   );
 }
 
+function PublicLoading() {
+  return (
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+      <div className="text-muted-foreground text-sm">页面加载中...</div>
+    </div>
+  );
+}
+
 function wrapAdmin(Comp: ComponentType) {
   return (
     <AdminLayout>
@@ -44,17 +54,25 @@ function wrapAdmin(Comp: ComponentType) {
   );
 }
 
+function wrapPublic(Comp: ComponentType) {
+  return (
+    <Suspense fallback={<PublicLoading />}>
+      <Comp />
+    </Suspense>
+  );
+}
+
 function Router() {
   useVisitorTracker();
 
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/blog" component={Blog} />
-      <Route path="/article/:slug" component={Article} />
-      <Route path="/archive" component={Archive} />
-      <Route path="/archive/:slug" component={ArchiveDetail} />
-      <Route path="/about" component={About} />
+      <Route path="/">{wrapPublic(Home)}</Route>
+      <Route path="/blog">{wrapPublic(Blog)}</Route>
+      <Route path="/article/:slug">{wrapPublic(Article)}</Route>
+      <Route path="/archive">{wrapPublic(Archive)}</Route>
+      <Route path="/archive/:slug">{wrapPublic(ArchiveDetail)}</Route>
+      <Route path="/about">{wrapPublic(About)}</Route>
 
       {/* Admin 路由 */}
       <Route path="/admin">{wrapAdmin(AdminDashboard)}</Route>
