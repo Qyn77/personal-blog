@@ -9,34 +9,13 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import * as db from "../db";
 import { sendVerifyEmail } from "../lib/email";
+import { createResponseCache } from "../lib/responseCache";
 
 // 简单的 IP 级速率限制（每 IP 每 10 分钟最多 3 次订阅请求）
 const subscribeRateMap = new Map<string, { count: number; resetAt: number }>();
 
-type CacheEntry<T> = {
-  expiresAt: number;
-  value: T;
-};
-
 const CACHE_TTL_MS = 30 * 1000;
-const responseCache = new Map<string, CacheEntry<unknown>>();
-
-function readCache<T>(key: string): T | null {
-  const cached = responseCache.get(key);
-  if (!cached) return null;
-  if (Date.now() > cached.expiresAt) {
-    responseCache.delete(key);
-    return null;
-  }
-  return cached.value as T;
-}
-
-function writeCache<T>(key: string, value: T) {
-  responseCache.set(key, {
-    value,
-    expiresAt: Date.now() + CACHE_TTL_MS,
-  });
-}
+const responseCache = createResponseCache(CACHE_TTL_MS);
 
 function checkSubscribeRate(ip: string): boolean {
   const now = Date.now();
@@ -67,7 +46,7 @@ export const blogRouter = router({
         );
         const pageSize = input?.pageSize ?? 20;
         const cacheKey = `listArticleSummaries:${pageSize}`;
-        const cached = readCache<{
+        const cached = responseCache.get<{
           success: true;
           articles: unknown[];
           total: number;
@@ -101,7 +80,7 @@ export const blogRouter = router({
           total: result.total,
         };
 
-        writeCache(cacheKey, payload);
+        responseCache.set(cacheKey, payload);
         return payload;
       } catch (error) {
         console.error("[Blog] Error loading article summaries:", error);
@@ -138,7 +117,7 @@ export const blogRouter = router({
         const options = input || {};
         // public 列表接口短缓存，减轻高频读压力
         const cacheKey = `listArticles:${JSON.stringify(options)}`;
-        const cached = readCache<{
+        const cached = responseCache.get<{
           success: true;
           articles: unknown[];
           total: number;
@@ -161,7 +140,7 @@ export const blogRouter = router({
             articles,
             total: articles.length,
           };
-          writeCache(cacheKey, payload);
+          responseCache.set(cacheKey, payload);
           return payload;
         }
 
@@ -182,7 +161,7 @@ export const blogRouter = router({
           page: result.page,
           pageSize: result.pageSize,
         };
-        writeCache(cacheKey, payload);
+        responseCache.set(cacheKey, payload);
         return payload;
       } catch (error) {
         console.error("[Blog] Error loading articles:", error);
@@ -205,7 +184,7 @@ export const blogRouter = router({
         "public, max-age=30, stale-while-revalidate=120"
       );
       const cacheKey = "getFilterOptions";
-      const cached = readCache<{
+      const cached = responseCache.get<{
         success: true;
         categories: string[];
         tags: string[];
@@ -225,11 +204,11 @@ export const blogRouter = router({
       });
       const tags = Array.from(new Set(allTags)).sort() as string[];
       const payload = { success: true as const, categories, tags };
-      writeCache(cacheKey, payload);
+      responseCache.set(cacheKey, payload);
       return payload;
     } catch (error) {
       console.error("[Blog] Error loading filter options:", error);
-      return { success: true, categories: [], tags: [] };
+      return { success: false, categories: [], tags: [] };
     }
   }),
 

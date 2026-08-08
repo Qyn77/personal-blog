@@ -6,31 +6,10 @@
 import { publicProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
-
-type CacheEntry<T> = {
-  expiresAt: number;
-  value: T;
-};
+import { createResponseCache } from "../lib/responseCache";
 
 const CACHE_TTL_MS = 30 * 1000;
-const responseCache = new Map<string, CacheEntry<unknown>>();
-
-function readCache<T>(key: string): T | null {
-  const cached = responseCache.get(key);
-  if (!cached) return null;
-  if (Date.now() > cached.expiresAt) {
-    responseCache.delete(key);
-    return null;
-  }
-  return cached.value as T;
-}
-
-function writeCache<T>(key: string, value: T) {
-  responseCache.set(key, {
-    value,
-    expiresAt: Date.now() + CACHE_TTL_MS,
-  });
-}
+const responseCache = createResponseCache(CACHE_TTL_MS);
 
 export const archiveRouter = router({
   listArchiveSummaries: publicProcedure
@@ -49,7 +28,7 @@ export const archiveRouter = router({
         );
         const limit = input?.limit ?? 12;
         const cacheKey = `listArchiveSummaries:${limit}`;
-        const cached = readCache<{
+        const cached = responseCache.get<{
           success: true;
           archives: unknown[];
           total: number;
@@ -77,7 +56,7 @@ export const archiveRouter = router({
           })),
           total: allArchives.length,
         };
-        writeCache(cacheKey, payload);
+        responseCache.set(cacheKey, payload);
         return payload;
       } catch (error) {
         console.error("[Archive] Error loading archive summaries:", error);
