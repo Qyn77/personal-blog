@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import fs from "fs";
 import { type Server } from "http";
 import path from "path";
+import { createSeoMetaRouter } from "../routes/seoMeta";
 
 export async function setupVite(
   app: Express,
@@ -79,6 +80,9 @@ export function serveStatic(app: Express, rootDir: string) {
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
+
+  // 先注入页面级 SEO meta（文章/归档详情与首页等），再交给静态文件
+  app.use(createSeoMetaRouter(rootDir));
 
   app.use(
     express.static(distPath, {

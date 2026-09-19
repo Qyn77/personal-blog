@@ -4,7 +4,7 @@
  * 左对齐，不对称布局，大量留白
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -13,10 +13,30 @@ import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
 import { assetUrl } from "@/lib/assets";
+import { setPageMeta, SITE_NAME, SITE_DESCRIPTION } from "@/lib/seo";
 
 const HERO_BG = assetUrl("/images/hero-bg.webp");
 
 export default function Home() {
+  useEffect(() => {
+    setPageMeta({
+      title: undefined,
+      description: SITE_DESCRIPTION,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: window.location.origin,
+        description: SITE_DESCRIPTION,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${window.location.origin}/blog?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+    });
+  }, []);
+
   // 首页只拉取摘要字段，减少首屏传输体积
   const { data: articleSummaryData, isLoading: articlesLoading } =
     trpc.blog.listArticleSummaries.useQuery({

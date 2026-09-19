@@ -22,7 +22,7 @@ rssRouter.get("/rss.xml", async (_req, res) => {
 
     const items = latest
       .map(article => {
-        const link = `${baseUrl}/blog/${article.slug}`;
+        const link = `${baseUrl}/article/${article.slug}`;
         const pubDate = new Date(article.date).toUTCString();
         return `    <item>
       <title><![CDATA[${article.title}]]></title>

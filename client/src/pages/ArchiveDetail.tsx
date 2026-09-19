@@ -11,7 +11,11 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
-import { setPageMeta } from "@/lib/seo";
+import {
+  setPageMeta,
+  buildArticleJsonLd,
+  buildBreadcrumbJsonLd,
+} from "@/lib/seo";
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -46,10 +50,34 @@ export default function ArchiveDetail() {
       setIsLoading(false);
 
       // 动态 meta 标签
+      const archiveUrl = `${window.location.origin}/archive/${item.slug}`;
+      const publishedTime = new Date(item.date).toISOString();
+      const modifiedTime = item.updatedAt
+        ? new Date(item.updatedAt).toISOString()
+        : publishedTime;
       setPageMeta({
         title: item.title,
         description: item.excerpt,
         ogType: "article",
+        publishedTime,
+        modifiedTime,
+        section: item.category,
+        jsonLd: [
+          buildArticleJsonLd({
+            title: item.title,
+            description: item.excerpt,
+            url: archiveUrl,
+            datePublished: publishedTime,
+            dateModified: modifiedTime,
+            section: item.category,
+            tags: item.tags,
+          }),
+          buildBreadcrumbJsonLd([
+            { name: "首页", url: `${window.location.origin}/` },
+            { name: "归档", url: `${window.location.origin}/archive` },
+            { name: item.title, url: archiveUrl },
+          ]),
+        ],
       });
     } else {
       setIsLoading(false);

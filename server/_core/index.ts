@@ -37,6 +37,8 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  // 部署在反向代理（nginx / Railway / Cloudflare）后面，需信任 X-Forwarded-* 才能拿到 https 协议与真实 IP
+  app.set("trust proxy", true);
   // Body parser — 2MB 足够博客文章内容（文件上传由 multer 单独处理）
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ limit: "2mb", extended: true }));

@@ -14,7 +14,11 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
-import { setPageMeta } from "@/lib/seo";
+import {
+  setPageMeta,
+  buildArticleJsonLd,
+  buildBreadcrumbJsonLd,
+} from "@/lib/seo";
 import { assetUrl } from "@/lib/assets";
 import type { Article } from "@/type/blogData";
 
@@ -69,11 +73,39 @@ export default function Article() {
       setIsLoading(false);
 
       // 动态 meta 标签
+      const articleUrl = `${window.location.origin}/article/${article.slug}`;
+      const publishedTime = new Date(article.date).toISOString();
+      const modifiedTime = article.updatedAt
+        ? new Date(article.updatedAt).toISOString()
+        : publishedTime;
       setPageMeta({
         title: article.title,
         description: article.excerpt,
         ogImage: assetUrl(article.coverImage),
         ogType: "article",
+        keywords: Array.isArray(article.tags)
+          ? article.tags.join(",")
+          : undefined,
+        publishedTime,
+        modifiedTime,
+        section: article.category,
+        jsonLd: [
+          buildArticleJsonLd({
+            title: article.title,
+            description: article.excerpt,
+            url: articleUrl,
+            image: assetUrl(article.coverImage),
+            datePublished: publishedTime,
+            dateModified: modifiedTime,
+            section: article.category,
+            tags: article.tags,
+          }),
+          buildBreadcrumbJsonLd([
+            { name: "首页", url: `${window.location.origin}/` },
+            { name: "文章", url: `${window.location.origin}/blog` },
+            { name: article.title, url: articleUrl },
+          ]),
+        ],
       });
     } else {
       setIsLoading(false);

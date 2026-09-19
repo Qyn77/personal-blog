@@ -17,24 +17,29 @@ sitemapRouter.get("/sitemap.xml", async (_req, res) => {
     const protocol = _req.protocol || "https";
     const baseUrl = `${protocol}://${host}`;
 
+    const latestContentDate = [...articles, ...archives]
+      .map(item => new Date(item.updatedAt).toISOString().split("T")[0])
+      .sort()
+      .pop();
+
     const staticPages = [
       {
         url: "/",
         changefreq: "daily",
         priority: "1.0",
-        lastmod: undefined as string | undefined,
+        lastmod: latestContentDate,
       },
       {
         url: "/blog",
         changefreq: "daily",
         priority: "0.9",
-        lastmod: undefined as string | undefined,
+        lastmod: latestContentDate,
       },
       {
         url: "/archive",
         changefreq: "weekly",
         priority: "0.7",
-        lastmod: undefined as string | undefined,
+        lastmod: latestContentDate,
       },
       {
         url: "/about",
@@ -45,7 +50,7 @@ sitemapRouter.get("/sitemap.xml", async (_req, res) => {
     ];
 
     const articleUrls = articles.map(a => ({
-      url: `/blog/${a.slug}`,
+      url: `/article/${a.slug}`,
       changefreq: "monthly",
       priority: "0.8",
       lastmod: new Date(a.updatedAt).toISOString().split("T")[0],
@@ -81,4 +86,23 @@ ${urls}
     console.error("[Sitemap] Error generating sitemap:", error);
     res.status(500).send("Error generating sitemap");
   }
+});
+
+sitemapRouter.get("/robots.txt", (req, res) => {
+  const host = req.get("host") || "localhost:3000";
+  const protocol = req.protocol || "https";
+  const baseUrl = `${protocol}://${host}`;
+
+  const body = [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /admin",
+    "Disallow: /api/",
+    "",
+    `Sitemap: ${baseUrl}/sitemap.xml`,
+    "",
+  ].join("\n");
+
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.send(body);
 });
