@@ -93,6 +93,39 @@ export const blogRouter = router({
       }
     }),
 
+  /** 首页站点统计（全量口径，避免分页截断导致计数不准） */
+  getSiteStats: publicProcedure.query(async ({ ctx }) => {
+    try {
+      ctx.res.setHeader(
+        "Cache-Control",
+        "public, max-age=30, stale-while-revalidate=120"
+      );
+      const cacheKey = "getSiteStats";
+      const cached = responseCache.get<{
+        success: true;
+        totalArticles: number;
+        totalCategories: number;
+        categories: { name: string; count: number }[];
+        firstYear: number | null;
+      }>(cacheKey);
+      if (cached) return cached;
+
+      const stats = await db.getSiteStats();
+      const payload = { success: true as const, ...stats };
+      responseCache.set(cacheKey, payload);
+      return payload;
+    } catch (error) {
+      console.error("[Blog] Error loading site stats:", error);
+      return {
+        success: false as const,
+        totalArticles: 0,
+        totalCategories: 0,
+        categories: [] as { name: string; count: number }[],
+        firstYear: null,
+      };
+    }
+  }),
+
   /**
    * 获取已发布文章（支持分页、搜索、筛选）
    */

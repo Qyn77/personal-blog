@@ -26,6 +26,7 @@ export default function Home() {
     trpc.archive.listArchiveSummaries.useQuery({
       limit: 12,
     });
+  const { data: siteStatsData } = trpc.blog.getSiteStats.useQuery();
 
   const articles = useMemo(() => {
     if (!articleSummaryData?.success) return [];
@@ -45,6 +46,9 @@ export default function Home() {
   }, [archiveSummaryData]);
 
   const categories = useMemo(() => {
+    if (siteStatsData?.success && siteStatsData.categories.length > 0) {
+      return siteStatsData.categories;
+    }
     const categoryMap = new Map<string, number>();
     articles.forEach((article: any) => {
       const count = categoryMap.get(article.category) || 0;
@@ -54,7 +58,14 @@ export default function Home() {
       name,
       count,
     }));
-  }, [articles]);
+  }, [siteStatsData, articles]);
+
+  const articleCount = articleSummaryData?.success
+    ? articleSummaryData.total
+    : articles.length;
+  const archiveCount = archiveSummaryData?.success
+    ? archiveSummaryData.total
+    : archives.length;
 
   const isLoading = articlesLoading || archivesLoading;
 
@@ -74,9 +85,11 @@ export default function Home() {
   // 计算开始写作年份
   const allDates = [...articles.map(a => a.date), ...archives.map(a => a.date)];
   const startYear =
-    allDates.length > 0
-      ? Math.min(...allDates.map(d => new Date(d).getFullYear()))
-      : new Date().getFullYear();
+    siteStatsData?.success && siteStatsData.firstYear
+      ? siteStatsData.firstYear
+      : allDates.length > 0
+        ? Math.min(...allDates.map(d => new Date(d).getFullYear()))
+        : new Date().getFullYear();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -155,7 +168,7 @@ export default function Home() {
                   className="text-foreground text-2xl font-bold"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  {articles.length}
+                  {articleCount}
                 </p>
                 <p
                   className="text-muted-foreground text-xs tracking-[0.1em] mt-0.5"
@@ -170,7 +183,7 @@ export default function Home() {
                   className="text-foreground text-2xl font-bold"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  {archives.length}
+                  {archiveCount}
                 </p>
                 <p
                   className="text-muted-foreground text-xs tracking-[0.1em] mt-0.5"

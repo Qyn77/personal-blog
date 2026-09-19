@@ -371,6 +371,67 @@ export async function getArticleBySlug(
   }
 }
 
+export interface SiteStats {
+  totalArticles: number;
+  totalCategories: number;
+  categories: { name: string; count: number }[];
+  firstYear: number | null;
+}
+
+/** 首页站点统计（基于全量已发布文章 / 归档，避免用分页结果估算） */
+export async function getSiteStats(): Promise<SiteStats> {
+  const db = await getDb();
+  if (!db)
+    return {
+      totalArticles: 0,
+      totalCategories: 0,
+      categories: [],
+      firstYear: null,
+    };
+
+  try {
+    const articleAgg = _sqlJsDb.exec(
+      "SELECT COUNT(*) AS total, MIN(date) AS minDate FROM articles WHERE status = 'published'"
+    );
+    const totalArticles = (articleAgg[0]?.values[0]?.[0] as number) || 0;
+    const articleMinDate = articleAgg[0]?.values[0]?.[1] as string | null;
+
+    const categoryResult = _sqlJsDb.exec(
+      "SELECT category, COUNT(*) AS count FROM articles WHERE status = 'published' GROUP BY category ORDER BY count DESC, category ASC"
+    );
+    const categories = categoryResult[0]
+      ? categoryResult[0].values.map((row: any[]) => ({
+          name: row[0] as string,
+          count: row[1] as number,
+        }))
+      : [];
+
+    const archiveAgg = _sqlJsDb.exec(
+      "SELECT MIN(date) AS minDate FROM archives"
+    );
+    const archiveMinDate = archiveAgg[0]?.values[0]?.[0] as string | null;
+
+    const minDate = [articleMinDate, archiveMinDate]
+      .filter((d): d is string => !!d)
+      .sort()[0];
+
+    return {
+      totalArticles,
+      totalCategories: categories.length,
+      categories,
+      firstYear: minDate ? Number(minDate.slice(0, 4)) : null,
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get site stats:", error);
+    return {
+      totalArticles: 0,
+      totalCategories: 0,
+      categories: [],
+      firstYear: null,
+    };
+  }
+}
+
 export async function getArticleById(id: string): Promise<Article | undefined> {
   const db = await getDb();
   if (!db) return undefined;
