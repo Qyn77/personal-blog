@@ -5,6 +5,7 @@
 
 import { Link } from "wouter";
 import type { Article } from "@/type/blogData";
+import { assetUrl } from "@/lib/assets";
 
 interface ArticleCardProps {
   article: Article;
@@ -56,7 +57,7 @@ export default function ArticleCard({
             {article.coverImage ? (
               <div className="overflow-hidden rounded-xl aspect-[16/9] bg-muted ring-1 ring-foreground/5 shadow-[0_14px_34px_-22px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:-translate-y-0.5">
                 <img
-                  src={article.coverImage}
+                  src={assetUrl(article.coverImage)}
                   alt={coverAlt}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
                   loading="lazy"
@@ -136,7 +137,7 @@ export default function ArticleCard({
               {article.coverImage ? (
                 <div className="overflow-hidden rounded-2xl aspect-[4/3] md:aspect-[5/4] bg-muted ring-1 ring-foreground/5 shadow-[0_18px_50px_-28px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] w-full">
                   <img
-                    src={article.coverImage}
+                    src={assetUrl(article.coverImage)}
                     alt={coverAlt}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
                     loading="lazy"
@@ -214,7 +215,7 @@ export default function ArticleCard({
           {article.coverImage ? (
             <div className="overflow-hidden rounded-xl aspect-[16/9] bg-muted ring-1 ring-foreground/5 shadow-[0_16px_40px_-26px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_22px_54px_-24px_rgba(0,0,0,0.5)]">
               <img
-                src={article.coverImage}
+                src={assetUrl(article.coverImage)}
                 alt={coverAlt}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                 loading="lazy"

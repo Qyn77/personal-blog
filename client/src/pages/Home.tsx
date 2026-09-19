@@ -12,8 +12,9 @@ import ArticleCard from "@/components/ArticleCard";
 import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
+import { assetUrl } from "@/lib/assets";
 
-const HERO_BG = "/images/hero-bg.webp";
+const HERO_BG = assetUrl("/images/hero-bg.webp");
 
 export default function Home() {
   // 首页只拉取摘要字段，减少首屏传输体积

@@ -12,6 +12,7 @@ import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
 import { setPageMeta } from "@/lib/seo";
+import { assetUrl } from "@/lib/assets";
 
 interface AboutConfig {
   hero: {
@@ -120,7 +121,7 @@ export default function About() {
             <div className="fade-in-up">
               <div className="relative">
                 <img
-                  src={config.hero.image}
+                  src={assetUrl(config.hero.image)}
                   alt={config.hero.title}
                   className="w-full max-w-sm aspect-[3/4] object-cover"
                 />

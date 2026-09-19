@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { assetUrl } from "@/lib/assets";
 
 interface Interest {
   label: string;
@@ -292,7 +293,7 @@ export default function AdminAbout() {
               <div className="mt-1 flex items-center gap-3">
                 {config.hero.image && (
                   <img
-                    src={config.hero.image}
+                    src={assetUrl(config.hero.image)}
                     alt="头像预览"
                     className="w-16 h-16 rounded-lg object-cover border border-border"
                   />

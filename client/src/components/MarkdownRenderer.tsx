@@ -11,6 +11,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import { Copy, Check, Link } from "lucide-react";
+import { assetUrl } from "@/lib/assets";
 
 interface MarkdownRendererProps {
   content: string;
@@ -442,7 +443,7 @@ export default function MarkdownRenderer({
             return (
               <figure className="my-8">
                 <img
-                  src={imageSrc}
+                  src={assetUrl(imageSrc)}
                   alt={alt}
                   loading="lazy"
                   referrerPolicy="no-referrer"

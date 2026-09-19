@@ -15,6 +15,7 @@ import { trpc } from "@/lib/trpc";
 import { Loader2 } from "lucide-react";
 import { parseTags } from "@/lib/utils";
 import { setPageMeta } from "@/lib/seo";
+import { assetUrl } from "@/lib/assets";
 import type { Article } from "@/type/blogData";
 
 function resolveBookImage(src: string) {
@@ -23,15 +24,11 @@ function resolveBookImage(src: string) {
     src.startsWith("https://") ||
     src.startsWith("/")
   ) {
-    return src;
+    return assetUrl(src);
   }
 
   const normalized = src.replace(/^\.\//, "").replace(/^\/+/, "");
-  if (normalized.startsWith("images/")) {
-    return `/books/${normalized}`;
-  }
-
-  return `/books/${normalized}`;
+  return assetUrl(`/books/${normalized}`);
 }
 
 function formatDate(dateStr: string) {
@@ -75,7 +72,7 @@ export default function Article() {
       setPageMeta({
         title: article.title,
         description: article.excerpt,
-        ogImage: article.coverImage,
+        ogImage: assetUrl(article.coverImage),
         ogType: "article",
       });
     } else {
