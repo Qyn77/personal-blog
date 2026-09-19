@@ -46,6 +46,15 @@ export default function Footer() {
             >
               以文字对抗遗忘
             </p>
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em] hover:text-[#1A1A1A] dark:hover:text-[#F5F5F5] transition-colors"
+              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+            >
+              冀ICP备2025126403号
+            </a>
           </div>
         </div>
       </div>
