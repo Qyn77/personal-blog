@@ -6,13 +6,13 @@
  */
 
 import { useParams, Link } from "wouter";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
+import ContentStatus from "@/components/ContentStatus";
 import { parseTags } from "@/lib/utils";
 import {
   setPageMeta,
@@ -46,19 +46,32 @@ function formatDate(dateStr: string) {
 
 export default function Article() {
   const params = useParams<{ slug: string }>();
-  const [article, setArticle] = useState<Article | null>(null);
   const [readProgress, setReadProgress] = useState(0);
   const [heroOffset, setHeroOffset] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
 
   // 调用 tRPC API 获取单篇文章
-  const { data: articleData } = trpc.blog.getArticle.useQuery({
+  const {
+    data: articleData,
+    isLoading,
+    isError,
+    refetch,
+  } = trpc.blog.getArticle.useQuery({
     slug: params.slug || "",
   });
 
   // 调用 tRPC API 获取所有文章用于推荐
   const { data: allArticlesData } = trpc.blog.listArticles.useQuery();
+
+  const article = useMemo(() => {
+    const value = articleData?.success ? articleData.article : null;
+    return value ? { ...value, tags: parseTags(value.tags) } : null;
+  }, [articleData]);
+  const failed =
+    isError ||
+    (!!articleData &&
+      !articleData.success &&
+      articleData.error !== "Article not found");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -66,12 +79,7 @@ export default function Article() {
 
   // 当文章数据加载完成时
   useEffect(() => {
-    if (articleData && articleData.success && articleData.article) {
-      const article = articleData.article as any;
-      article.tags = parseTags(article.tags);
-      setArticle(article as Article);
-      setIsLoading(false);
-
+    if (article) {
       // 动态 meta 标签
       const articleUrl = `${window.location.origin}/article/${article.slug}`;
       const publishedTime = new Date(article.date).toISOString();
@@ -107,10 +115,8 @@ export default function Article() {
           ]),
         ],
       });
-    } else {
-      setIsLoading(false);
     }
-  }, [articleData]);
+  }, [article]);
 
   // 计算相关文章
   useEffect(() => {
@@ -150,36 +156,15 @@ export default function Article() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (isLoading) {
+  if (isLoading || failed || !article) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <Navbar />
-        <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
-      </div>
-    );
-  }
-
-  if (!article) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <Navbar />
-        <div className="text-center">
-          <p
-            className="text-muted-foreground text-sm mb-4"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-          >
-            404 · 文章不存在
-          </p>
-          <Link href="/blog">
-            <button
-              className="text-foreground hover:text-foreground/70 transition-colors"
-              style={{ fontFamily: "'Noto Serif SC', serif" }}
-            >
-              返回文章列表
-            </button>
-          </Link>
-        </div>
-      </div>
+      <ContentStatus
+        loading={isLoading}
+        error={failed}
+        kind="文章"
+        back="/blog"
+        retry={() => void refetch()}
+      />
     );
   }
 

@@ -4,12 +4,12 @@
  */
 
 import { useParams, Link } from "wouter";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
+import ContentStatus from "@/components/ContentStatus";
 import { parseTags } from "@/lib/utils";
 import {
   setPageMeta,
@@ -28,14 +28,27 @@ function formatDate(dateStr: string) {
 
 export default function ArchiveDetail() {
   const params = useParams<{ slug: string }>();
-  const [archive, setArchive] = useState<any | null>(null);
   const [readProgress, setReadProgress] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
   // 调用 tRPC API 获取单个归档
-  const { data: archiveData } = trpc.archive.getArchive.useQuery({
+  const {
+    data: archiveData,
+    isLoading,
+    isError,
+    refetch,
+  } = trpc.archive.getArchive.useQuery({
     slug: params.slug || "",
   });
+
+  const archive = useMemo(() => {
+    const value = archiveData?.success ? archiveData.archive : null;
+    return value ? { ...value, tags: parseTags(value.tags) } : null;
+  }, [archiveData]);
+  const failed =
+    isError ||
+    (!!archiveData &&
+      !archiveData.success &&
+      archiveData.error !== "Archive not found");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -43,11 +56,8 @@ export default function ArchiveDetail() {
 
   // 当归档数据加载完成时
   useEffect(() => {
-    if (archiveData && archiveData.success && archiveData.archive) {
-      const item = archiveData.archive as any;
-      item.tags = parseTags(item.tags);
-      setArchive(item);
-      setIsLoading(false);
+    if (archive) {
+      const item = archive;
 
       // 动态 meta 标签
       const archiveUrl = `${window.location.origin}/archive/${item.slug}`;
@@ -79,10 +89,8 @@ export default function ArchiveDetail() {
           ]),
         ],
       });
-    } else {
-      setIsLoading(false);
     }
-  }, [archiveData]);
+  }, [archive]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,36 +103,15 @@ export default function ArchiveDetail() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (isLoading) {
+  if (isLoading || failed || !archive) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <Navbar />
-        <Loader2 className="w-8 h-8 animate-spin text-foreground/50" />
-      </div>
-    );
-  }
-
-  if (!archive) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <Navbar />
-        <div className="text-center">
-          <p
-            className="text-muted-foreground text-sm mb-4"
-            style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-          >
-            404 · 归档不存在
-          </p>
-          <Link href="/archive">
-            <button
-              className="text-foreground hover:text-foreground/70 transition-colors"
-              style={{ fontFamily: "'Noto Serif SC', serif" }}
-            >
-              返回归档列表
-            </button>
-          </Link>
-        </div>
-      </div>
+      <ContentStatus
+        loading={isLoading}
+        error={failed}
+        kind="归档"
+        back="/archive"
+        retry={() => void refetch()}
+      />
     );
   }
 
