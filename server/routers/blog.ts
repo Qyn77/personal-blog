@@ -34,7 +34,8 @@ export const blogRouter = router({
     .input(
       z
         .object({
-          pageSize: z.number().min(1).max(50).default(20),
+          pageSize: z.number().int().min(1).max(50).default(20),
+          featured: z.boolean().optional(),
         })
         .optional()
     )
@@ -45,7 +46,7 @@ export const blogRouter = router({
           "public, max-age=30, stale-while-revalidate=120"
         );
         const pageSize = input?.pageSize ?? 20;
-        const cacheKey = `listArticleSummaries:${pageSize}`;
+        const cacheKey = `listArticleSummaries:${pageSize}:${input?.featured ?? "all"}`;
         const cached = responseCache.get<{
           success: true;
           articles: unknown[];
@@ -57,6 +58,7 @@ export const blogRouter = router({
           status: "published",
           page: 1,
           pageSize,
+          featured: input?.featured,
         });
 
         const payload = {

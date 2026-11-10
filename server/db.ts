@@ -193,6 +193,7 @@ function saveDb() {
 // ============================================================================
 
 export interface ArticleQueryOptions {
+  featured?: boolean;
   status?: string;
   page?: number;
   pageSize?: number;
@@ -231,6 +232,10 @@ export async function getAllArticles(
     if (options.status) {
       conditions.push("status = ?");
       params.push(options.status);
+    }
+    if (options.featured !== undefined) {
+      conditions.push("featured = ?");
+      params.push(options.featured ? 1 : 0);
     }
     if (options.search) {
       conditions.push("(title LIKE ? OR excerpt LIKE ?)");
@@ -311,6 +316,10 @@ export async function getArticlesWithPagination(
     if (options.status) {
       conditions.push("status = ?");
       params.push(options.status);
+    }
+    if (options.featured !== undefined) {
+      conditions.push("featured = ?");
+      params.push(options.featured ? 1 : 0);
     }
     if (options.search) {
       conditions.push("(title LIKE ? OR excerpt LIKE ?)");

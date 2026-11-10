@@ -46,6 +46,10 @@ export default function Home() {
     trpc.archive.listArchiveSummaries.useQuery({
       limit: 12,
     });
+  const { data: featuredData } = trpc.blog.listArticleSummaries.useQuery({
+    pageSize: 2,
+    featured: true,
+  });
   const { data: siteStatsData } = trpc.blog.getSiteStats.useQuery();
 
   const articles = useMemo(() => {
@@ -90,7 +94,13 @@ export default function Home() {
   const isLoading = articlesLoading || archivesLoading;
 
   // 获取精选文章（featured 为 true 的文章）
-  const featured = articles.filter(a => a.featured).slice(0, 2);
+  const featured = featuredData?.success
+    ? featuredData.articles.map((a: any) => ({
+        ...a,
+        tags: parseTags(a.tags),
+        featured: true,
+      }))
+    : [];
 
   // 获取最新文章
   const recent = [...articles]
