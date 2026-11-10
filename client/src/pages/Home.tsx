@@ -126,7 +126,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col justify-end pb-20 overflow-hidden">
+      <section className="relative flex flex-col justify-center pt-28 pb-10 md:pt-32 md:pb-12 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -188,11 +188,11 @@ export default function Home() {
 
           {/* Stats */}
           {isLoading ? (
-            <div className="flex items-center gap-8 mt-16 pt-8 border-t border-foreground/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 pt-6 border-t border-foreground/10">
               <Loader2 className="w-6 h-6 animate-spin text-foreground/50" />
             </div>
           ) : (
-            <div className="flex items-center gap-8 mt-16 pt-8 border-t border-foreground/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 pt-6 border-t border-foreground/10">
               <div>
                 <p
                   className="text-foreground text-2xl font-bold"
@@ -207,7 +207,6 @@ export default function Home() {
                   篇文章
                 </p>
               </div>
-              <div className="w-px h-8 bg-border" />
               <div>
                 <p
                   className="text-foreground text-2xl font-bold"
@@ -222,7 +221,6 @@ export default function Home() {
                   篇归档
                 </p>
               </div>
-              <div className="w-px h-8 bg-border" />
               <div>
                 <p
                   className="text-foreground text-2xl font-bold"
@@ -237,7 +235,6 @@ export default function Home() {
                   个分类
                 </p>
               </div>
-              <div className="w-px h-8 bg-border" />
               <div>
                 <p
                   className="text-foreground text-2xl font-bold"
@@ -259,8 +256,8 @@ export default function Home() {
 
       {/* Featured Articles */}
       {featured.length > 0 && (
-        <section className="py-20 max-w-5xl mx-auto px-6 lg:px-8">
-          <div className="flex items-baseline justify-between mb-12">
+        <section className="pt-10 pb-16 max-w-5xl mx-auto px-6 lg:px-8">
+          <div className="flex items-baseline justify-between mb-8">
             <h2
               className="text-foreground text-2xl font-semibold"
               style={{
