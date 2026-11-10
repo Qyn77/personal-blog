@@ -116,7 +116,7 @@ export const adminRouter = router({
         const excerpt = input.excerpt || generateExcerpt(processedContent);
         const readTime = calculateReadTime(processedContent);
 
-        const status = input.status || "published";
+        const status = input.status || "draft";
         const success = await db.insertArticle({
           id,
           slug,

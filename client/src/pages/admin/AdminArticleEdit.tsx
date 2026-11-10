@@ -43,7 +43,7 @@ export default function AdminArticleEdit() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [featured, setFeatured] = useState(false);
-  const [status, setStatus] = useState<"draft" | "published">("published");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
@@ -311,7 +311,7 @@ export default function AdminArticleEdit() {
   };
 
   // 提交表单
-  const handleSubmit = async () => {
+  const handleSubmit = async (targetStatus: "draft" | "published" = status) => {
     if (isSaving) return;
     if (!title.trim()) {
       toast.error("请输入标题");
@@ -333,7 +333,7 @@ export default function AdminArticleEdit() {
       featured,
       coverImage: coverImage || undefined,
       slug: slug.trim() || undefined,
-      status,
+      status: targetStatus,
     };
 
     if (isNew) {
@@ -356,7 +356,7 @@ export default function AdminArticleEdit() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 mb-6">
+      <div className="sticky top-0 z-20 bg-background border-b border-border py-4 mb-6 flex flex-wrap items-center gap-3">
         <Link href="/admin/articles">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -369,6 +369,44 @@ export default function AdminArticleEdit() {
         >
           {isNew ? "新建文章" : "编辑文章"}
         </h1>
+        <span className="text-sm text-muted-foreground" role="status">
+          {isSaving
+            ? "保存中…"
+            : isNew
+              ? "尚未保存 · 草稿"
+              : existingData?.article?.status === "published"
+                ? "已发布 · 编辑中"
+                : "草稿 · 编辑中"}
+        </span>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button
+            variant="ghost"
+            onClick={() =>
+              document
+                .getElementById("article-preview")
+                ?.scrollIntoView({ block: "start" })
+            }
+          >
+            预览
+          </Button>
+          <Button
+            variant="outline"
+            disabled={isSaving}
+            onClick={() => void handleSubmit("draft")}
+          >
+            {existingData?.article?.status === "published"
+              ? "保存并转为草稿"
+              : "保存草稿"}
+          </Button>
+          <Button
+            disabled={isSaving}
+            onClick={() => void handleSubmit("published")}
+          >
+            {existingData?.article?.status === "published"
+              ? "更新已发布文章"
+              : "发布文章"}
+          </Button>
+        </div>
       </div>
 
       {isNew && (
@@ -435,7 +473,7 @@ export default function AdminArticleEdit() {
         </div>
 
         {/* Slug + 日期 + 分类 */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="slug">Slug</Label>
             <Input
@@ -673,7 +711,10 @@ export default function AdminArticleEdit() {
           <Label>正文 (Markdown) *</Label>
           <div className="flex gap-4" style={{ height: "70vh" }}>
             {/* 左侧编辑区 */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div
+              id="article-preview"
+              className="flex-1 flex flex-col min-w-0 scroll-mt-28"
+            >
               <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-t-md border border-b-0">
                 编辑
               </div>
@@ -711,14 +752,18 @@ export default function AdminArticleEdit() {
 
         {/* 提交按钮 */}
         <div className="flex gap-3 pt-2">
-          <Button onClick={handleSubmit} disabled={isSaving}>
+          <Button onClick={() => void handleSubmit()} disabled={isSaving}>
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 保存中...
               </>
             ) : isNew ? (
-              "创建文章"
+              status === "draft" ? (
+                "保存草稿"
+              ) : (
+                "发布文章"
+              )
             ) : (
               "保存修改"
             )}
