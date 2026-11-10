@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs from "sql.js";
 import fs from "fs";
@@ -14,6 +14,7 @@ import {
   visitors,
   Visitor,
 } from "./schema";
+import { ensureArticleSeriesColumns } from "./lib/articleSeries";
 import { ROOT_DIR } from "./root";
 
 const DB_PATH = path.join(ROOT_DIR, "blog.db");
@@ -52,6 +53,7 @@ function ensureTables(sqlJsDb: any) {
       updatedAt INTEGER NOT NULL
     );
   `);
+  ensureArticleSeriesColumns(sqlJsDb);
   // 兼容旧数据库：如果 articles 表没有 status 列，自动添加
   try {
     const columns = sqlJsDb.exec("PRAGMA table_info(articles)");
@@ -514,6 +516,8 @@ export async function insertArticle(article: {
   featured?: boolean;
   coverImage?: string;
   status?: string;
+  series?: string;
+  seriesOrder?: number;
 }): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
@@ -536,6 +540,8 @@ export async function insertArticle(article: {
         featured: article.featured ? 1 : 0,
         coverImage: article.coverImage || "/books/default/ai.svg",
         status: article.status || "published",
+        series: article.series?.trim() || null,
+        seriesOrder: article.seriesOrder ?? 0,
         createdAt: now,
         updatedAt: now,
       })
@@ -563,6 +569,8 @@ export async function updateArticle(
     featured: boolean;
     coverImage: string;
     status: string;
+    series: string;
+    seriesOrder: number;
   }>
 ): Promise<boolean> {
   const db = await getDb();
@@ -586,6 +594,10 @@ export async function updateArticle(
       updateData.featured = data.featured ? 1 : 0;
     if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
     if (data.status !== undefined) updateData.status = data.status;
+    if (data.series !== undefined)
+      updateData.series = data.series.trim() || null;
+    if (data.seriesOrder !== undefined)
+      updateData.seriesOrder = data.seriesOrder;
 
     // @ts-ignore
     db.update(articles).set(updateData).where(eq(articles.id, id)).run();
@@ -1157,4 +1169,43 @@ export async function setSetting(key: string, value: string): Promise<boolean> {
     console.error("[Database] Failed to set setting:", error);
     return false;
   }
+}
+
+export async function getSeriesList() {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db
+    .select({
+      name: articles.series,
+      count: sql<number>`count(*)`,
+      updatedAt: sql<number>`max(${articles.updatedAt})`,
+    })
+    .from(articles)
+    .where(
+      and(
+        eq(articles.status, "published"),
+        sql`${articles.series} IS NOT NULL AND ${articles.series} <> ''`
+      )
+    )
+    .groupBy(articles.series)
+    .orderBy(desc(sql`max(${articles.updatedAt})`))
+    .all();
+}
+
+export async function getSeriesArticles(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db
+    .select({
+      id: articles.id,
+      slug: articles.slug,
+      title: articles.title,
+      excerpt: articles.excerpt,
+      date: articles.date,
+      seriesOrder: articles.seriesOrder,
+    })
+    .from(articles)
+    .where(and(eq(articles.status, "published"), eq(articles.series, name)))
+    .orderBy(asc(articles.seriesOrder), asc(articles.date), asc(articles.id))
+    .all();
 }

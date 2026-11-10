@@ -1,3 +1,7 @@
+import {
+  ensureArticleSeriesColumns,
+  parseSeriesMetadata,
+} from "../lib/articleSeries";
 /**
  * 初始化数据库脚本
  * 从 books 和 archives 文件夹加载 Markdown 文章到 SQLite 数据库
@@ -40,6 +44,8 @@ interface BlogArticle {
   readTime: number;
   tags: string[];
   category: string;
+  series?: string;
+  seriesOrder?: number;
   featured?: boolean;
   coverImage?: string;
 }
@@ -79,6 +85,7 @@ function loadArticleFromFile(filePath: string): BlogArticle | null {
       readTime: calculateReadTime(body),
       tags: (metadata.tags as string[]) || [],
       category: (metadata.category as string) || "uncategorized",
+      ...parseSeriesMetadata(metadata),
       featured: (metadata.featured as boolean) || false,
       coverImage:
         typeof metadata.coverImage === "string"
@@ -250,6 +257,8 @@ async function initDatabase() {
       );
     `);
 
+    ensureArticleSeriesColumns(sqlJsDb);
+
     // 加载文章
     console.log("Loading articles from books folder...");
     const loadedArticles = loadAllArticles();
@@ -280,6 +289,8 @@ async function initDatabase() {
           featured: article.featured ? 1 : 0,
           coverImage: article.coverImage,
           status: "published",
+          series: article.series || null,
+          seriesOrder: article.seriesOrder ?? 0,
           createdAt: now,
           updatedAt: now,
         });

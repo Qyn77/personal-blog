@@ -88,3 +88,23 @@ it("returns at most three related published summaries without article bodies", a
   ).toBe(true);
   expect(await db.getRelatedArticleSummaries("draft-featured")).toEqual([]);
 });
+
+it("orders a series and excludes drafts from its directory and counts", async () => {
+  await db.updateArticle("a", { series: "Rust 入门", seriesOrder: 2 });
+  await db.updateArticle("old-featured", {
+    series: "Rust 入门",
+    seriesOrder: 1,
+  });
+  await db.updateArticle("draft-featured", {
+    series: "Rust 入门",
+    seriesOrder: 0,
+  });
+  const chapters = await db.getSeriesArticles("Rust 入门");
+  expect(chapters.map(a => a.id)).toEqual(["old-featured", "a"]);
+  expect(chapters.every(a => !("content" in a))).toBe(true);
+  expect(await db.getSeriesList()).toEqual([
+    expect.objectContaining({ name: "Rust 入门", count: 2 }),
+  ]);
+  await db.updateArticle("a", { series: "" });
+  expect(await db.getSeriesArticles("Rust 入门")).toHaveLength(1);
+});

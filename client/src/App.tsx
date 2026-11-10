@@ -14,6 +14,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const Article = lazy(() => import("./pages/Article"));
 const Archive = lazy(() => import("./pages/Archive"));
 const ArchiveDetail = lazy(() => import("./pages/ArchiveDetail"));
+const Series = lazy(() => import("./pages/Series"));
 const About = lazy(() => import("./pages/About"));
 
 // Admin 路由懒加载
@@ -72,6 +73,8 @@ function Router() {
       <Route path="/article/:slug">{wrapPublic(Article)}</Route>
       <Route path="/archive">{wrapPublic(Archive)}</Route>
       <Route path="/archive/:slug">{wrapPublic(ArchiveDetail)}</Route>
+      <Route path="/series">{wrapPublic(Series)}</Route>
+      <Route path="/series/:name">{wrapPublic(Series)}</Route>
       <Route path="/about">{wrapPublic(About)}</Route>
 
       {/* Admin 路由 */}

@@ -1,3 +1,7 @@
+import {
+  ensureArticleSeriesColumns,
+  parseSeriesMetadata,
+} from "../lib/articleSeries";
 /**
  * 同步 books 和 archives 目录中的 Markdown 文件到数据库
  * 支持增量导入：只导入新条目，跳过已存在的 slug
@@ -66,6 +70,7 @@ function loadArticle(filePath: string) {
       readTime: calculateReadTime(body),
       tags: (metadata.tags as string[]) || [],
       category: (metadata.category as string) || "uncategorized",
+      ...parseSeriesMetadata(metadata),
       featured: (metadata.featured as boolean) || false,
       coverImage:
         typeof metadata.coverImage === "string"
@@ -159,6 +164,8 @@ async function syncContent() {
     );
   `);
 
+  ensureArticleSeriesColumns(sqlJsDb);
+
   const now = Date.now();
   let totalImported = 0;
   let totalSkipped = 0;
@@ -190,8 +197,8 @@ async function syncContent() {
 
       try {
         sqlJsDb.run(
-          `INSERT INTO articles (id, slug, title, subtitle, excerpt, content, date, readTime, tags, category, featured, coverImage, status, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?)`,
+          `INSERT INTO articles (id, slug, title, subtitle, excerpt, content, date, readTime, tags, category, featured, coverImage, status, createdAt, updatedAt, series, seriesOrder)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?, ?, ?)`,
           [
             article.id,
             article.slug,
@@ -207,6 +214,8 @@ async function syncContent() {
             article.coverImage,
             now,
             now,
+            article.series || null,
+            article.seriesOrder,
           ]
         );
         console.log(`  ✓ 导入: ${article.title}`);

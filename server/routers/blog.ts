@@ -30,6 +30,10 @@ function checkSubscribeRate(ip: string): boolean {
 }
 
 export const blogRouter = router({
+  seriesList: publicProcedure.query(() => db.getSeriesList()),
+  seriesArticles: publicProcedure
+    .input(z.object({ name: z.string().min(1).max(80) }))
+    .query(({ input }) => db.getSeriesArticles(input.name)),
   relatedArticles: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => ({

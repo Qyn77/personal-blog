@@ -12,6 +12,7 @@ sitemapRouter.get("/sitemap.xml", async (_req, res) => {
   try {
     const articles = await db.getAllArticles({ status: "published" });
     const archives = await db.getAllArchives();
+    const series = await db.getSeriesList();
 
     const host = _req.get("host") || "localhost:3000";
     const protocol = _req.protocol || "https";
@@ -63,7 +64,24 @@ sitemapRouter.get("/sitemap.xml", async (_req, res) => {
       lastmod: new Date(a.updatedAt).toISOString().split("T")[0],
     }));
 
-    const allUrls = [...staticPages, ...articleUrls, ...archiveUrls];
+    const seriesUrls = series.map(item => ({
+      url: `/series/${encodeURIComponent(item.name!)}`,
+      changefreq: "weekly",
+      priority: "0.7",
+      lastmod: new Date(item.updatedAt).toISOString().split("T")[0],
+    }));
+    const allUrls = [
+      ...staticPages,
+      {
+        url: "/series",
+        changefreq: "weekly",
+        priority: "0.7",
+        lastmod: latestContentDate,
+      },
+      ...articleUrls,
+      ...archiveUrls,
+      ...seriesUrls,
+    ];
 
     const urls = allUrls
       .map(

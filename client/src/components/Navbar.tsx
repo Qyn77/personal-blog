@@ -12,6 +12,7 @@ import { Moon, Sun } from "lucide-react";
 const NAV_LINKS = [
   { href: "/", label: "首页" },
   { href: "/blog", label: "文章" },
+  { href: "/series", label: "系列" },
   { href: "/archive", label: "归档" },
   { href: "/about", label: "关于" },
 ];

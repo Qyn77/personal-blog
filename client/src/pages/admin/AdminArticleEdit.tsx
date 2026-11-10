@@ -30,6 +30,8 @@ import { useLocalDraft } from "@/hooks/useLocalDraft";
 import { z } from "zod";
 
 const draftSchema = z.object({
+  series: z.string().default(""),
+  seriesOrder: z.number().int().min(0).default(0),
   title: z.string(),
   subtitle: z.string(),
   slug: z.string(),
@@ -71,6 +73,8 @@ function ArticleEditor() {
   const [hydrated, setHydrated] = useState(isNew);
 
   // 表单状态
+  const [series, setSeries] = useState("");
+  const [seriesOrder, setSeriesOrder] = useState(0);
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -104,6 +108,8 @@ function ArticleEditor() {
   useEffect(() => {
     if (existingData?.article && !hydrated) {
       const a = existingData.article;
+      setSeries(a.series || "");
+      setSeriesOrder(a.seriesOrder || 0);
       setTitle(a.title);
       setSubtitle(a.subtitle || "");
       setSlug(a.slug);
@@ -123,6 +129,8 @@ function ArticleEditor() {
     storageKey: `ink:article-draft:${draftOwner()}:${editId ?? "new"}`,
     ready: hydrated,
     value: {
+      series,
+      seriesOrder,
       title,
       subtitle,
       slug,
@@ -137,6 +145,8 @@ function ArticleEditor() {
     },
     validate: validateDraft,
     restore(value) {
+      setSeries(value.series);
+      setSeriesOrder(value.seriesOrder);
       setTitle(value.title);
       setSubtitle(value.subtitle);
       setSlug(value.slug);
@@ -200,6 +210,8 @@ function ArticleEditor() {
       const text = await file.text();
       const result = await parseMutation.mutateAsync({ content: text });
 
+      setSeries(result.series);
+      setSeriesOrder(result.seriesOrder);
       setTitle(result.title);
       setSubtitle(result.subtitle || "");
       setSlug(result.slug);
@@ -401,6 +413,8 @@ function ArticleEditor() {
     }
 
     const formData = {
+      series: series.trim(),
+      seriesOrder,
       title: title.trim(),
       subtitle: subtitle.trim() || undefined,
       excerpt: excerpt.trim() || undefined,
@@ -563,6 +577,31 @@ function ArticleEditor() {
             onChange={e => setTitle(e.target.value)}
             placeholder="文章标题"
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2 space-y-2">
+            <Label htmlFor="series">所属系列（可选）</Label>
+            <Input
+              id="series"
+              value={series}
+              maxLength={80}
+              onChange={e => setSeries(e.target.value)}
+              placeholder="例如：Rust 入门"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="series-order">章节顺序</Label>
+            <Input
+              id="series-order"
+              type="number"
+              min={0}
+              max={1000000}
+              step={1}
+              value={seriesOrder}
+              onChange={e => setSeriesOrder(Number(e.target.value))}
+            />
+          </div>
         </div>
 
         {/* 副标题 */}

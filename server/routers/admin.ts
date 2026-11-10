@@ -17,6 +17,7 @@ import {
   slugify,
 } from "../lib/markdown";
 import { sendArticleNotify, sendTestEmail } from "../lib/email";
+import { parseSeriesMetadata } from "../lib/articleSeries";
 import { ROOT_DIR } from "../root";
 
 export const adminRouter = router({
@@ -99,6 +100,8 @@ export const adminRouter = router({
         coverImage: z.string().optional(),
         slug: z.string().max(100).optional(),
         status: z.enum(["draft", "published"]).optional(),
+        series: z.string().trim().max(80).optional(),
+        seriesOrder: z.number().int().min(0).max(1000000).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -131,6 +134,8 @@ export const adminRouter = router({
           featured: input.featured,
           coverImage: input.coverImage,
           status,
+          series: input.series,
+          seriesOrder: input.seriesOrder,
         });
 
         if (!success) {
@@ -194,6 +199,8 @@ export const adminRouter = router({
         coverImage: z.string().optional(),
         slug: z.string().max(100).optional(),
         status: z.enum(["draft", "published"]).optional(),
+        series: z.string().trim().max(80).optional(),
+        seriesOrder: z.number().int().min(0).max(1000000).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -366,6 +373,7 @@ export const adminRouter = router({
         readTime,
         tags: Array.isArray(metadata.tags) ? (metadata.tags as string[]) : [],
         category: (metadata.category as string) || "uncategorized",
+        ...parseSeriesMetadata(metadata),
         featured: metadata.featured === true,
         coverImage: (metadata.coverImage as string) || undefined,
         slug:

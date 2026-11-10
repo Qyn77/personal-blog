@@ -107,11 +107,32 @@ export function createSeoMetaRouter(rootDir: string): Router {
     }
   });
 
+  router.get("/series/:name", async (req, res, next: NextFunction) => {
+    try {
+      const chapters = await db.getSeriesArticles(req.params.name);
+      if (!chapters.length) return next();
+      render(req, res, {
+        title: `系列 · ${req.params.name}`,
+        description: `${chapters.length} 篇文章 · 按章节顺序阅读`,
+        url: `${baseUrl(req)}/series/${encodeURIComponent(req.params.name)}`,
+        image: toAbsolute(req),
+        type: "website",
+      });
+    } catch {
+      next();
+    }
+  });
+
   const staticPages: {
     route: string;
     title: string;
     description: string;
   }[] = [
+    {
+      route: "/series",
+      title: "专题系列",
+      description: "沿着一条线索，连续阅读一个主题。",
+    },
     { route: "/", title: "墨迹 · 个人博客", description: SITE_DESCRIPTION },
     {
       route: "/blog",

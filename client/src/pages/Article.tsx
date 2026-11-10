@@ -10,6 +10,7 @@ import { useEffect, useState, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
+import SeriesNavigation from "@/components/SeriesNavigation";
 import ReadingContent from "@/components/ReadingContent";
 import { trpc } from "@/lib/trpc";
 import ContentStatus from "@/components/ContentStatus";
@@ -234,6 +235,10 @@ export default function Article() {
           <div className="mb-16 fade-in-up fade-in-up-delay-1">
             <ReadingContent content={article.content} />
           </div>
+
+          {article.series && (
+            <SeriesNavigation name={article.series} slug={article.slug} />
+          )}
 
           {/* 分割线 */}
           <div className="my-12 border-t border-border" />
