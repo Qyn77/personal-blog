@@ -21,6 +21,8 @@ const DB_PATH = path.join(ROOT_DIR, "blog.db");
 let _db: ReturnType<typeof drizzle> | null = null;
 let _SQL: Awaited<ReturnType<typeof initSqlJs>> | null = null;
 let _sqlJsDb: any = null;
+let persistedSnapshot: Uint8Array | undefined;
+let initializing: Promise<void> | null = null;
 
 async function initSqlJsInstance() {
   if (!_SQL) {
@@ -133,47 +135,56 @@ function ensureTables(sqlJsDb: any) {
 
 // @ts-ignore - sql.js 类型与 drizzle 不完全兼容，但运行时工作正常
 async function getDb() {
-  if (!_db) {
-    try {
-      const SQL = await initSqlJsInstance();
+  if (!_db && !initializing) {
+    initializing = (async () => {
+      try {
+        const SQL = await initSqlJsInstance();
 
-      let data: Buffer | undefined;
-      if (fs.existsSync(DB_PATH)) {
-        data = fs.readFileSync(DB_PATH);
+        let data: Buffer | undefined;
+        if (fs.existsSync(DB_PATH)) {
+          data = fs.readFileSync(DB_PATH);
+        }
+
+        _sqlJsDb = data ? new SQL.Database(data) : new SQL.Database();
+        ensureTables(_sqlJsDb);
+        persistedSnapshot = _sqlJsDb.export();
+
+        // @ts-ignore
+        _db = drizzle(_sqlJsDb);
+
+        console.log("[Database] Connected to SQLite (sql.js):", DB_PATH);
+      } catch (error) {
+        console.warn("[Database] Failed to connect:", error);
+        _db = null;
       }
-
-      _sqlJsDb = data ? new SQL.Database(data) : new SQL.Database();
-      ensureTables(_sqlJsDb);
-
-      // @ts-ignore
-      _db = drizzle(_sqlJsDb);
-
-      console.log("[Database] Connected to SQLite (sql.js):", DB_PATH);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
+    })().finally(() => {
+      initializing = null;
+    });
   }
+  if (initializing) await initializing;
   return _db;
 }
 
 /** 将内存中的数据库持久化到磁盘（原子写入，防止写入中断导致数据库损坏） */
 function saveDb() {
-  if (!_sqlJsDb) return;
+  if (!_sqlJsDb || !_SQL) throw new Error("Database is not initialized");
+  const tmpPath = DB_PATH + ".tmp";
   try {
     const data = _sqlJsDb.export();
-    const buffer = Buffer.from(data);
-    const tmpPath = DB_PATH + ".tmp";
-    fs.writeFileSync(tmpPath, buffer);
-    try {
-      fs.renameSync(tmpPath, DB_PATH);
-    } catch {
-      // Windows 上 renameSync 可能因文件锁定失败，回退到 copy + delete
-      fs.copyFileSync(tmpPath, DB_PATH);
-      fs.unlinkSync(tmpPath);
-    }
+    fs.writeFileSync(tmpPath, Buffer.from(data), { mode: 0o600 });
+    // Keep the previous file intact if the atomic replacement fails.
+    fs.renameSync(tmpPath, DB_PATH);
+    persistedSnapshot = data;
   } catch (error) {
-    console.error("[Database] Failed to save database:", error);
+    _sqlJsDb.close();
+    _sqlJsDb = new _SQL.Database(persistedSnapshot);
+    _db = drizzle(_sqlJsDb);
+    try {
+      fs.rmSync(tmpPath, { force: true });
+    } catch {
+      /* Best-effort cleanup. */
+    }
+    throw error;
   }
 }
 
@@ -475,23 +486,25 @@ export async function insertArticle(article: {
   try {
     const now = Date.now();
     // @ts-ignore
-    await db.insert(articles).values({
-      id: article.id,
-      slug: article.slug,
-      title: article.title,
-      subtitle: article.subtitle,
-      excerpt: article.excerpt,
-      content: article.content,
-      date: article.date,
-      readTime: article.readTime,
-      tags: JSON.stringify(article.tags),
-      category: article.category,
-      featured: article.featured ? 1 : 0,
-      coverImage: article.coverImage || "/books/default/ai.svg",
-      status: article.status || "published",
-      createdAt: now,
-      updatedAt: now,
-    });
+    db.insert(articles)
+      .values({
+        id: article.id,
+        slug: article.slug,
+        title: article.title,
+        subtitle: article.subtitle,
+        excerpt: article.excerpt,
+        content: article.content,
+        date: article.date,
+        readTime: article.readTime,
+        tags: JSON.stringify(article.tags),
+        category: article.category,
+        featured: article.featured ? 1 : 0,
+        coverImage: article.coverImage || "/books/default/ai.svg",
+        status: article.status || "published",
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
     saveDb();
     return true;
   } catch (error) {
@@ -540,7 +553,7 @@ export async function updateArticle(
     if (data.status !== undefined) updateData.status = data.status;
 
     // @ts-ignore
-    await db.update(articles).set(updateData).where(eq(articles.id, id));
+    db.update(articles).set(updateData).where(eq(articles.id, id)).run();
     saveDb();
     return true;
   } catch (error) {
@@ -555,7 +568,7 @@ export async function deleteArticle(id: string): Promise<boolean> {
 
   try {
     // @ts-ignore
-    await db.delete(articles).where(eq(articles.id, id));
+    db.delete(articles).where(eq(articles.id, id)).run();
     saveDb();
     return true;
   } catch (error) {
@@ -641,20 +654,22 @@ export async function insertArchive(archive: {
   try {
     const now = Date.now();
     // @ts-ignore
-    await db.insert(archives).values({
-      id: archive.id,
-      slug: archive.slug,
-      title: archive.title,
-      subtitle: archive.subtitle,
-      excerpt: archive.excerpt,
-      content: archive.content,
-      date: archive.date,
-      readTime: archive.readTime,
-      tags: JSON.stringify(archive.tags),
-      category: archive.category,
-      createdAt: now,
-      updatedAt: now,
-    });
+    db.insert(archives)
+      .values({
+        id: archive.id,
+        slug: archive.slug,
+        title: archive.title,
+        subtitle: archive.subtitle,
+        excerpt: archive.excerpt,
+        content: archive.content,
+        date: archive.date,
+        readTime: archive.readTime,
+        tags: JSON.stringify(archive.tags),
+        category: archive.category,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
     saveDb();
     return true;
   } catch (error) {
@@ -696,7 +711,7 @@ export async function updateArchive(
     if (data.category !== undefined) updateData.category = data.category;
 
     // @ts-ignore
-    await db.update(archives).set(updateData).where(eq(archives.id, id));
+    db.update(archives).set(updateData).where(eq(archives.id, id)).run();
     saveDb();
     return true;
   } catch (error) {
@@ -711,7 +726,7 @@ export async function deleteArchive(id: string): Promise<boolean> {
 
   try {
     // @ts-ignore
-    await db.delete(archives).where(eq(archives.id, id));
+    db.delete(archives).where(eq(archives.id, id)).run();
     saveDb();
     return true;
   } catch (error) {
@@ -737,15 +752,17 @@ export async function insertSubscriber(data: {
 
   try {
     // @ts-ignore
-    await db.insert(subscribers).values({
-      id: data.id,
-      email: data.email,
-      status: data.status,
-      verifyToken: data.verifyToken,
-      tokenExpiresAt: data.tokenExpiresAt,
-      unsubscribeToken: data.unsubscribeToken,
-      createdAt: Date.now(),
-    });
+    db.insert(subscribers)
+      .values({
+        id: data.id,
+        email: data.email,
+        status: data.status,
+        verifyToken: data.verifyToken,
+        tokenExpiresAt: data.tokenExpiresAt,
+        unsubscribeToken: data.unsubscribeToken,
+        createdAt: Date.now(),
+      })
+      .run();
     saveDb();
     return true;
   } catch (error) {
@@ -843,7 +860,7 @@ export async function updateSubscriber(
       updateData.unsubscribeToken = data.unsubscribeToken;
 
     // @ts-ignore
-    await db.update(subscribers).set(updateData).where(eq(subscribers.id, id));
+    db.update(subscribers).set(updateData).where(eq(subscribers.id, id)).run();
     saveDb();
     return true;
   } catch (error) {
@@ -858,7 +875,7 @@ export async function deleteSubscriber(id: string): Promise<boolean> {
 
   try {
     // @ts-ignore
-    await db.delete(subscribers).where(eq(subscribers.id, id));
+    db.delete(subscribers).where(eq(subscribers.id, id)).run();
     saveDb();
     return true;
   } catch (error) {
@@ -917,19 +934,21 @@ export async function insertVisitor(data: {
 
   try {
     // @ts-ignore
-    await db.insert(visitors).values({
-      id: data.id,
-      ip: data.ip,
-      city: data.city || null,
-      country: data.country || null,
-      device: data.device || null,
-      browser: data.browser || null,
-      os: data.os || null,
-      path: data.path,
-      referer: data.referer || null,
-      userAgent: data.userAgent || null,
-      createdAt: Date.now(),
-    });
+    db.insert(visitors)
+      .values({
+        id: data.id,
+        ip: data.ip,
+        city: data.city || null,
+        country: data.country || null,
+        device: data.device || null,
+        browser: data.browser || null,
+        os: data.os || null,
+        path: data.path,
+        referer: data.referer || null,
+        userAgent: data.userAgent || null,
+        createdAt: Date.now(),
+      })
+      .run();
     saveDb();
     return true;
   } catch (error) {
