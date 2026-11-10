@@ -26,13 +26,49 @@ import { Link } from "wouter";
 import { getToken } from "@/lib/auth";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 
+import { useLocalDraft } from "@/hooks/useLocalDraft";
+import { z } from "zod";
+
+const draftSchema = z.object({
+  title: z.string(),
+  subtitle: z.string(),
+  slug: z.string(),
+  date: z.string(),
+  category: z.string(),
+  tags: z.array(z.string()),
+  featured: z.boolean(),
+  status: z.enum(["draft", "published"]),
+  excerpt: z.string(),
+  content: z.string(),
+  coverImage: z.string(),
+});
+function validateDraft(value: unknown) {
+  const result = draftSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+function draftOwner() {
+  try {
+    const payload = getToken()?.split(".")[1];
+    return payload
+      ? JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")))
+          .username || "admin"
+      : "admin";
+  } catch {
+    return "admin";
+  }
+}
 export default function AdminArticleEdit() {
+  const [location] = useLocation();
+  return <ArticleEditor key={location} />;
+}
+function ArticleEditor() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/admin/articles/:id");
   const isNew = !params?.id || params.id === "new";
   const editId = isNew ? null : params!.id;
 
   const utils = trpc.useUtils();
+  const [hydrated, setHydrated] = useState(isNew);
 
   // 表单状态
   const [title, setTitle] = useState("");
@@ -56,10 +92,17 @@ export default function AdminArticleEdit() {
 
   // 编辑模式：加载现有文章
   const { data: existingData, isLoading: isLoadingExisting } =
-    trpc.admin.getArticle.useQuery({ id: editId! }, { enabled: !!editId });
+    trpc.admin.getArticle.useQuery(
+      { id: editId! },
+      {
+        enabled: !!editId,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      }
+    );
 
   useEffect(() => {
-    if (existingData?.article) {
+    if (existingData?.article && !hydrated) {
       const a = existingData.article;
       setTitle(a.title);
       setSubtitle(a.subtitle || "");
@@ -72,13 +115,47 @@ export default function AdminArticleEdit() {
       setExcerpt(a.excerpt);
       setContent(a.content);
       setCoverImage(a.coverImage || "");
+      setHydrated(true);
     }
-  }, [existingData]);
+  }, [existingData, hydrated]);
+
+  const draft = useLocalDraft({
+    storageKey: `ink:article-draft:${draftOwner()}:${editId ?? "new"}`,
+    ready: hydrated,
+    value: {
+      title,
+      subtitle,
+      slug,
+      date,
+      category,
+      tags,
+      featured,
+      status,
+      excerpt,
+      content,
+      coverImage,
+    },
+    validate: validateDraft,
+    restore(value) {
+      setTitle(value.title);
+      setSubtitle(value.subtitle);
+      setSlug(value.slug);
+      setDate(value.date);
+      setCategory(value.category);
+      setTags(value.tags);
+      setFeatured(value.featured);
+      setStatus(value.status);
+      setExcerpt(value.excerpt);
+      setContent(value.content);
+      setCoverImage(value.coverImage);
+    },
+  });
 
   // 创建/更新 mutation
   const createMutation = trpc.admin.createArticle.useMutation({
     onSuccess: result => {
       if (result.success) {
+        draft.clear();
         toast.success("文章创建成功");
         utils.admin.listArticles.invalidate();
         utils.blog.listArticles.invalidate();
@@ -93,6 +170,7 @@ export default function AdminArticleEdit() {
   const updateMutation = trpc.admin.updateArticle.useMutation({
     onSuccess: result => {
       if (result.success) {
+        draft.clear();
         toast.success("文章已更新");
         utils.admin.listArticles.invalidate();
         utils.blog.listArticles.invalidate();
@@ -391,7 +469,7 @@ export default function AdminArticleEdit() {
           </Button>
           <Button
             variant="outline"
-            disabled={isSaving}
+            disabled={isSaving || !!draft.recovery}
             onClick={() => void handleSubmit("draft")}
           >
             {existingData?.article?.status === "published"
@@ -399,7 +477,7 @@ export default function AdminArticleEdit() {
               : "保存草稿"}
           </Button>
           <Button
-            disabled={isSaving}
+            disabled={isSaving || !!draft.recovery}
             onClick={() => void handleSubmit("published")}
           >
             {existingData?.article?.status === "published"
@@ -407,6 +485,32 @@ export default function AdminArticleEdit() {
               : "发布文章"}
           </Button>
         </div>
+      </div>
+
+      <div className="mb-6 space-y-3 text-sm" aria-live="polite">
+        <p
+          className={
+            draft.storageError ? "text-destructive" : "text-muted-foreground"
+          }
+        >
+          {draft.storageError
+            ? "本地备份不可用，请及时保存到服务器"
+            : draft.recovery
+              ? "发现未提交的本地草稿，请选择恢复或丢弃"
+              : draft.dirty
+                ? draft.savedAt
+                  ? "有未提交修改 · 已备份到此浏览器"
+                  : "有未提交修改"
+                : "没有未提交修改"}
+        </p>
+        {draft.recovery && (
+          <div className="flex gap-3">
+            <Button onClick={draft.recover}>恢复草稿</Button>
+            <Button variant="outline" onClick={draft.discard}>
+              丢弃本地草稿
+            </Button>
+          </div>
+        )}
       </div>
 
       {isNew && (
@@ -752,7 +856,10 @@ export default function AdminArticleEdit() {
 
         {/* 提交按钮 */}
         <div className="flex gap-3 pt-2">
-          <Button onClick={() => void handleSubmit()} disabled={isSaving}>
+          <Button
+            onClick={() => void handleSubmit()}
+            disabled={isSaving || !!draft.recovery}
+          >
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
