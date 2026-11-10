@@ -11,6 +11,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import { Copy, Check, Link } from "lucide-react";
+import { rehypeHeadingIds } from "@/lib/headingIds";
 import { assetUrl } from "@/lib/assets";
 
 interface MarkdownRendererProps {
@@ -97,15 +98,6 @@ const LANG_LABELS: Record<string, string> = {
   vue: "Vue",
   svelte: "Svelte",
 };
-
-// 标题锚点生成
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/<[^>]*>/g, "")
-    .replace(/[^\w\u4e00-\u9fff]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 // 提取纯文本（用于生成 slug）
 function extractText(children: React.ReactNode): string {
@@ -228,37 +220,22 @@ function H6({ id, children }: { id: string; children: React.ReactNode }) {
   );
 }
 
-export default function MarkdownRenderer({
-  content,
-  className = "",
-}: MarkdownRendererProps) {
+function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
   return (
     <div
       className={`markdown-content prose dark:prose-invert max-w-none ${className}`}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, rehypeHighlight]}
+        rehypePlugins={[rehypeHeadingIds, rehypeKatex, rehypeHighlight]}
         components={{
           // 标题（带锚点）
-          h1: ({ children }) => (
-            <H1 id={slugify(extractText(children))}>{children}</H1>
-          ),
-          h2: ({ children }) => (
-            <H2 id={slugify(extractText(children))}>{children}</H2>
-          ),
-          h3: ({ children }) => (
-            <H3 id={slugify(extractText(children))}>{children}</H3>
-          ),
-          h4: ({ children }) => (
-            <H4 id={slugify(extractText(children))}>{children}</H4>
-          ),
-          h5: ({ children }) => (
-            <H5 id={slugify(extractText(children))}>{children}</H5>
-          ),
-          h6: ({ children }) => (
-            <H6 id={slugify(extractText(children))}>{children}</H6>
-          ),
+          h1: ({ children, id }) => <H1 id={id || "section"}>{children}</H1>,
+          h2: ({ children, id }) => <H2 id={id || "section"}>{children}</H2>,
+          h3: ({ children, id }) => <H3 id={id || "section"}>{children}</H3>,
+          h4: ({ children, id }) => <H4 id={id || "section"}>{children}</H4>,
+          h5: ({ children, id }) => <H5 id={id || "section"}>{children}</H5>,
+          h6: ({ children, id }) => <H6 id={id || "section"}>{children}</H6>,
           // 段落
           p: ({ children }) => (
             <p
@@ -500,3 +477,5 @@ export default function MarkdownRenderer({
     </div>
   );
 }
+
+export default React.memo(MarkdownRenderer);

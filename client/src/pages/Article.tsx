@@ -10,7 +10,7 @@ import { useEffect, useState, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
-import MarkdownRenderer from "@/components/MarkdownRenderer";
+import ReadingContent from "@/components/ReadingContent";
 import { trpc } from "@/lib/trpc";
 import ContentStatus from "@/components/ContentStatus";
 import { parseTags } from "@/lib/utils";
@@ -150,7 +150,7 @@ export default function Article() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-clip">
       {/* 阅读进度条 */}
       <div
         className="fixed top-0 left-0 h-1 bg-foreground transition-all duration-300 z-[60]"
@@ -232,7 +232,7 @@ export default function Article() {
 
           {/* 文章内容 */}
           <div className="mb-16 fade-in-up fade-in-up-delay-1">
-            <MarkdownRenderer content={article.content} />
+            <ReadingContent content={article.content} />
           </div>
 
           {/* 分割线 */}

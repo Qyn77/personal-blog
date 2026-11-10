@@ -21,7 +21,7 @@
 - Button/Input：复用 components/ui，保留 focus-visible、disabled 和 pending 状态。
 - ContentStatus：居中状态区，加载使用 role=status，失败使用 role=alert，404 给返回入口；网络错误提供重试。
 - ArticleCard：现有 default/featured/compact 变体，统一语义颜色与封面比例。
-- 阅读目录：桌面 sticky 侧栏、移动端 details 折叠，链接显示当前章节，长标题折行。
+- 阅读目录：桌面 12rem sticky 侧栏、移动端 details 折叠，链接显示当前章节，长标题折行。
 - 编辑操作栏：顶部 sticky，显示保存/发布状态；保存草稿与发布分开，失败不显示成功。
 - 系列导航：文章底部系列入口、目录和前后篇；空系列不显示。
 

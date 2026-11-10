@@ -7,7 +7,7 @@ import { useParams, Link } from "wouter";
 import { useEffect, useState, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MarkdownRenderer from "@/components/MarkdownRenderer";
+import ReadingContent from "@/components/ReadingContent";
 import { trpc } from "@/lib/trpc";
 import ContentStatus from "@/components/ContentStatus";
 import { parseTags } from "@/lib/utils";
@@ -182,7 +182,7 @@ export default function ArchiveDetail() {
 
           {/* 归档内容 */}
           <div className="mb-16 fade-in-up fade-in-up-delay-1">
-            <MarkdownRenderer content={archive.content} />
+            <ReadingContent content={archive.content} />
           </div>
 
           {/* 分割线 */}
