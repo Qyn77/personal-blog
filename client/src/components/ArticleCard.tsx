@@ -8,7 +8,7 @@ import type { Article } from "@/type/blogData";
 import { assetUrl } from "@/lib/assets";
 
 interface ArticleCardProps {
-  article: Article;
+  article: Omit<Article, "content">;
   variant?: "default" | "featured" | "compact";
 }
 

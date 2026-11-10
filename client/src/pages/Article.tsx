@@ -20,7 +20,6 @@ import {
   buildBreadcrumbJsonLd,
 } from "@/lib/seo";
 import { assetUrl } from "@/lib/assets";
-import type { Article } from "@/type/blogData";
 
 function resolveBookImage(src: string) {
   if (
@@ -48,7 +47,6 @@ export default function Article() {
   const params = useParams<{ slug: string }>();
   const [readProgress, setReadProgress] = useState(0);
   const [heroOffset, setHeroOffset] = useState(0);
-  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
 
   // 调用 tRPC API 获取单篇文章
   const {
@@ -60,8 +58,16 @@ export default function Article() {
     slug: params.slug || "",
   });
 
-  // 调用 tRPC API 获取所有文章用于推荐
-  const { data: allArticlesData } = trpc.blog.listArticles.useQuery();
+  const { data: relatedData } = trpc.blog.relatedArticles.useQuery({
+    slug: params.slug || "",
+  });
+  const relatedArticles = (relatedData?.articles ?? []).map(a => ({
+    ...a,
+    subtitle: a.subtitle ?? undefined,
+    coverImage: a.coverImage ?? undefined,
+    tags: parseTags(a.tags),
+    featured: a.featured === 1,
+  }));
 
   const article = useMemo(() => {
     const value = articleData?.success ? articleData.article : null;
@@ -117,31 +123,6 @@ export default function Article() {
       });
     }
   }, [article]);
-
-  // 计算相关文章
-  useEffect(() => {
-    if (
-      article &&
-      allArticlesData &&
-      allArticlesData.success &&
-      Array.isArray(allArticlesData.articles)
-    ) {
-      const related = (allArticlesData.articles as any[])
-        .map(a => ({
-          ...a,
-          tags: parseTags(a.tags),
-        }))
-        .filter(
-          (a: any) =>
-            a.id !== article.id &&
-            (a.category === article.category ||
-              (Array.isArray(a.tags) &&
-                a.tags.some((t: string) => article.tags.includes(t))))
-        )
-        .slice(0, 3);
-      setRelatedArticles(related);
-    }
-  }, [article, allArticlesData]);
 
   useEffect(() => {
     const handleScroll = () => {

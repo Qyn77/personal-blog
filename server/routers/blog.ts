@@ -30,6 +30,11 @@ function checkSubscribeRate(ip: string): boolean {
 }
 
 export const blogRouter = router({
+  relatedArticles: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => ({
+      articles: await db.getRelatedArticleSummaries(input.slug),
+    })),
   listArticleSummaries: publicProcedure
     .input(
       z

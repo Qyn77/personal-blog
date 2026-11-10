@@ -77,3 +77,14 @@ it("selects older featured articles before applying the page limit", async () =>
   expect(result.items.map(a => a.id)).toEqual(["old-featured"]);
   expect(result.total).toBe(1);
 });
+
+it("returns at most three related published summaries without article bodies", async () => {
+  const rows = await db.getRelatedArticleSummaries("a");
+  expect(rows).toHaveLength(3);
+  expect(
+    rows.every(
+      a => a.id !== "a" && a.status === "published" && !("content" in a)
+    )
+  ).toBe(true);
+  expect(await db.getRelatedArticleSummaries("draft-featured")).toEqual([]);
+});

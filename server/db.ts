@@ -371,6 +371,32 @@ export async function getArticlesWithPagination(
   }
 }
 
+export async function getRelatedArticleSummaries(
+  slug: string
+): Promise<Omit<Article, "content">[]> {
+  if (!(await getDb())) return [];
+  const result = _sqlJsDb.exec(
+    `
+    SELECT a.id, a.slug, a.title, a.subtitle, a.excerpt, a.date, a.readTime,
+      a.tags, a.category, a.featured, a.coverImage, a.status, a.createdAt, a.updatedAt
+    FROM articles a JOIN articles source ON source.slug = ?
+    WHERE source.status = 'published' AND a.status = 'published' AND a.id <> source.id
+      AND (a.category = source.category OR EXISTS (
+        SELECT 1 FROM json_each(a.tags) tag JOIN json_each(source.tags) sourceTag
+          ON tag.value = sourceTag.value
+      ))
+    ORDER BY a.date DESC, a.createdAt DESC, a.id LIMIT 3
+  `,
+    [slug]
+  );
+  if (!result[0]) return [];
+  return result[0].values.map((row: unknown[]) =>
+    Object.fromEntries(
+      result[0].columns.map((column: string, i: number) => [column, row[i]])
+    )
+  ) as Omit<Article, "content">[];
+}
+
 export async function getArticleBySlug(
   slug: string
 ): Promise<Article | undefined> {
