@@ -42,12 +42,8 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      # 注意：项目当前未把 pnpm-lock.yaml 提交到 git，
-      # 故这里不使用 --frozen-lockfile（否则 CI 会因缺少 lockfile 报错）。
-      # 建议后续把 pnpm-lock.yaml 提交进仓库，再改回：
-      #   pnpm install --frozen-lockfile
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Format Check
         run: pnpm format:check
@@ -55,11 +51,8 @@ jobs:
       - name: Type Check
         run: pnpm check
 
-      # 说明：当前项目还没有任何测试文件（server/**/*.test.ts 等），
-      # vitest 在无测试时会以失败退出，故暂不跑 test。
-      # 后续补上测试后，取消下方注释即可启用：
-      # - name: Test
-      #   run: pnpm test
+      - name: Test
+        run: pnpm test
 
       - name: Build
         run: pnpm build
