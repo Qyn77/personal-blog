@@ -27,27 +27,8 @@ import { getToken } from "@/lib/auth";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 import { useLocalDraft } from "@/hooks/useLocalDraft";
-import { z } from "zod";
+import { validateDraft } from "@/lib/articleDraft";
 
-const draftSchema = z.object({
-  series: z.string().default(""),
-  seriesOrder: z.number().int().min(0).default(0),
-  title: z.string(),
-  subtitle: z.string(),
-  slug: z.string(),
-  date: z.string(),
-  category: z.string(),
-  tags: z.array(z.string()),
-  featured: z.boolean(),
-  status: z.enum(["draft", "published"]),
-  excerpt: z.string(),
-  content: z.string(),
-  coverImage: z.string(),
-});
-function validateDraft(value: unknown) {
-  const result = draftSchema.safeParse(value);
-  return result.success ? result.data : null;
-}
 function draftOwner() {
   try {
     const payload = getToken()?.split(".")[1];
