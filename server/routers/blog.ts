@@ -253,7 +253,7 @@ export const blogRouter = router({
     .query(async ({ input }) => {
       try {
         const article = await db.getArticleBySlug(input.slug);
-        if (!article) {
+        if (!article || article.status !== "published") {
           return {
             success: false,
             article: null,
