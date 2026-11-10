@@ -12,10 +12,13 @@ import {
   LogOut,
   Sparkles,
   BarChart3,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { verify, logout } from "@/lib/auth";
 import LoginPage from "./LoginPage";
+import { Button } from "@/components/ui/button";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -36,6 +39,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
   const queryClient = useQueryClient();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => setMenuOpen(false), [location]);
 
   useEffect(() => {
     verify().then(setIsAuthed);
@@ -63,60 +69,90 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   // 已登录
   return (
-    <div className="h-screen bg-background text-foreground flex overflow-hidden">
+    <div className="h-dvh bg-background text-foreground flex flex-col lg:flex-row overflow-hidden">
       {/* 侧边栏 */}
-      <aside className="w-56 border-r border-border p-6 flex flex-col shrink-0 overflow-y-auto">
-        <Link href="/">
-          <span
-            className="text-foreground font-bold text-lg cursor-pointer"
-            style={{ fontFamily: "'Playfair Display', 'Noto Serif SC', serif" }}
-          >
-            墨迹 / Admin
-          </span>
-        </Link>
-
-        <nav className="mt-8 space-y-1">
-          {navItems.map(item => {
-            const isActive = item.exact
-              ? location === item.href
-              : location.startsWith(item.href);
-            return (
-              <Link key={item.href} href={item.href}>
-                <div
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors cursor-pointer",
-                    isActive
-                      ? "bg-accent text-accent-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="mt-auto pt-4 border-t border-border space-y-2">
+      <aside className="w-full lg:w-56 max-h-[75dvh] lg:max-h-none border-b lg:border-b-0 lg:border-r border-border p-4 lg:p-6 flex flex-col shrink-0 overflow-y-auto">
+        <div className="flex items-center justify-between gap-3">
           <Link href="/">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-              <ArrowLeft className="h-4 w-4" />
-              返回博客
-            </div>
+            <span
+              className="text-foreground font-bold text-lg cursor-pointer"
+              style={{
+                fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
+              }}
+            >
+              墨迹 / Admin
+            </span>
           </Link>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors cursor-pointer w-full"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="admin-navigation"
+            onClick={() => setMenuOpen(open => !open)}
           >
-            <LogOut className="h-4 w-4" />
-            退出登录
-          </button>
+            {menuOpen ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Menu className="h-4 w-4" />
+            )}
+            管理菜单
+          </Button>
+        </div>
+
+        <div
+          id="admin-navigation"
+          className={cn("lg:flex lg:flex-1 lg:flex-col", !menuOpen && "hidden")}
+        >
+          <nav aria-label="后台管理" className="mt-4 lg:mt-8 space-y-1">
+            {navItems.map(item => {
+              const isActive = item.exact
+                ? location === item.href
+                : location.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  <div
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors cursor-pointer",
+                      isActive
+                        ? "bg-accent text-accent-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="mt-auto pt-4 border-t border-border space-y-2">
+            <Link href="/">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                <ArrowLeft className="h-4 w-4" />
+                返回博客
+              </div>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors cursor-pointer w-full"
+            >
+              <LogOut className="h-4 w-4" />
+              退出登录
+            </button>
+          </div>
         </div>
       </aside>
 
       {/* 主内容区 */}
-      <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+      <main className="flex-1 min-h-0 min-w-0 p-4 lg:p-8 overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 }

@@ -579,7 +579,7 @@ function ArticleEditor() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <div className="md:col-span-2 space-y-2">
             <Label htmlFor="series">所属系列（可选）</Label>
             <Input
@@ -616,7 +616,7 @@ function ArticleEditor() {
         </div>
 
         {/* Slug + 日期 + 分类 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="slug">Slug</Label>
             <Input
@@ -677,8 +677,8 @@ function ArticleEditor() {
         </div>
 
         {/* 置顶 + 发布状态 */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap items-center gap-3">
             <Switch
               checked={featured}
               onCheckedChange={setFeatured}
@@ -717,7 +717,7 @@ function ArticleEditor() {
         {/* 封面图片 */}
         <div className="space-y-2">
           <Label>封面图片</Label>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               ref={imageInputRef}
               type="file"
@@ -781,7 +781,7 @@ function ArticleEditor() {
 
             {showAIPanel && (
               <div className="p-4 space-y-4 border-t">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium flex items-center gap-2">
                       <Wand2 className="h-4 w-4" />
@@ -852,12 +852,9 @@ function ArticleEditor() {
         {/* 正文 - 分栏编辑器 */}
         <div className="space-y-2">
           <Label>正文 (Markdown) *</Label>
-          <div className="flex gap-4" style={{ height: "70vh" }}>
+          <div className="flex flex-col xl:flex-row gap-4 xl:h-[70vh]">
             {/* 左侧编辑区 */}
-            <div
-              id="article-preview"
-              className="flex-1 flex flex-col min-w-0 scroll-mt-28"
-            >
+            <div className="flex-1 flex flex-col min-w-0 min-h-[55vh] xl:min-h-0">
               <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-t-md border border-b-0">
                 编辑
               </div>
@@ -871,7 +868,10 @@ function ArticleEditor() {
               />
             </div>
             {/* 右侧预览区 */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div
+              id="article-preview"
+              className="flex-1 flex flex-col min-w-0 min-h-[55vh] xl:min-h-0 scroll-mt-48 xl:scroll-mt-28"
+            >
               <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/50 rounded-t-md border border-b-0">
                 预览
               </div>
@@ -880,7 +880,7 @@ function ArticleEditor() {
                   <MarkdownRenderer content={content} />
                 ) : (
                   <p className="text-sm text-muted-foreground italic">
-                    在左侧输入 Markdown 内容后，这里将显示预览...
+                    输入 Markdown 内容后，这里将显示预览...
                   </p>
                 )}
               </div>
@@ -894,7 +894,7 @@ function ArticleEditor() {
         </div>
 
         {/* 提交按钮 */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex flex-wrap gap-3 pt-2">
           <Button
             onClick={() => void handleSubmit()}
             disabled={isSaving || !!draft.recovery}
