@@ -35,31 +35,31 @@ export default function ArticleCard({
             <div className="min-w-0 flex flex-col justify-center">
               <div className="flex items-baseline justify-between gap-4">
                 <h3
-                  className="text-[#1A1A1A] dark:text-[#F5F5F5] text-base font-medium group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors line-clamp-1 flex-1"
+                  className="text-foreground text-base font-medium group-hover:text-foreground/70 transition-colors line-clamp-1 flex-1"
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
                 >
                   {article.title}
                 </h3>
                 <span
-                  className="text-[#9B9B9B] dark:text-[#808080] text-xs shrink-0"
+                  className="text-muted-foreground text-xs shrink-0"
                   style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                 >
                   {article.date.slice(0, 7)}
                 </span>
               </div>
               <p
-                className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm mt-1 line-clamp-1"
+                className="text-muted-foreground text-sm mt-1 line-clamp-1"
                 style={{ fontFamily: "'Noto Serif SC', serif" }}
               >
                 {article.excerpt}
               </p>
             </div>
             {article.coverImage ? (
-              <div className="overflow-hidden rounded-xl aspect-[16/9] bg-muted ring-1 ring-foreground/5 shadow-[0_14px_34px_-22px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:-translate-y-0.5">
+              <div className="overflow-hidden rounded-md aspect-[16/9] bg-muted border border-border transition-transform duration-500 motion-safe:group-hover:-translate-y-0.5">
                 <img
                   src={assetUrl(article.coverImage)}
                   alt={coverAlt}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+                  className="h-full w-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-[1.06]"
                   loading="lazy"
                   decoding="async"
                 />
@@ -80,21 +80,21 @@ export default function ArticleCard({
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <span
-                    className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
+                    className="text-muted-foreground text-xs tracking-[0.08em]"
                     style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                   >
                     {formatDate(article.date)}
                   </span>
-                  <span className="w-px h-3 bg-[#D4D4D0] dark:bg-[#333333]" />
+                  <span className="w-px h-3 bg-border" />
                   <span
-                    className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
+                    className="text-muted-foreground text-xs tracking-[0.08em]"
                     style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                   >
                     {article.readTime} min read
                   </span>
                 </div>
                 <h2
-                  className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl md:text-2xl font-semibold mb-2 leading-tight group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors line-clamp-2"
+                  className="text-foreground text-xl md:text-2xl font-semibold mb-2 leading-tight group-hover:text-foreground/70 transition-colors line-clamp-2"
                   style={{
                     fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
                   }}
@@ -103,14 +103,14 @@ export default function ArticleCard({
                 </h2>
                 {article.subtitle && (
                   <p
-                    className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm mb-3 italic line-clamp-1"
+                    className="text-muted-foreground text-sm mb-3 italic line-clamp-1"
                     style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
                   >
                     {article.subtitle}
                   </p>
                 )}
                 <p
-                  className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed line-clamp-3"
+                  className="text-foreground/85 text-sm leading-relaxed line-clamp-3"
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
                 >
                   {article.excerpt}
@@ -135,17 +135,17 @@ export default function ArticleCard({
             </div>
             <div className="order-1 md:order-2 flex items-center justify-center">
               {article.coverImage ? (
-                <div className="overflow-hidden rounded-2xl aspect-[4/3] md:aspect-[5/4] bg-muted ring-1 ring-foreground/5 shadow-[0_18px_50px_-28px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] w-full">
+                <div className="overflow-hidden rounded-md aspect-[4/3] md:aspect-[5/4] bg-muted border border-border transition-transform duration-500 motion-safe:group-hover:-translate-y-1 w-full">
                   <img
                     src={assetUrl(article.coverImage)}
                     alt={coverAlt}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+                    className="h-full w-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-[1.06]"
                     loading="lazy"
                     decoding="async"
                   />
                 </div>
               ) : (
-                <div className="rounded-2xl aspect-[4/3] md:aspect-[5/4] bg-muted/50 ring-1 ring-foreground/5 flex items-center justify-center w-full">
+                <div className="rounded-md aspect-[4/3] md:aspect-[5/4] bg-muted/50 border border-border flex items-center justify-center w-full">
                   <span
                     className="text-muted-foreground text-xs"
                     style={{ fontFamily: "'IBM Plex Mono', monospace" }}
@@ -163,26 +163,26 @@ export default function ArticleCard({
 
   return (
     <Link href={`/article/${article.slug}`}>
-      <article className="article-card group py-6 px-4 -mx-4 cursor-pointer border-b border-[#1A1A1A]/8 dark:border-[#F5F5F5]/8">
+      <article className="article-card group py-6 px-4 -mx-4 cursor-pointer border-b border-border">
         <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] gap-6 items-center">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span
-                className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
+                className="text-muted-foreground text-xs tracking-[0.08em]"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 {formatDate(article.date)}
               </span>
-              <span className="w-px h-3 bg-[#D4D4D0] dark:bg-[#333333]" />
+              <span className="w-px h-3 bg-border" />
               <span
-                className="text-[#9B9B9B] dark:text-[#808080] text-xs tracking-[0.08em]"
+                className="text-muted-foreground text-xs tracking-[0.08em]"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
               >
                 {article.readTime} min
               </span>
             </div>
             <h2
-              className="text-[#1A1A1A] dark:text-[#F5F5F5] text-xl font-semibold mb-2 group-hover:text-[#000] dark:group-hover:text-[#FFF] transition-colors"
+              className="text-foreground text-xl font-semibold mb-2 group-hover:text-foreground/70 transition-colors"
               style={{
                 fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
               }}
@@ -191,14 +191,14 @@ export default function ArticleCard({
             </h2>
             {article.subtitle && (
               <p
-                className="text-[#6B6B6B] dark:text-[#A0A0A0] text-sm mb-2 italic"
+                className="text-muted-foreground text-sm mb-2 italic"
                 style={{ fontFamily: "'Lora', 'Noto Serif SC', serif" }}
               >
                 {article.subtitle}
               </p>
             )}
             <p
-              className="text-[#4A4A4A] dark:text-[#D0D0D0] text-sm leading-relaxed line-clamp-2"
+              className="text-foreground/85 text-sm leading-relaxed line-clamp-2"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               {article.excerpt}
@@ -213,11 +213,11 @@ export default function ArticleCard({
           </div>
 
           {article.coverImage ? (
-            <div className="overflow-hidden rounded-xl aspect-[16/9] bg-muted ring-1 ring-foreground/5 shadow-[0_16px_40px_-26px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_22px_54px_-24px_rgba(0,0,0,0.5)]">
+            <div className="overflow-hidden rounded-md aspect-[16/9] bg-muted border border-border transition-transform duration-500 motion-safe:group-hover:-translate-y-1 group-hover:">
               <img
                 src={assetUrl(article.coverImage)}
                 alt={coverAlt}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                className="w-full h-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-[1.05]"
                 loading="lazy"
                 decoding="async"
               />

@@ -136,7 +136,7 @@ export default function ArchiveDetail() {
               {archive.category}
             </p>
             <h1
-              className="text-foreground text-4xl md:text-5xl font-bold mb-4 leading-tight"
+              className="text-foreground text-3xl md:text-5xl font-bold mb-4 leading-tight break-words"
               style={{
                 fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
                 letterSpacing: "-0.02em",
@@ -154,7 +154,7 @@ export default function ArchiveDetail() {
             )}
 
             {/* 归档元数据 */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground break-words">
               <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
                 {formatDate(archive.date)}
               </span>
@@ -165,7 +165,7 @@ export default function ArchiveDetail() {
               {archive.tags && archive.tags.length > 0 && (
                 <>
                   <span>·</span>
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 flex-wrap gap-2">
                     {archive.tags.map((tag: string) => (
                       <span
                         key={tag}

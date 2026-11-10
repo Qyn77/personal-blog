@@ -47,7 +47,6 @@ function formatDate(dateStr: string) {
 export default function Article() {
   const params = useParams<{ slug: string }>();
   const [readProgress, setReadProgress] = useState(0);
-  const [heroOffset, setHeroOffset] = useState(0);
 
   // 调用 tRPC API 获取单篇文章
   const {
@@ -131,7 +130,6 @@ export default function Article() {
       const docHeight =
         document.documentElement.scrollHeight - window.innerHeight;
       setReadProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
-      setHeroOffset(Math.min(scrollTop * 0.45, 180));
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -160,25 +158,20 @@ export default function Article() {
 
       <Navbar />
 
-      <main className="pb-20">
+      <main className="pt-24 md:pt-28 pb-20">
         <article className="max-w-4xl mx-auto px-6 lg:px-8">
           {/* 文章头部 */}
           <div className="mb-12 fade-in-up relative">
             {article.coverImage && (
-              <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 overflow-hidden aspect-[16/7] max-h-[460px] bg-muted ring-1 ring-foreground/5 shadow-[0_20px_60px_-28px_rgba(0,0,0,0.55)]">
+              <div className="overflow-hidden rounded-md aspect-[16/9] md:aspect-[16/7] bg-muted border border-border">
                 <img
                   src={resolveBookImage(article.coverImage)}
                   alt={`${article.title} 封面`}
                   className="h-full w-full object-cover"
-                  style={{
-                    transform: `translate3d(0, ${heroOffset}px, 0) scale(1.14)`,
-                  }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/55" />
-                <div className="absolute inset-0 bg-black/8 mix-blend-multiply" />
               </div>
             )}
-            <div className="relative z-10 -mt-16 rounded-2xl border border-border/60 bg-background/92 px-5 py-6 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.42)] backdrop-blur-md md:px-7">
+            <div className="border-b border-border py-8 md:py-10">
               <p
                 className="text-muted-foreground text-xs tracking-[0.2em] uppercase mb-3"
                 style={{ fontFamily: "'IBM Plex Mono', monospace" }}
@@ -186,7 +179,7 @@ export default function Article() {
                 {article.category}
               </p>
               <h1
-                className="text-foreground text-4xl md:text-5xl font-bold mb-4 leading-tight"
+                className="text-foreground text-3xl md:text-5xl font-bold mb-4 leading-tight break-words"
                 style={{
                   fontFamily: "'Playfair Display', 'Noto Serif SC', serif",
                   letterSpacing: "-0.02em",
@@ -204,7 +197,7 @@ export default function Article() {
               )}
 
               {/* 文章元数据 */}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground break-words">
                 <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
                   {formatDate(article.date)}
                 </span>
@@ -215,7 +208,7 @@ export default function Article() {
                 {article.tags.length > 0 && (
                   <>
                     <span>·</span>
-                    <div className="flex gap-2">
+                    <div className="flex min-w-0 flex-wrap gap-2">
                       {article.tags.map(tag => (
                         <span
                           key={tag}

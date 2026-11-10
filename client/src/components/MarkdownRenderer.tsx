@@ -249,7 +249,7 @@ function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
           a: ({ href, children }) => (
             <a
               href={href}
-              className="text-blue-600 dark:text-blue-400 underline underline-offset-2 decoration-blue-600/40 dark:decoration-blue-400/40 hover:decoration-blue-600 dark:hover:decoration-blue-400 transition-colors"
+              className="text-foreground underline underline-offset-4 decoration-muted-foreground hover:decoration-foreground focus-visible:outline focus-visible:outline-ring transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -424,7 +424,7 @@ function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
                   alt={alt}
                   loading="lazy"
                   referrerPolicy="no-referrer"
-                  className="w-full h-auto rounded-lg shadow-md border border-border/50 hover:shadow-lg transition-shadow"
+                  className="w-full h-auto rounded-md border border-border"
                 />
                 {alt && (
                   <figcaption
