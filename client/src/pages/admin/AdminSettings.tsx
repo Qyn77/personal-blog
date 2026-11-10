@@ -23,7 +23,11 @@ export default function AdminSettings() {
   }, [settingsData]);
 
   const updateSettings = trpc.admin.updateNotifySettings.useMutation({
-    onSuccess: () => {
+    onSuccess: result => {
+      if (!result.success) {
+        toast.error("保存失败，请重试");
+        return;
+      }
       toast.success("设置已保存");
       utils.admin.getNotifySettings.invalidate();
     },
