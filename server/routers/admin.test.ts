@@ -4,6 +4,7 @@ vi.mock("../db", () => ({
   getArticleBySlug: vi.fn(),
   insertArticle: vi.fn(async () => true),
   getSetting: vi.fn(),
+  setSetting: vi.fn(),
 }));
 import * as db from "../db";
 import { adminRouter } from "./admin";
@@ -22,4 +23,19 @@ it("creates an unpublished draft unless publishing is explicitly requested", asy
   expect(db.insertArticle).toHaveBeenCalledWith(
     expect.objectContaining({ status: "draft" })
   );
+});
+
+it("does not report successful notification settings when persistence fails", async () => {
+  const caller = adminRouter.createCaller({
+    req: { headers: { authorization: "Bearer test" } } as any,
+    res: {} as any,
+  });
+  vi.mocked(db.setSetting).mockResolvedValueOnce(false);
+  expect(await caller.updateNotifySettings({ autoNotify: true })).toMatchObject(
+    { success: false }
+  );
+  vi.mocked(db.setSetting).mockResolvedValueOnce(true);
+  expect(await caller.updateNotifySettings({ autoNotify: true })).toEqual({
+    success: true,
+  });
 });

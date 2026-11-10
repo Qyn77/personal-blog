@@ -587,7 +587,12 @@ export const adminRouter = router({
     .input(z.object({ autoNotify: z.boolean() }))
     .mutation(async ({ input }) => {
       try {
-        await db.setSetting("auto_notify", String(input.autoNotify));
+        const saved = await db.setSetting(
+          "auto_notify",
+          String(input.autoNotify)
+        );
+        if (!saved)
+          return { success: false, error: "Failed to update settings" };
         return { success: true };
       } catch (error) {
         console.error("[Admin] Error updating notify settings:", error);
