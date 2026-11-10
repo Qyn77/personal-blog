@@ -1112,14 +1112,10 @@ export async function setSetting(key: string, value: string): Promise<boolean> {
   if (!db) return false;
 
   try {
-    const existing = await getSetting(key);
-    if (existing !== undefined) {
-      // @ts-ignore
-      await db.update(settings).set({ value }).where(eq(settings.key, key));
-    } else {
-      // @ts-ignore
-      await db.insert(settings).values({ key, value });
-    }
+    db.insert(settings)
+      .values({ key, value })
+      .onConflictDoUpdate({ target: settings.key, set: { value } })
+      .run();
     saveDb();
     return true;
   } catch (error) {

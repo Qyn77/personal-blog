@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { getSetting, setSetting } from "../db";
 
 export interface AIMessage {
   role: "system" | "user" | "assistant";
@@ -223,8 +224,13 @@ class ClaudeProvider extends AIProvider {
   }
 }
 
-let aiProvider: AIProvider | null = null;
-let currentConfig: AIConfig | null = null;
+const configSchema = z.object({
+  provider: z.enum(["deepseek", "openai", "claude", "custom"]),
+  apiKey: z.string(),
+  apiBaseUrl: z.string().url(),
+  model: z.string(),
+  enabled: z.boolean(),
+});
 
 function createProvider(config: AIConfig): AIProvider {
   switch (config.provider) {
@@ -243,36 +249,28 @@ function createProvider(config: AIConfig): AIProvider {
   }
 }
 
-export function setAIConfig(config: AIConfig): void {
-  currentConfig = config;
-  aiProvider = null;
-  console.log(
-    `[AI] Config updated: ${config.provider} (model: ${config.model})`
-  );
+export async function setAIConfig(config: AIConfig): Promise<void> {
+  const parsed = configSchema.parse(config);
+  if (!(await setSetting("ai_config", JSON.stringify(parsed)))) {
+    throw new Error("AI 配置保存失败，请重试");
+  }
 }
 
-export function getAIConfig(): AIConfig | null {
-  return currentConfig;
+export async function getAIConfig(): Promise<AIConfig | null> {
+  const stored = await getSetting("ai_config");
+  if (!stored) return null;
+  try {
+    const result = configSchema.safeParse(JSON.parse(stored));
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
 }
 
-function getAIProvider(): AIProvider | null {
-  if (!currentConfig || !currentConfig.enabled) {
-    return null;
-  }
-
-  if (!currentConfig.apiKey) {
-    console.warn("[AI] API Key is not set.");
-    return null;
-  }
-
-  if (!aiProvider) {
-    aiProvider = createProvider(currentConfig);
-    console.log(
-      `[AI] Initialized with ${aiProvider.name} (model: ${aiProvider.model})`
-    );
-  }
-
-  return aiProvider;
+async function getAIProvider(): Promise<AIProvider | null> {
+  const config = await getAIConfig();
+  if (!config?.enabled || !config.apiKey) return null;
+  return createProvider(config);
 }
 
 const METADATA_PROMPT = `你是一个专业的博客内容策划助手。请根据提供的文章内容，生成合适的元数据。
@@ -314,7 +312,7 @@ const POLISH_PROMPT = `你是一个专业的文案编辑。请对提供的文章
 export async function generateMetadata(
   content: string
 ): Promise<GenerateMetadataResult | null> {
-  const provider = getAIProvider();
+  const provider = await getAIProvider();
   if (!provider) {
     return null;
   }
@@ -365,7 +363,7 @@ export async function generateMetadata(
 export async function polishContent(
   content: string
 ): Promise<PolishContentResult | null> {
-  const provider = getAIProvider();
+  const provider = await getAIProvider();
   if (!provider) {
     return null;
   }
@@ -389,6 +387,7 @@ export async function polishContent(
   }
 }
 
-export function isAIEnabled(): boolean {
-  return !!currentConfig?.enabled && !!currentConfig?.apiKey;
+export async function isAIEnabled(): Promise<boolean> {
+  const config = await getAIConfig();
+  return !!config?.enabled && !!config.apiKey;
 }

@@ -17,18 +17,18 @@ import {
 
 export const aiRouter = router({
   /** 检查 AI 功能是否启用 */
-  checkEnabled: protectedProcedure.query(() => {
-    return { enabled: isAIEnabled() };
+  checkEnabled: protectedProcedure.query(async () => {
+    return { enabled: await isAIEnabled() };
   }),
 
   /** 获取所有支持的服务商列表 */
-  getProviders: protectedProcedure.query(() => {
+  getProviders: protectedProcedure.query(async () => {
     return AI_PROVIDERS;
   }),
 
   /** 获取当前配置 */
-  getConfig: protectedProcedure.query(() => {
-    return { config: getAIConfig() };
+  getConfig: protectedProcedure.query(async () => {
+    return { config: await getAIConfig() };
   }),
 
   /** 保存配置 */
@@ -42,7 +42,7 @@ export const aiRouter = router({
         enabled: z.boolean(),
       })
     )
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       const config: AIConfig = {
         provider: input.provider,
         apiKey: input.apiKey,
@@ -50,7 +50,7 @@ export const aiRouter = router({
         model: input.model,
         enabled: input.enabled,
       };
-      setAIConfig(config);
+      await setAIConfig(config);
       return { success: true, message: "配置已保存" };
     }),
 
@@ -65,7 +65,7 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (!isAIEnabled()) {
+      if (!(await isAIEnabled())) {
         return { success: false, error: "AI 功能未启用，请检查配置" };
       }
 
@@ -92,7 +92,7 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      if (!isAIEnabled()) {
+      if (!(await isAIEnabled())) {
         return { success: false, error: "AI 功能未启用，请检查配置" };
       }
 
