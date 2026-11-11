@@ -24,7 +24,7 @@ export const archiveRouter = router({
       try {
         ctx.res.setHeader(
           "Cache-Control",
-          "public, max-age=30, stale-while-revalidate=120"
+          "public, max-age=0, must-revalidate"
         );
         const limit = input?.limit ?? 12;
         const cacheKey = `listArchiveSummaries:${limit}`;
@@ -74,10 +74,7 @@ export const archiveRouter = router({
    */
   listArchives: publicProcedure.query(async ({ ctx }) => {
     try {
-      ctx.res.setHeader(
-        "Cache-Control",
-        "public, max-age=30, stale-while-revalidate=120"
-      );
+      ctx.res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
       const archives = await db.getAllArchives();
       return {
         success: true,

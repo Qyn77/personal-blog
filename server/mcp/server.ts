@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { Token, McpScope } from "./store";
 import * as content from "./content";
+import * as archives from "./archives";
 
 export function createMcpServer(token: Token, origin: string) {
   const server = new McpServer(
@@ -125,6 +126,46 @@ export function createMcpServer(token: Token, origin: string) {
     "content:read",
     false,
     input => content.createPreview(token, input.id, origin)
+  );
+  tool(
+    "list_archives",
+    "分页查询归档摘要；归档均为公开内容。",
+    archives.listArchivesInput,
+    "archive:read",
+    true,
+    input => archives.listArchives(token, input)
+  );
+  tool(
+    "get_archive",
+    "按 ID 读取完整归档和 updatedAt。",
+    z.object({ id: z.string().min(1) }).strict(),
+    "archive:read",
+    true,
+    input => archives.getArchive(token, input.id)
+  );
+  tool(
+    "create_archive",
+    "创建归档后立即公开，没有草稿状态；仅在用户要求添加公开归档时调用。",
+    archives.createArchiveInput,
+    "archive:write",
+    false,
+    input => archives.createArchive(token, input, origin)
+  );
+  tool(
+    "update_archive",
+    "更新公开归档，未传入字段保持原样；需提供最新 updatedAt。",
+    archives.updateArchiveInput,
+    "archive:write",
+    false,
+    input => archives.updateArchive(token, input, origin)
+  );
+  tool(
+    "delete_archive",
+    "永久删除归档，没有回收站；仅在用户明确要求删除时调用，需原样传入当前标题确认。",
+    archives.deleteArchiveInput,
+    "archive:delete",
+    false,
+    input => archives.deleteArchive(token, input)
   );
   return server;
 }

@@ -1,3 +1,9 @@
+import {
+  insertArchiveRow,
+  updateArchiveRow,
+  deleteArchiveRow,
+  type ArchiveFields,
+} from "./lib/archiveWrites";
 import { eq, desc, asc, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs, { type Database } from "sql.js";
@@ -614,101 +620,34 @@ export async function getArchiveById(id: string): Promise<Archive | undefined> {
 // 归档 - 写入
 // ============================================================================
 
-export async function insertArchive(archive: {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle?: string;
-  excerpt: string;
-  content: string;
-  date: string;
-  readTime: number;
-  tags: string[];
-  category: string;
-}): Promise<boolean> {
-  const db = await getDb();
-  if (!db) return false;
-
+export async function insertArchive(
+  archive: ArchiveFields & { id: string }
+): Promise<boolean> {
   try {
-    const now = Date.now();
-    // @ts-ignore
-    db.insert(archives)
-      .values({
-        id: archive.id,
-        slug: archive.slug,
-        title: archive.title,
-        subtitle: archive.subtitle,
-        excerpt: archive.excerpt,
-        content: archive.content,
-        date: archive.date,
-        readTime: archive.readTime,
-        tags: JSON.stringify(archive.tags),
-        category: archive.category,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .run();
-    saveDb();
+    await writeDatabase(db => insertArchiveRow(db, archive));
     return true;
-  } catch (error) {
-    console.error("[Database] Failed to insert archive:", error);
+  } catch {
     return false;
   }
 }
 
 export async function updateArchive(
   id: string,
-  data: Partial<{
-    slug: string;
-    title: string;
-    subtitle: string;
-    excerpt: string;
-    content: string;
-    date: string;
-    readTime: number;
-    tags: string[];
-    category: string;
-  }>
+  data: Partial<ArchiveFields>
 ): Promise<boolean> {
-  const db = await getDb();
-  if (!db) return false;
-
   try {
-    const updateData: Record<string, any> = {
-      updatedAt: Date.now(),
-    };
-
-    if (data.slug !== undefined) updateData.slug = data.slug;
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.subtitle !== undefined) updateData.subtitle = data.subtitle;
-    if (data.excerpt !== undefined) updateData.excerpt = data.excerpt;
-    if (data.content !== undefined) updateData.content = data.content;
-    if (data.date !== undefined) updateData.date = data.date;
-    if (data.readTime !== undefined) updateData.readTime = data.readTime;
-    if (data.tags !== undefined) updateData.tags = JSON.stringify(data.tags);
-    if (data.category !== undefined) updateData.category = data.category;
-
-    // @ts-ignore
-    db.update(archives).set(updateData).where(eq(archives.id, id)).run();
-    saveDb();
+    await writeDatabase(db => updateArchiveRow(db, id, data));
     return true;
-  } catch (error) {
-    console.error("[Database] Failed to update archive:", error);
+  } catch {
     return false;
   }
 }
 
 export async function deleteArchive(id: string): Promise<boolean> {
-  const db = await getDb();
-  if (!db) return false;
-
   try {
-    // @ts-ignore
-    db.delete(archives).where(eq(archives.id, id)).run();
-    saveDb();
+    await writeDatabase(db => deleteArchiveRow(db, id));
     return true;
-  } catch (error) {
-    console.error("[Database] Failed to delete archive:", error);
+  } catch {
     return false;
   }
 }
