@@ -52,7 +52,7 @@ export const blogRouter = router({
       try {
         ctx.res.setHeader(
           "Cache-Control",
-          "public, max-age=30, stale-while-revalidate=120"
+          "public, max-age=0, must-revalidate"
         );
         const pageSize = input?.pageSize ?? 20;
         const cacheKey = `listArticleSummaries:${pageSize}:${input?.featured ?? "all"}`;
@@ -107,10 +107,7 @@ export const blogRouter = router({
   /** 首页站点统计（全量口径，避免分页截断导致计数不准） */
   getSiteStats: publicProcedure.query(async ({ ctx }) => {
     try {
-      ctx.res.setHeader(
-        "Cache-Control",
-        "public, max-age=30, stale-while-revalidate=120"
-      );
+      ctx.res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
       const cacheKey = "getSiteStats";
       const cached = responseCache.get<{
         success: true;
@@ -156,7 +153,7 @@ export const blogRouter = router({
       try {
         ctx.res.setHeader(
           "Cache-Control",
-          "public, max-age=30, stale-while-revalidate=120"
+          "public, max-age=0, must-revalidate"
         );
         const options = input || {};
         // public 列表接口短缓存，减轻高频读压力
@@ -223,10 +220,7 @@ export const blogRouter = router({
    */
   getFilterOptions: publicProcedure.query(async ({ ctx }) => {
     try {
-      ctx.res.setHeader(
-        "Cache-Control",
-        "public, max-age=30, stale-while-revalidate=120"
-      );
+      ctx.res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
       const cacheKey = "getFilterOptions";
       const cached = responseCache.get<{
         success: true;

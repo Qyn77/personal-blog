@@ -1,3 +1,8 @@
+let generation = 0;
+export function invalidateContentCache() {
+  generation++;
+}
+
 type CacheEntry<T> = {
   expiresAt: number;
   value: T;
@@ -9,6 +14,7 @@ export function createResponseCache(
 ) {
   const store = new Map<string, CacheEntry<unknown>>();
   let writeCount = 0;
+  let seenGeneration = generation;
 
   const removeExpired = (now: number) => {
     store.forEach((entry, key) => {
@@ -27,6 +33,10 @@ export function createResponseCache(
   };
 
   const get = <T>(key: string): T | null => {
+    if (seenGeneration !== generation) {
+      store.clear();
+      seenGeneration = generation;
+    }
     const cached = store.get(key);
     if (!cached) return null;
     if (Date.now() > cached.expiresAt) {

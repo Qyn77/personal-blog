@@ -17,6 +17,11 @@ import {
 } from "./schema";
 import { ensureArticleSeriesColumns } from "./lib/articleSeries";
 import { ROOT_DIR } from "./root";
+import {
+  insertArticleRow,
+  updateArticleRow,
+  type ArticleFields,
+} from "./lib/articleWrites";
 
 const DB_PATH = path.join(ROOT_DIR, "blog.db");
 
@@ -504,50 +509,13 @@ export async function getArticleById(id: string): Promise<Article | undefined> {
 // 博客文章 - 写入
 // ============================================================================
 
-export async function insertArticle(article: {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle?: string;
-  excerpt: string;
-  content: string;
-  date: string;
-  readTime: number;
-  tags: string[];
-  category: string;
-  featured?: boolean;
-  coverImage?: string;
-  status?: string;
-  series?: string;
-  seriesOrder?: number;
-}): Promise<boolean> {
+export async function insertArticle(
+  article: ArticleFields & { id: string }
+): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
-
   try {
-    const now = Date.now();
-    // @ts-ignore
-    db.insert(articles)
-      .values({
-        id: article.id,
-        slug: article.slug,
-        title: article.title,
-        subtitle: article.subtitle,
-        excerpt: article.excerpt,
-        content: article.content,
-        date: article.date,
-        readTime: article.readTime,
-        tags: JSON.stringify(article.tags),
-        category: article.category,
-        featured: article.featured ? 1 : 0,
-        coverImage: article.coverImage || "/books/default/ai.svg",
-        status: article.status || "published",
-        series: article.series?.trim() || null,
-        seriesOrder: article.seriesOrder ?? 0,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .run();
+    insertArticleRow(_sqlJsDb, article);
     saveDb();
     return true;
   } catch (error) {
@@ -558,51 +526,12 @@ export async function insertArticle(article: {
 
 export async function updateArticle(
   id: string,
-  data: Partial<{
-    slug: string;
-    title: string;
-    subtitle: string;
-    excerpt: string;
-    content: string;
-    date: string;
-    readTime: number;
-    tags: string[];
-    category: string;
-    featured: boolean;
-    coverImage: string;
-    status: string;
-    series: string;
-    seriesOrder: number;
-  }>
+  data: Partial<ArticleFields>
 ): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
-
   try {
-    const updateData: Record<string, any> = {
-      updatedAt: Date.now(),
-    };
-
-    if (data.slug !== undefined) updateData.slug = data.slug;
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.subtitle !== undefined) updateData.subtitle = data.subtitle;
-    if (data.excerpt !== undefined) updateData.excerpt = data.excerpt;
-    if (data.content !== undefined) updateData.content = data.content;
-    if (data.date !== undefined) updateData.date = data.date;
-    if (data.readTime !== undefined) updateData.readTime = data.readTime;
-    if (data.tags !== undefined) updateData.tags = JSON.stringify(data.tags);
-    if (data.category !== undefined) updateData.category = data.category;
-    if (data.featured !== undefined)
-      updateData.featured = data.featured ? 1 : 0;
-    if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
-    if (data.status !== undefined) updateData.status = data.status;
-    if (data.series !== undefined)
-      updateData.series = data.series.trim() || null;
-    if (data.seriesOrder !== undefined)
-      updateData.seriesOrder = data.seriesOrder;
-
-    // @ts-ignore
-    db.update(articles).set(updateData).where(eq(articles.id, id)).run();
+    updateArticleRow(_sqlJsDb, id, data);
     saveDb();
     return true;
   } catch (error) {

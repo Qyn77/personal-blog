@@ -14,6 +14,7 @@ import { sitemapRouter } from "../routes/sitemap";
 import { subscribeRouter } from "../routes/subscribe";
 import { visitorRouter } from "../routes/visitor";
 import { ROOT_DIR } from "../root";
+import { mcpRouter, previewRouter } from "../mcp/http";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +40,16 @@ async function startServer() {
   const server = createServer(app);
   // 部署在反向代理（nginx / Railway / Cloudflare）后面，需信任 X-Forwarded-* 才能拿到 https 协议与真实 IP
   app.set("trust proxy", true);
+  app.use("/mcp", mcpRouter);
+  app.use("/api/mcp-preview", previewRouter);
+  app.use("/preview", (_req, res, next) => {
+    res.set({
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex, nofollow",
+      "Referrer-Policy": "no-referrer",
+    });
+    next();
+  });
   // Body parser — 2MB 足够博客文章内容（文件上传由 multer 单独处理）
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ limit: "2mb", extended: true }));

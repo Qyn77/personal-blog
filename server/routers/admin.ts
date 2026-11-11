@@ -19,6 +19,7 @@ import {
 import { sendArticleNotify, sendTestEmail } from "../lib/email";
 import { parseSeriesMetadata } from "../lib/articleSeries";
 import { ROOT_DIR } from "../root";
+import { prepareArticleContent } from "../lib/articleWrites";
 
 export const adminRouter = router({
   // ========================================================================
@@ -115,9 +116,11 @@ export const adminRouter = router({
           slug = `${slug}-${nanoid(6)}`;
         }
 
-        const processedContent = processMarkdownImages(input.content);
-        const excerpt = input.excerpt || generateExcerpt(processedContent);
-        const readTime = calculateReadTime(processedContent);
+        const {
+          content: processedContent,
+          excerpt,
+          readTime,
+        } = prepareArticleContent(input.content, input.excerpt);
 
         const status = input.status || "draft";
         const success = await db.insertArticle({
@@ -218,14 +221,11 @@ export const adminRouter = router({
 
         // 如果更新了内容，重新计算阅读时间和处理图片路径
         if (data.content) {
-          data.content = processMarkdownImages(data.content);
-          const readTime = calculateReadTime(data.content);
-          const excerpt = data.excerpt || generateExcerpt(data.content);
+          const prepared = prepareArticleContent(data.content, data.excerpt);
 
           const success = await db.updateArticle(id, {
             ...data,
-            readTime,
-            excerpt,
+            ...prepared,
           });
           if (!success)
             return { success: false, error: "Failed to update article" };
