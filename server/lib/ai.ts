@@ -104,6 +104,8 @@ class DeepSeekProvider extends AIProvider {
   async chat(messages: AIMessage[]): Promise<AIResponse> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
@@ -120,8 +122,7 @@ class DeepSeekProvider extends AIProvider {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`DeepSeek API error: ${response.status} - ${error}`);
+      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -146,26 +147,30 @@ class OpenAIProvider extends AIProvider {
   }
 
   async chat(messages: AIMessage[]): Promise<AIResponse> {
-    const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
+    const response = await fetch(
+      `${this.baseUrl.replace(/\/v1$/, "")}/v1/chat/completions`,
+      {
+        method: "POST",
+        redirect: "error",
+        signal: AbortSignal.timeout(20000),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: messages.map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+          temperature: 0.7,
+          max_tokens: 2000,
+        }),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -190,31 +195,37 @@ class ClaudeProvider extends AIProvider {
   }
 
   async chat(messages: AIMessage[]): Promise<AIResponse> {
-    const response = await fetch(`${this.baseUrl}/v1/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": this.apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: this.model,
-        max_tokens: 2000,
-        temperature: 0.7,
-        messages: [
-          {
-            role: "user",
-            content: messages
-              .map(m => `${m.role === "system" ? "System: " : ""}${m.content}`)
-              .join("\n\n"),
-          },
-        ],
-      }),
-    });
+    const response = await fetch(
+      `${this.baseUrl.replace(/\/v1$/, "")}/v1/messages`,
+      {
+        method: "POST",
+        redirect: "error",
+        signal: AbortSignal.timeout(20000),
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": this.apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 2000,
+          temperature: 0.7,
+          messages: [
+            {
+              role: "user",
+              content: messages
+                .map(
+                  m => `${m.role === "system" ? "System: " : ""}${m.content}`
+                )
+                .join("\n\n"),
+            },
+          ],
+        }),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Claude API error: ${response.status} - ${error}`);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -390,4 +401,20 @@ export async function polishContent(
 export async function isAIEnabled(): Promise<boolean> {
   const config = await getAIConfig();
   return !!config?.enabled && !!config.apiKey;
+}
+
+export async function testAIConnection(config: AIConfig) {
+  if (!config.enabled || !config.apiKey || !config.model)
+    throw new Error("请先配置并启用 AI");
+  try {
+    const response = await createProvider(config).chat([
+      { role: "user", content: "Reply with OK." },
+    ]);
+    if (!response.content.trim()) throw new Error("empty");
+    return { success: true, provider: config.provider, model: config.model };
+  } catch {
+    throw new Error(
+      "AI 连接测试失败，请检查接口地址、密钥、模型和服务商状态；请求超时上限 20 秒"
+    );
+  }
 }

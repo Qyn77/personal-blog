@@ -13,6 +13,8 @@ export const scopes = [
   "archive:delete",
   "site:read",
   "site:write",
+  "ai:read",
+  "ai:write",
 ] as const;
 export type McpScope = (typeof scopes)[number];
 export const tokenInput = z.object({

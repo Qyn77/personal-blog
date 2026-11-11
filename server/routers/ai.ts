@@ -9,11 +9,14 @@ import {
   generateMetadata,
   polishContent,
   isAIEnabled,
-  setAIConfig,
-  getAIConfig,
   AI_PROVIDERS,
-  type AIConfig,
 } from "../lib/ai";
+
+import {
+  adminAIInput,
+  getSafeAIConfig,
+  saveSafeAIConfig,
+} from "../lib/aiConfig";
 
 export const aiRouter = router({
   /** 检查 AI 功能是否启用 */
@@ -27,30 +30,14 @@ export const aiRouter = router({
   }),
 
   /** 获取当前配置 */
-  getConfig: protectedProcedure.query(async () => {
-    return { config: await getAIConfig() };
+  getConfig: protectedProcedure.query(async ({ ctx }) => {
+    ctx.res.setHeader("Cache-Control", "no-store");
+    return getSafeAIConfig();
   }),
-
-  /** 保存配置 */
   saveConfig: protectedProcedure
-    .input(
-      z.object({
-        provider: z.enum(["deepseek", "openai", "claude", "custom"]),
-        apiKey: z.string(),
-        apiBaseUrl: z.string().url(),
-        model: z.string(),
-        enabled: z.boolean(),
-      })
-    )
+    .input(adminAIInput)
     .mutation(async ({ input }) => {
-      const config: AIConfig = {
-        provider: input.provider,
-        apiKey: input.apiKey,
-        apiBaseUrl: input.apiBaseUrl,
-        model: input.model,
-        enabled: input.enabled,
-      };
-      await setAIConfig(config);
+      await saveSafeAIConfig(input);
       return { success: true, message: "配置已保存" };
     }),
 

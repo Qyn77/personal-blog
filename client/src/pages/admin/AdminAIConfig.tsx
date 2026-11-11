@@ -23,13 +23,20 @@ export default function AdminAIConfig() {
   const [model, setModel] = useState<string>("deepseek-chat");
   const [enabled, setEnabled] = useState<boolean>(false);
 
-  const { data: configData } = trpc.ai.getConfig.useQuery();
+  const utils = trpc.useUtils();
+  const [clearApiKey, setClearApiKey] = useState(false);
+  const {
+    data: configData,
+    isLoading,
+    error: loadError,
+  } = trpc.ai.getConfig.useQuery();
   const saveConfigMutation = trpc.ai.saveConfig.useMutation();
 
   useEffect(() => {
     if (configData?.config) {
       setProvider(configData.config.provider);
-      setApiKey(configData.config.apiKey);
+      setApiKey("");
+      setClearApiKey(false);
       setApiBaseUrl(configData.config.apiBaseUrl);
       setModel(configData.config.model);
       setEnabled(configData.config.enabled);
@@ -38,6 +45,7 @@ export default function AdminAIConfig() {
 
   const handleProviderChange = (value: string) => {
     setProvider(value);
+    setApiKey("");
     const providerInfo = AI_PROVIDERS.find(p => p.id === value);
     if (providerInfo) {
       setApiBaseUrl(providerInfo.defaultBaseUrl);
@@ -46,7 +54,12 @@ export default function AdminAIConfig() {
   };
 
   const handleSubmit = async () => {
-    if (!apiKey.trim()) {
+    if (!configData) return;
+    if (
+      enabled &&
+      !apiKey.trim() &&
+      (!configData?.config.hasApiKey || clearApiKey)
+    ) {
       toast.error("请输入 API Key");
       return;
     }
@@ -62,14 +75,21 @@ export default function AdminAIConfig() {
     try {
       await saveConfigMutation.mutateAsync({
         provider: provider as "deepseek" | "openai" | "claude" | "custom",
-        apiKey,
+        apiKey: apiKey.trim() || undefined,
+        clearApiKey,
+        expectedRevision: configData!.revision,
         apiBaseUrl,
         model,
         enabled,
       });
+      setApiKey("");
+      await Promise.all([
+        utils.ai.getConfig.invalidate(),
+        utils.ai.checkEnabled.invalidate(),
+      ]);
       toast.success("配置保存成功");
-    } catch {
-      toast.error("保存失败，请重试");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "保存失败，请重试");
     }
   };
 
@@ -84,6 +104,7 @@ export default function AdminAIConfig() {
         AI 配置
       </h1>
 
+      {loadError && <p role="alert">配置读取失败，请刷新后重试。</p>}
       <div className="space-y-6">
         {/* 启用开关 */}
         <div>
@@ -164,16 +185,34 @@ export default function AdminAIConfig() {
           <Input
             id="api-key"
             type="password"
-            placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+            placeholder={
+              configData?.config.hasApiKey
+                ? "已保存密钥，留空保留"
+                : "输入服务商 API Key"
+            }
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
             className="font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground mt-2">
-            在服务商官网获取的 API 密钥，仅存储在内存中，重启后需要重新配置
+            密钥保存在服务器数据库中，重启后仍有效，读取时不会返回明文。更换服务商或地址需重新输入密钥。
           </p>
         </div>
 
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={clearApiKey}
+            onChange={event => {
+              setClearApiKey(event.target.checked);
+              if (event.target.checked) {
+                setEnabled(false);
+                setApiKey("");
+              }
+            }}
+          />
+          保存时清除密钥并禁用 AI
+        </label>
         {/* API Base URL */}
         <div>
           <h2 className="text-lg font-semibold mb-4">API 地址</h2>
@@ -224,7 +263,7 @@ export default function AdminAIConfig() {
         <div className="flex justify-end">
           <Button
             onClick={handleSubmit}
-            disabled={saveConfigMutation.isPending}
+            disabled={saveConfigMutation.isPending || isLoading || !!loadError}
           >
             {saveConfigMutation.isPending ? (
               <>
