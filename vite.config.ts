@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
   const plugins = [
     react(),
     tailwindcss(),
-    jsxLocPlugin(),
+    ...(mode === "development" ? [jsxLocPlugin()] : []),
     cdnStaticAssetsPlugin(env.VITE_CDN_URL || ""),
   ];
 
