@@ -20,6 +20,12 @@ import { sendArticleNotify, sendTestEmail } from "../lib/email";
 import { parseSeriesMetadata } from "../lib/articleSeries";
 import { ROOT_DIR } from "../root";
 import { prepareArticleContent } from "../lib/articleWrites";
+import {
+  aboutSchema,
+  configRevision,
+  getAboutConfig,
+  saveAboutConfig,
+} from "../lib/aboutConfig";
 
 export const adminRouter = router({
   // ========================================================================
@@ -657,65 +663,19 @@ export const adminRouter = router({
   // About 页面配置
   // ========================================================================
 
-  /** 获取 About 页面配置 */
   getAboutConfig: protectedProcedure.query(async () => {
     try {
-      const configDir =
-        process.env.NODE_ENV === "development"
-          ? path.join(ROOT_DIR, "client/public")
-          : path.join(ROOT_DIR, "public");
-      const raw = await fs.readFile(
-        path.join(configDir, "about-config.json"),
-        "utf-8"
-      );
-      return { success: true, config: JSON.parse(raw) };
-    } catch (error) {
-      console.error("[Admin] Error reading about config:", error);
-      return { success: false, error: "读取配置失败" };
+      return { success: true as const, ...(await getAboutConfig()) };
+    } catch {
+      return { success: false as const, error: "读取配置失败" };
     }
   }),
-
-  /** 更新 About 页面配置 */
   updateAboutConfig: protectedProcedure
-    .input(
-      z.object({
-        hero: z.object({
-          image: z.string(),
-          title: z.string(),
-          paragraphs: z.array(z.string()),
-          quote: z.string(),
-        }),
-        interests: z.array(
-          z.object({
-            label: z.string(),
-            description: z.string(),
-          })
-        ),
-        favorites: z.array(
-          z.object({
-            category: z.string(),
-            items: z.array(z.string()),
-          })
-        ),
-      })
-    )
+    .input(aboutSchema.extend({ expectedRevision: configRevision.optional() }))
     .mutation(async ({ input }) => {
-      try {
-        const json = JSON.stringify(input, null, 2) + "\n";
-        const configDir =
-          process.env.NODE_ENV === "development"
-            ? path.join(ROOT_DIR, "client/public")
-            : path.join(ROOT_DIR, "public");
-        await fs.writeFile(
-          path.join(configDir, "about-config.json"),
-          json,
-          "utf-8"
-        );
-        return { success: true };
-      } catch (error) {
-        console.error("[Admin] Error updating about config:", error);
-        return { success: false, error: "保存配置失败" };
-      }
+      const { expectedRevision, ...config } = input;
+      await saveAboutConfig(config, expectedRevision);
+      return { success: true };
     }),
 
   // ========================================================================

@@ -59,7 +59,7 @@ export default function AdminAbout() {
       toast.success("关于页面配置已保存");
       utils.admin.getAboutConfig.invalidate();
     },
-    onError: () => toast.error("保存失败"),
+    onError: error => toast.error(error.message),
   });
 
   const checkAIEnabled = trpc.ai.checkEnabled.useQuery();
@@ -94,7 +94,11 @@ export default function AdminAbout() {
   };
 
   const handleSave = () => {
-    updateMutation.mutate(config);
+    if (!data?.success) return;
+    updateMutation.mutate({
+      ...config,
+      expectedRevision: data?.success ? data.revision : undefined,
+    });
   };
 
   const [uploading, setUploading] = useState(false);

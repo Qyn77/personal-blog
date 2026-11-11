@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Token, McpScope } from "./store";
 import * as content from "./content";
 import * as archives from "./archives";
+import * as about from "./about";
 
 export function createMcpServer(token: Token, origin: string) {
   const server = new McpServer(
@@ -166,6 +167,22 @@ export function createMcpServer(token: Token, origin: string) {
     "archive:delete",
     false,
     input => archives.deleteArchive(token, input)
+  );
+  tool(
+    "get_about",
+    "读取关于页面配置和 revision。",
+    z.object({}).strict(),
+    "site:read",
+    true,
+    () => about.getAbout(token)
+  );
+  tool(
+    "update_about",
+    "编辑关于页面并立即公开；hero 按字段合并，数组整体替换，未传入部分保持原样。",
+    about.updateAboutInput,
+    "site:write",
+    false,
+    input => about.updateAbout(token, input)
   );
   return server;
 }

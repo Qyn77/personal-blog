@@ -47,8 +47,11 @@ export default function About() {
 
   // 加载配置文件
   useEffect(() => {
-    fetch("/about-config.json")
-      .then(res => res.json())
+    fetch("/about-config.json", { cache: "no-store" })
+      .then(res => {
+        if (!res.ok) throw new Error("About configuration unavailable");
+        return res.json();
+      })
       .then(data => setConfig(data))
       .catch(err => {
         console.error("Failed to load about config:", err);

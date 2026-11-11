@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { aboutRouter } from "../routes/about";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
@@ -40,6 +41,7 @@ async function startServer() {
   const server = createServer(app);
   // 部署在反向代理（nginx / Railway / Cloudflare）后面，需信任 X-Forwarded-* 才能拿到 https 协议与真实 IP
   app.set("trust proxy", true);
+  app.use(aboutRouter);
   app.use("/mcp", mcpRouter);
   app.use("/api/mcp-preview", previewRouter);
   app.use("/preview", (_req, res, next) => {
