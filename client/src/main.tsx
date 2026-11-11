@@ -7,7 +7,13 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 
+if (import.meta.env.DEV) {
+  void import("react-grab");
+  void import("react-scan");
+}
+
 function setupAnalyticsScript() {
+  if (window.location.pathname.startsWith("/preview")) return;
   const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
   const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
 

@@ -15,7 +15,8 @@ export function useVisitorTracker() {
     lastTracked.current = location;
 
     // 不追踪 admin 页面
-    if (location.startsWith("/admin")) return;
+    if (location.startsWith("/admin") || location.startsWith("/preview"))
+      return;
 
     fetch("/api/visitor/track", {
       method: "POST",

@@ -15,6 +15,8 @@ const Article = lazy(() => import("./pages/Article"));
 const Archive = lazy(() => import("./pages/Archive"));
 const ArchiveDetail = lazy(() => import("./pages/ArchiveDetail"));
 const Series = lazy(() => import("./pages/Series"));
+const ArticlePreview = lazy(() => import("./pages/ArticlePreview"));
+const AdminMcp = lazy(() => import("./pages/admin/AdminMcp"));
 const About = lazy(() => import("./pages/About"));
 
 // Admin 路由懒加载
@@ -75,6 +77,7 @@ function Router() {
       <Route path="/archive/:slug">{wrapPublic(ArchiveDetail)}</Route>
       <Route path="/series">{wrapPublic(Series)}</Route>
       <Route path="/series/:name">{wrapPublic(Series)}</Route>
+      <Route path="/preview">{wrapPublic(ArticlePreview)}</Route>
       <Route path="/about">{wrapPublic(About)}</Route>
 
       {/* Admin 路由 */}
@@ -87,6 +90,7 @@ function Router() {
       <Route path="/admin/archives/:id">{wrapAdmin(AdminArchiveEdit)}</Route>
       <Route path="/admin/subscribers">{wrapAdmin(AdminSubscribers)}</Route>
       <Route path="/admin/visitors">{wrapAdmin(AdminVisitors)}</Route>
+      <Route path="/admin/mcp">{wrapAdmin(AdminMcp)}</Route>
       <Route path="/admin/ai">{wrapAdmin(AdminAIConfig)}</Route>
       <Route path="/admin/settings">{wrapAdmin(AdminSettings)}</Route>
       <Route path="/admin/about">{wrapAdmin(AdminAbout)}</Route>
