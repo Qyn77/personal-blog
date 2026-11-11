@@ -1,6 +1,7 @@
 import { eq, desc, asc, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/sql-js";
-import initSqlJs from "sql.js";
+import initSqlJs, { type Database } from "sql.js";
+import { ensureMcpTables } from "./mcp/schema";
 import fs from "fs";
 import path from "path";
 import {
@@ -54,6 +55,7 @@ function ensureTables(sqlJsDb: any) {
     );
   `);
   ensureArticleSeriesColumns(sqlJsDb);
+  ensureMcpTables(sqlJsDb);
   // 兼容旧数据库：如果 articles 表没有 status 列，自动添加
   try {
     const columns = sqlJsDb.exec("PRAGMA table_info(articles)");
@@ -1208,4 +1210,36 @@ export async function getSeriesArticles(name: string) {
     .where(and(eq(articles.status, "published"), eq(articles.series, name)))
     .orderBy(asc(articles.seriesOrder), asc(articles.date), asc(articles.id))
     .all();
+}
+
+/** Callbacks must be synchronous: the sql.js connection belongs to this process. */
+export async function readDatabase<T>(
+  read: (database: Database) => T
+): Promise<T> {
+  if (!(await getDb())) throw new Error("Database unavailable");
+  return read(_sqlJsDb);
+}
+
+/** Commit a group of writes and its receipt together, or restore the last disk snapshot. */
+export async function writeDatabase<T>(
+  write: (database: Database) => T
+): Promise<T> {
+  if (!(await getDb())) throw new Error("Database unavailable");
+  const database = _sqlJsDb as Database;
+  database.run("BEGIN IMMEDIATE");
+  try {
+    const result = write(database);
+    if (result instanceof Promise)
+      throw new Error("Database transaction must be synchronous");
+    database.run("COMMIT");
+    saveDb();
+    return result;
+  } catch (error) {
+    try {
+      database.run("ROLLBACK");
+    } catch {
+      /* saveDb may have replaced the connection. */
+    }
+    throw error;
+  }
 }
