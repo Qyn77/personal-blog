@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { mcpClients, mcpClientConfig, type McpClient } from "@/lib/mcpClients";
 
 const permissions = [
   {
@@ -26,6 +27,42 @@ const permissions = [
     title: "管理发布",
     description: "发布、撤回发布；与编辑权限同时开启可修改已发布文章",
   },
+  {
+    id: "archive:read",
+    title: "读取归档",
+    description: "查询归档列表和完整内容",
+  },
+  {
+    id: "archive:write",
+    title: "编辑归档",
+    description: "创建和修改归档，保存后立即公开",
+  },
+  {
+    id: "archive:delete",
+    title: "删除归档",
+    description: "永久删除归档，需确认标题，没有回收站",
+  },
+  {
+    id: "site:read",
+    title: "读取关于页面",
+    description: "读取个人介绍、兴趣和喜好",
+  },
+  {
+    id: "site:write",
+    title: "编辑关于页面",
+    description: "修改关于页面，保存后立即公开",
+  },
+  {
+    id: "ai:read",
+    title: "读取 AI 配置",
+    description: "读取服务商、模型和启用状态，不返回密钥",
+  },
+  {
+    id: "ai:write",
+    title: "管理 AI 配置",
+    description:
+      "保存或清除密钥、切换服务商、启停及测试连接；测试可能产生服务商费用",
+  },
 ] as const;
 type Scope = (typeof permissions)[number]["id"];
 const actions: Record<string, string> = {
@@ -35,6 +72,12 @@ const actions: Record<string, string> = {
   organize_series: "编排系列",
   upload_image: "上传图片",
   create_preview: "生成预览",
+  create_archive: "创建归档",
+  update_archive: "修改归档",
+  delete_archive: "删除归档",
+  update_about: "编辑关于页面",
+  update_ai_config: "修改 AI 配置",
+  test_ai_connection: "测试 AI 连接",
 };
 const time = (value: number) => new Date(value).toLocaleString("zh-CN");
 async function copy(value: string) {
@@ -45,12 +88,11 @@ async function copy(value: string) {
     toast.error("复制失败，请手动选择文本复制");
   }
 }
-function codexConfig(endpoint: string, secret: string) {
-  return `[mcp_servers.personal_blog]\nurl = ${JSON.stringify(endpoint)}\nhttp_headers = { Authorization = ${JSON.stringify(`Bearer ${secret}`)} }\n`;
-}
 export default function AdminMcp() {
   const utils = trpc.useUtils();
   const info = trpc.mcpAdmin.info.useQuery();
+  const [client, setClient] = useState<McpClient>("codex");
+  const selectedClient = mcpClients.find(item => item.id === client)!;
   const [name, setName] = useState("Codex");
   const [days, setDays] = useState(90);
   const [scopes, setScopes] = useState<Scope[]>([
@@ -76,7 +118,8 @@ export default function AdminMcp() {
       <header>
         <h1 className="text-2xl font-bold mb-3">AI 接入</h1>
         <p className="text-muted-foreground leading-relaxed">
-          连接 Codex 等 MCP 客户端，在对话里写文章、整理系列并发布到墨迹。
+          连接 Codex、Claude Code 或
+          OpenCode，在对话里管理文章、系列、归档、关于页面和网站 AI 配置。
         </p>
       </header>
       <section
@@ -112,10 +155,34 @@ export default function AdminMcp() {
             根地址，然后重启服务。
           </p>
         )}
-        <p className="text-sm text-muted-foreground">
-          先创建独立令牌，再把配置添加到 Codex 的
-          ~/.codex/config.toml。重启客户端后，可说“查询网站最近的文章”。
-        </p>
+        <div className="space-y-2">
+          <Label htmlFor="mcp-client">选择客户端</Label>
+          <select
+            id="mcp-client"
+            className="w-full border border-input bg-background px-3 py-2 text-sm"
+            value={client}
+            onChange={event => {
+              const value = event.target.value as McpClient;
+              setClient(value);
+              if (mcpClients.some(item => item.name === name))
+                setName(mcpClients.find(item => item.id === value)!.name);
+            }}
+          >
+            {mcpClients.map(item => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-muted-foreground break-all">
+            配置位置：{selectedClient.location}
+          </p>
+          <p className="text-sm text-muted-foreground">{selectedClient.hint}</p>
+          <p className="text-sm text-muted-foreground">
+            先创建独立令牌，再复制对应配置。连接 MCP 不需要开启网站 AI；网站 AI
+            配置控制后台的润色和元数据生成。
+          </p>
+        </div>
       </section>
       {issued && (
         <section
@@ -134,11 +201,22 @@ export default function AdminMcp() {
             value={issued.secret}
             className="font-mono text-sm"
           />
+          <Label htmlFor="mcp-client-config">客户端配置</Label>
+          <textarea
+            id="mcp-client-config"
+            readOnly
+            rows={9}
+            value={mcpClientConfig(client, endpoint!, issued.secret)}
+            className="w-full min-w-0 border border-input bg-background p-3 font-mono text-xs"
+            spellCheck={false}
+          />
           <div className="flex flex-wrap gap-3">
             <Button
-              onClick={() => void copy(codexConfig(endpoint!, issued.secret))}
+              onClick={() =>
+                void copy(mcpClientConfig(client, endpoint!, issued.secret))
+              }
             >
-              复制 Codex 配置
+              复制 {selectedClient.name} 配置
             </Button>
             <Button variant="outline" onClick={() => void copy(issued.secret)}>
               复制令牌
@@ -219,7 +297,8 @@ export default function AdminMcp() {
           ))}
         </fieldset>
         <p className="text-sm text-muted-foreground">
-          新文章默认存为草稿，发布需单独调用工具。MCP 操作不会发送订阅邮件。
+          新文章默认存为草稿；归档和关于页面保存后立即公开。新增权限默认关闭，旧令牌不会自动扩权，需要重新创建令牌。MCP
+          操作不会发送订阅邮件。
         </p>
         <Button
           type="submit"

@@ -148,3 +148,75 @@ it("creates, previews and publishes through MCP protocol", async () => {
     await client.close();
   }
 });
+it("exposes all management tools and performs archive, About and AI writes over HTTP", async () => {
+  fs.mkdirSync(`${ROOT_DIR}/public`, { recursive: true });
+  fs.writeFileSync(
+    `${ROOT_DIR}/public/about-config.json`,
+    JSON.stringify({
+      hero: { image: "", title: "Qyn", paragraphs: [], quote: "" },
+      interests: [],
+      favorites: [],
+    })
+  );
+  const { scopes } = await import("./store");
+  const { secret } = await createToken({
+    name: "management",
+    scopes: [...scopes],
+  });
+  const client = new Client({ name: "management-test", version: "1" });
+  try {
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
+        requestInit: { headers: { Authorization: `Bearer ${secret}` } },
+      })
+    );
+    expect((await client.listTools()).tools).toHaveLength(19);
+    const call = async (name: string, args: Record<string, unknown> = {}) => {
+      const result = await client.callTool({ name, arguments: args });
+      expect(result.isError, JSON.stringify(result.content)).not.toBe(true);
+      return result.structuredContent as Record<string, any>;
+    };
+    const archive = await call("create_archive", {
+      title: "公开记录",
+      content: "学习心得",
+      category: "学习",
+      date: "2026-11-11",
+      requestId: "http-archive-create",
+    });
+    const changed = await call("update_archive", {
+      id: archive.id,
+      expectedUpdatedAt: archive.updatedAt,
+      title: "更新记录",
+      requestId: "http-archive-update",
+    });
+    expect((await call("get_archive", { id: archive.id })).title).toBe(
+      "更新记录"
+    );
+    await call("delete_archive", {
+      id: archive.id,
+      expectedUpdatedAt: changed.updatedAt,
+      confirmTitle: "更新记录",
+      requestId: "http-archive-delete",
+    });
+    const about = await call("get_about");
+    const updated = await call("update_about", {
+      hero: { quote: "继续学习" },
+      expectedRevision: about.revision,
+      requestId: "http-about-update",
+    });
+    expect(updated.config.hero.title).toBe("Qyn");
+    const ai = await call("get_ai_config");
+    const saved = await call("update_ai_config", {
+      apiKey: "fixture-secret",
+      enabled: true,
+      expectedRevision: ai.revision,
+      requestId: "http-ai-update",
+    });
+    expect(saved.config.hasApiKey).toBe(true);
+    expect(JSON.stringify(await call("get_ai_config"))).not.toContain(
+      "fixture-secret"
+    );
+  } finally {
+    await client.close();
+  }
+});
