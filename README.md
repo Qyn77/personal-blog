@@ -8,6 +8,7 @@
 
 - 极简设计，专注内容阅读体验，光暗主题切换
 - 管理后台：文章/归档 CRUD、封面图片上传、剪贴板粘贴图片、About 页面配置
+- **MCP 接入**：让 Codex 等 AI 客户端直接写草稿、上传图片、编排系列、预览和发布；后台管理独立访问令牌，见 [MCP 使用指南](docs/mcp.md)
 - Markdown 渲染：代码高亮、数学公式（KaTeX）、GFM 表格/任务列表
 - 访客追踪：记录 IP、设备、浏览器、操作系统、访问路径，IP 地理位置查询
 - 邮件订阅：验证邮箱 → 新文章自动通知 → 一键退订
@@ -79,6 +80,14 @@ pnpm db:init
 
 端口被占用时会自动扫描 3000-3019 范围内的可用端口。
 
+### 部署后启用 MCP
+
+在服务器 `.env` 中设置 `SITE_URL=https://你的域名` 并重启网站，然后进入 **管理后台 → AI 接入** 创建令牌、复制 Codex 配置。MCP 随网站一起运行，无需另部署服务或编写客户端。
+
+新文章默认保存为草稿；授予发布权限后，AI 可以按你的要求发布到网站。支持私有预览、系列编排、图片上传、令牌过期和撤销，MCP 操作不发送订阅邮件。完整步骤和配置示例见 **[MCP 部署与使用文档](docs/mcp.md)**。
+
+升级会自动补齐 MCP 数据表，不需要运行 `pnpm db:init`。请保留并备份现有 `blog.db` 和上传目录；sql.js 使用进程内数据库，应保持单进程运行。
+
 ### 使用 PM2 守护进程
 
 ```bash
@@ -132,17 +141,18 @@ CMD ["node", "index.js"]
 
 ### 可选项
 
-| 变量                        | 说明                    | 默认值           |
-| --------------------------- | ----------------------- | ---------------- |
-| `PORT`                      | 服务端口                | `3000`           |
-| `ADMIN_USERNAME`            | 管理员用户名            | `admin`          |
-| `DATABASE_URL`              | SQLite 数据库文件路径   | `file:./blog.db` |
-| `EMAIL_SERVICE_HOST`        | SMTP 服务器地址         | `smtp.qq.com`    |
-| `EMAIL_SERVICE_PORT`        | SMTP 端口               | `465`            |
-| `EMAIL_SERVICE_USER`        | SMTP 用户名（发件邮箱） | —                |
-| `EMAIL_SERVICE_PASSWORD`    | SMTP 密码/授权码        | —                |
-| `VITE_ANALYTICS_ENDPOINT`   | Umami 统计服务端点      | —                |
-| `VITE_ANALYTICS_WEBSITE_ID` | Umami 网站 ID           | —                |
+| 变量                        | 说明                               | 默认值           |
+| --------------------------- | ---------------------------------- | ---------------- |
+| `PORT`                      | 服务端口                           | `3000`           |
+| `SITE_URL`                  | 网站 HTTPS 根地址；启用 MCP 时必填 | —                |
+| `ADMIN_USERNAME`            | 管理员用户名                       | `admin`          |
+| `DATABASE_URL`              | SQLite 数据库文件路径              | `file:./blog.db` |
+| `EMAIL_SERVICE_HOST`        | SMTP 服务器地址                    | `smtp.qq.com`    |
+| `EMAIL_SERVICE_PORT`        | SMTP 端口                          | `465`            |
+| `EMAIL_SERVICE_USER`        | SMTP 用户名（发件邮箱）            | —                |
+| `EMAIL_SERVICE_PASSWORD`    | SMTP 密码/授权码                   | —                |
+| `VITE_ANALYTICS_ENDPOINT`   | Umami 统计服务端点                 | —                |
+| `VITE_ANALYTICS_WEBSITE_ID` | Umami 网站 ID                      | —                |
 
 > 邮箱配置仅用于订阅功能，不配置不影响其他功能。
 
@@ -156,11 +166,12 @@ personal-blog/
 │   │   │   ├── Home.tsx           # 首页（Hero + 精选文章 + 最新文章 + 侧边栏）
 │   │   │   ├── Blog.tsx           # 博客列表（无限滚动、分类筛选、标签筛选、搜索）
 │   │   │   ├── Article.tsx        # 文章详情（阅读进度条、视差封面、相关文章）
+│   │   │   ├── ArticlePreview.tsx # MCP 私有预览（一小时有效）
 │   │   │   ├── Archive.tsx        # 归档时间线（按年分组）
 │   │   │   ├── ArchiveDetail.tsx  # 归档详情
 │   │   │   ├── About.tsx          # 关于页面（从 about-config.json 加载）
 │   │   │   ├── NotFound.tsx       # 404 页面
-│   │   │   └── admin/             # 管理后台（8 个页面，懒加载）
+│   │   │   └── admin/             # 管理后台（懒加载）
 │   │   │       ├── AdminDashboard.tsx    # 仪表盘（文章/归档统计）
 │   │   │       ├── AdminArticles.tsx     # 文章管理列表
 │   │   │       ├── AdminArticleEdit.tsx  # 文章编辑器（支持粘贴图片上传）
@@ -168,6 +179,7 @@ personal-blog/
 │   │   │       ├── AdminArchiveEdit.tsx  # 归档编辑器
 │   │   │       ├── AdminSubscribers.tsx  # 订阅者管理
 │   │   │       ├── AdminVisitors.tsx     # 访客记录（统计卡片、分页表格）
+│   │   │       ├── AdminMcp.tsx          # MCP 令牌、权限和成功操作记录
 │   │   │       ├── AdminSettings.tsx     # 系统设置（自动通知开关、SMTP 测试）
 │   │   │       └── AdminAbout.tsx        # About 页面配置编辑
 │   │   ├── components/            # 通用组件
@@ -201,7 +213,9 @@ personal-blog/
 │   ├── routers/
 │   │   ├── blog.ts                # 博客公开 API（列表、详情、分类、搜索、订阅）
 │   │   ├── archive.ts             # 归档公开 API
-│   │   └── admin.ts               # 管理后台 API（CRUD、邮件通知、配置管理）
+│   │   ├── admin.ts               # 管理后台 API（CRUD、邮件通知、配置管理）
+│   │   └── mcpAdmin.ts            # 管理员 MCP 令牌管理 API
+│   ├── mcp/                      # 远程 MCP 协议、鉴权、文章工具与私有预览
 │   ├── routes/
 │   │   ├── auth.ts                # 认证路由（登录、验证 Token）
 │   │   ├── upload.ts              # 文件上传路由（Markdown、图片、删除）
@@ -267,6 +281,7 @@ personal-blog/
 | 归档编辑器     | `/admin/archives/:id` | 同文章编辑器（无 featured 和 status 字段）                            |
 | 订阅者管理     | `/admin/subscribers`  | 查看订阅者列表（状态、日期）、删除订阅者                              |
 | 访客记录       | `/admin/visitors`     | 访客统计（今日/昨日/本周/本月/总计）、分页浏览、清理旧数据            |
+| AI 接入        | `/admin/mcp`          | 创建/撤销 MCP 令牌、选择权限、复制 Codex 配置、查看成功操作记录       |
 | 系统设置       | `/admin/settings`     | 自动通知开关、SMTP 测试邮件                                           |
 | About 页面配置 | `/admin/about`        | 编辑 Hero 区域、兴趣列表、推荐内容，支持上传头像图片                  |
 
