@@ -31,8 +31,8 @@ const navItems = [
   { href: "/admin/archives", icon: Archive, label: "归档管理" },
   { href: "/admin/subscribers", icon: Mail, label: "订阅管理" },
   { href: "/admin/visitors", icon: BarChart3, label: "访客记录" },
-  { href: "/admin/mcp", icon: KeyRound, label: "AI 接入" },
-  { href: "/admin/ai", icon: Sparkles, label: "AI 配置" },
+  { href: "/admin/mcp", icon: KeyRound, label: "Agent 连接" },
+  { href: "/admin/ai", icon: Sparkles, label: "网站 AI 助手" },
   { href: "/admin/settings", icon: Settings, label: "系统设置" },
   { href: "/admin/about", icon: User, label: "关于页面" },
 ];

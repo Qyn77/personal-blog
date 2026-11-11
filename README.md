@@ -82,7 +82,7 @@ pnpm db:init
 
 ### 部署后启用 MCP
 
-在服务器 `.env` 中设置 `SITE_URL=https://你的域名` 并重启网站，然后进入 **管理后台 → AI 接入** 创建令牌、选择客户端并复制配置。MCP 随网站一起运行，无需另部署服务或编写客户端。
+在服务器 `.env` 中设置 `SITE_URL=https://你的域名` 并重启网站，然后进入 **管理后台 → Agent 连接** 创建令牌、选择客户端并复制配置。MCP 随网站一起运行，无需另部署服务或编写客户端。
 
 新文章默认保存为草稿；授予发布权限后，AI 可以按你的要求发布到网站。支持私有预览、系列编排、图片上传，以及独立授权的归档管理、关于页面编辑和 AI 配置；令牌支持过期和撤销，MCP 操作不发送订阅邮件。完整步骤和配置示例见 **[MCP 部署与使用文档](docs/mcp.md)**。
 
@@ -281,7 +281,8 @@ personal-blog/
 | 归档编辑器     | `/admin/archives/:id` | 同文章编辑器（无 featured 和 status 字段）                                               |
 | 订阅者管理     | `/admin/subscribers`  | 查看订阅者列表（状态、日期）、删除订阅者                                                 |
 | 访客记录       | `/admin/visitors`     | 访客统计（今日/昨日/本周/本月/总计）、分页浏览、清理旧数据                               |
-| AI 接入        | `/admin/mcp`          | 创建/撤销 MCP 令牌、选择权限、复制 Codex / Claude Code / OpenCode 配置、查看成功操作记录 |
+| Agent 连接     | `/admin/mcp`          | 创建/撤销 MCP 令牌、选择权限、复制 Codex / Claude Code / OpenCode 配置、查看成功操作记录 |
+| 网站 AI 助手   | `/admin/ai`           | 配置模型服务、管理密钥、启停后台润色与元数据生成功能                                     |
 | 系统设置       | `/admin/settings`     | 自动通知开关、SMTP 测试邮件                                                              |
 | About 页面配置 | `/admin/about`        | 编辑 Hero 区域、兴趣列表、推荐内容，支持上传头像图片                                     |
 

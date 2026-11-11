@@ -41,3 +41,13 @@
 ## 8. 可访问性与验证边界
 
 新交互须有可读名称、键盘焦点和错误反馈；375/768/1280 宽度验证换行与溢出，覆盖深色模式。复用现有 UI 组件作为状态样例。浏览器自动化验证代表桌面 Chrome 模拟视口，不代表真实手机或辅助阅读器验收；不声称未测量的 Lighthouse 分数。
+
+## 9. 网站助手与 Agent 连接（2026-11-11）
+
+- 导航按任务命名：Agent 连接（本地客户端通过 MCP 管理网站）、网站 AI 助手（后台润色与元数据生成）。页首用一句话说明用途，并提供前往另一页的文字链接。
+- 模型页采用主表单 + supporting-pane：宽屏 xl 主区自适应、辅助区 16rem；窄屏依次堆叠，AdminLayout 的 main 是唯一纵向滚动区。参考 [StyleGallery supporting-pane](https://github.com/changeroa/StyleGallery/blob/main/patterns/split-sidebar/supporting-pane.md)。
+- 主区用一块带边框的编辑表面收纳服务商、地址、模型和密钥；服务商用原生 radio 组成两列选择区，文字说明 API 类型，选中使用 foreground 边框与 muted 背景，不使用彩色字母头像和渐变。
+- 辅助区展示服务器当前状态、启用开关及可用功能。区分已保存状态与待保存修改，不能把已保存等同连接成功。底部保存栏保持可见，显示未保存/保存中/已保存；失败保留输入并显示可读错误。
+- 表单为键盘和手机用户提供显式 label、原生单选组、至少 44px 的选择区域；加载时不呈现可编辑的假默认值，失败提供重试。密钥清除放在原生 details 中，必须明确勾选。
+- 继续使用既有字体、语义色、4px 间距、Button/Input/Switch；主标题 text-3xl，分区标题 text-base，辅助文字 text-sm。新的布局不增加动效或依赖。
+- 参考可用性：本机 frontend 包缺少 redesign-skill、visual-qa、review-work 文件，已检索；使用现有设计约定、布局参考和实际浏览器截图进行审阅，不声称运行不存在的技能。

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,12 +116,23 @@ export default function AdminMcp() {
   const endpoint = info.data?.endpoint;
   return (
     <div className="max-w-4xl space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold mb-3">AI 接入</h1>
-        <p className="text-muted-foreground leading-relaxed">
-          连接 Codex、Claude Code 或
-          OpenCode，在对话里管理文章、系列、归档、关于页面和网站 AI 配置。
+      <header className="space-y-4">
+        <p className="font-mono text-xs tracking-widest text-muted-foreground">
+          MCP / AGENT CONNECTION
         </p>
+        <h1 className="text-3xl font-semibold">Agent 连接</h1>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <p className="max-w-xl text-sm text-muted-foreground leading-relaxed">
+            让 Codex、Claude Code 或 OpenCode
+            连接你的网站，在本地对话中写文章、整理归档和管理内容。
+          </p>
+          <Link
+            href="/admin/ai"
+            className="text-sm underline underline-offset-4 hover:text-muted-foreground"
+          >
+            配置网站 AI 助手 →
+          </Link>
+        </div>
       </header>
       <section
         aria-labelledby="mcp-connection"
